@@ -1,0 +1,7 @@
+stage_order,stage,stage_label,count,ratio_vs_event,ratio_vs_prev
+1,event,Event Units,4808,1.0,1.0
+2,candidate,Weak Candidates,1106,0.2300332778702163,0.2300332778702163
+3,scored,Scored Candidates,1106,0.2300332778702163,1.0
+4,gated,Gated Candidates,1106,0.2300332778702163,1.0
+5,augmented,Augmented Uncertain,645,0.13415141430948418,0.5831826401446655
+6,final,Final High Priority,24,0.004991680532445923,0.037209302325581395

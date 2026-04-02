@@ -1,0 +1,5 @@
+﻿min_weak_rules,events_with_structural_hit,events_with_weak_hit,events_with_only_structural,events_with_only_weak,events_with_struct_and_weak,weak_path_history_count,single_collector_count
+1,1098,1352,328,582,770,0,4775
+2,1098,1352,328,582,770,0,4775
+3,1098,1352,328,582,770,0,4775
+10,1098,1352,328,582,770,0,4775

@@ -1,0 +1,5 @@
+﻿compare_to,min_weak_rules,added_vs_mwr2,removed_vs_mwr2,intersection_with_mwr2
+mwr2,1,574,0,1106
+mwr2,2,0,0,1106
+mwr2,3,0,8,1098
+mwr2,10,0,8,1098

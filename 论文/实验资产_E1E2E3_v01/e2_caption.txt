@@ -1,0 +1,3 @@
+﻿E2 结果表明，高优先告警主要由结构性证据主导：high_priority_alert 共 24 条，其中 22 条来自 gating、2 条来自 augmentation；top_contributing_factor 在 high_priority 中 structural_novelty_score 占比为 100%。
+
+同时，高优先样本的 missing_origin_or_path 占比为 0%，且在 risk/certainty/conflict 三项质量指标上均优于 needs_review 与 low_priority_or_background。这支持“高优先结果具备更高证据完整性与可解释性”的主张。

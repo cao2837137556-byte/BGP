@@ -1,0 +1,26 @@
+{
+  "new_high_count": 242,
+  "removed_high_count": 0,
+  "new_high_default_label_dist": {
+    "needs_review": 241,
+    "low_priority_or_background": 1
+  },
+  "new_high_gating_label_dist": {},
+  "new_high_risk_bucket_dist": {
+    "high": 242
+  },
+  "new_high_top_factor_dist": {
+    "structural_novelty_score": 240,
+    "history_rarity_score": 2
+  },
+  "new_high_mean_scores": {
+    "risk_score": 45.95226611570248,
+    "certainty_score": 36.188302892561985,
+    "conflict_score": 26.301652892561982,
+    "structural_novelty_score": 47.396694214876035,
+    "weak_signal_score": 28.359504132231404,
+    "history_rarity_score": 67.7796347107438,
+    "path_consistency_score": 53.400826446280995
+  },
+  "new_high_missing_origin_or_path": 140
+}

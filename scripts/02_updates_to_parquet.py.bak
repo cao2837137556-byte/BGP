@@ -1,0 +1,39 @@
+﻿import os
+import pandas as pd
+import pybgpstream
+
+# 优先写到 /work（Docker挂载点），否则退回相对路径
+OUT_DIR = "/work/data/parquet" if os.path.isdir("/work") else "data/parquet"
+os.makedirs(OUT_DIR, exist_ok=True)
+
+stream = pybgpstream.BGPStream(
+    from_time="2017-07-07 00:00:00",
+    until_time="2017-07-07 00:05:00 UTC",
+    collectors=["route-views.sg"],
+    record_type="updates",
+)
+
+rows = []
+max_rows = 3000
+
+for elem in stream:
+    f = elem.fields
+    rows.append({
+        "ts": elem.time,
+        "collector": elem.collector,
+        "type": elem.type,  # A/W
+        "peer_asn": getattr(elem, "peer_asn", None),
+        "prefix": f.get("prefix"),
+        "as_path": f.get("as-path"),
+        "communities": f.get("communities"),
+        "next_hop": f.get("next-hop"),
+    })
+    if len(rows) >= max_rows:
+        break
+
+df = pd.DataFrame(rows)
+out_path = os.path.join(OUT_DIR, "updates_smoketest.parquet")
+df.to_parquet(out_path, index=False)
+
+print("✅ saved:", out_path, "rows:", len(df))
+print(df.head(5).to_string(index=False))

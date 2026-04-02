@@ -1,0 +1,15 @@
+﻿metric,high_priority_alert,needs_review,low_priority_or_background,note
+row_count,24,625,457,row count by final label
+high_source_from_gating,22 (91.67%),-,-,high priority source split
+high_source_from_augmentation,2 (8.33%),-,-,high priority source split
+top_factor_ratio::structural_novelty_score,100.00%,95.04%,96.28%,top factor distribution
+top_factor_ratio::weak_signal_score,0.00%,0.00%,1.53%,top factor distribution
+top_factor_ratio::history_rarity_score,0.00%,4.96%,2.19%,top factor distribution
+top_factor_ratio::path_consistency_score,0.00%,0.00%,0.00%,top factor distribution
+missing_origin_or_path_ratio,0.00%,22.40%,0.00%,missing field ratio
+risk_score_mean,52.8330,38.6075,30.2101,quality comparison
+risk_score_median,53.2434,36.3011,31.6727,quality comparison
+certainty_score_mean,66.7583,35.7551,34.0484,quality comparison
+certainty_score_median,66.9865,36.4428,34.2385,quality comparison
+conflict_score_mean,0.0000,10.1120,0.5361,quality comparison
+conflict_score_median,0.0000,0.0000,0.0000,quality comparison

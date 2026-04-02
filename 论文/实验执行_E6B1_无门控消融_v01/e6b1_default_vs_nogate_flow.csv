@@ -1,0 +1,3 @@
+﻿setting,total_events,candidate_count,scored_count,final_high_count,final_needs_count,final_low_count
+default,4808,1106,1106,24,625,457
+no_gate,4808,1106,1106,266,402,438

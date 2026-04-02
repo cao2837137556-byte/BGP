@@ -1,0 +1,16 @@
+E4 稳定性正式判断
+
+结论：通过
+
+判断依据：
+- high_priority_rate_over_total <=2%: 4/5 runs
+- missing_origin_or_path_in_high == 0: 5/5 runs
+- structural_novelty_dominance_in_high=true: 5/5 runs
+- retained_ratio >=80%: 5/5 runs
+- promoted_ratio <=10%: 5/5 runs
+- demoted_ratio <=20%: 5/5 runs
+
+结构稳定性观察：
+- high_priority_rate_over_total 平均值: 1.0560%
+- needs_review/scored 平均占比: 53.5298%
+- low_priority_or_background/scored 平均占比: 43.5218%

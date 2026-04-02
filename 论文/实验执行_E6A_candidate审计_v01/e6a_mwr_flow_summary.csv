@@ -1,0 +1,5 @@
+﻿min_weak_rules,total_events,candidate_count,candidate_rate,candidate_to_scored,candidate_to_high,candidate_to_needs,candidate_to_low,high_priority_from_gating,high_priority_from_augmentation
+1,4808,1680,0.34941763727121466,1680,24,911,745,22,2
+2,4808,1106,0.2300332778702163,1106,24,625,457,22,2
+3,4808,1098,0.228369384359401,1098,24,617,457,22,2
+10,4808,1098,0.228369384359401,1098,24,617,457,22,2

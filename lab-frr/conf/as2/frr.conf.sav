@@ -1,0 +1,16 @@
+frr defaults traditional
+hostname as2
+log stdout
+service integrated-vtysh-config
+!
+router bgp 2
+ no bgp ebgp-requires-policy
+ neighbor 172.16.12.1 remote-as 1
+ neighbor 172.16.23.3 remote-as 3
+ !
+ address-family ipv4 unicast
+  neighbor 172.16.12.1 activate
+  neighbor 172.16.23.3 activate
+ exit-address-family
+!
+line vty

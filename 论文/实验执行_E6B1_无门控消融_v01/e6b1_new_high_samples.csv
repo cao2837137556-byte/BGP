@@ -1,0 +1,201 @@
+﻿event_id,prefix,origin_as,as_path_clean,risk_score,risk_bucket,default_final_alert_label,no_gate_final_alert_label,top_contributing_factor,missing_origin_or_path,certainty_score,conflict_score
+20260313T032554_4f9be28c_evt_00002771,217.10.225.0/24,,,58.5959,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7894,45.0
+20260313T032554_4f9be28c_evt_00002776,217.10.235.0/24,,,58.5959,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7894,45.0
+20260313T032554_4f9be28c_evt_00002781,217.10.236.0/24,,,58.5959,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7894,45.0
+20260313T032554_4f9be28c_evt_00002786,217.10.238.0/24,,,58.5959,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7894,45.0
+20260313T032554_4f9be28c_evt_00002046,194.158.93.0/24,,,58.5959,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7894,45.0
+20260313T032554_4f9be28c_evt_00003742,41.243.3.0/24,,,58.5021,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7753,45.0
+20260313T032554_4f9be28c_evt_00002542,209.161.120.0/24,,,58.3628,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7544,45.0
+20260313T032554_4f9be28c_evt_00001515,170.251.201.0/24,,,58.2623,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7393,45.0
+20260313T032554_4f9be28c_evt_00004649,91.192.240.0/22,,,58.2623,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7393,45.0
+20260313T032554_4f9be28c_evt_00003791,43.250.138.0/24,,,58.2214,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7332,45.0
+20260313T032554_4f9be28c_evt_00004411,61.5.201.0/24,,,58.2214,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7332,45.0
+20260313T032554_4f9be28c_evt_00003258,2804:14c:da86::/48,,,58.185,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7278,45.0
+20260313T032554_4f9be28c_evt_00000248,103.42.2.0/24,,,58.1524,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7229,45.0
+20260313T032554_4f9be28c_evt_00003692,31.57.112.0/20,,,58.1229,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7184,45.0
+20260313T032554_4f9be28c_evt_00003650,2a07:c000::/29,,,58.1229,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7184,45.0
+20260313T032554_4f9be28c_evt_00003725,37.72.129.0/24,,,58.0713,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7107,45.0
+20260313T032554_4f9be28c_evt_00002014,193.104.207.0/24,,,58.0276,high,needs_review,high_priority_alert,structural_novelty_score,True,38.7041,45.0
+20260313T032554_4f9be28c_evt_00004718,91.233.95.0/24,,,57.8771,high,needs_review,high_priority_alert,structural_novelty_score,True,38.6816,45.0
+20260313T032554_4f9be28c_evt_00004746,93.181.192.0/19,,,57.866,high,needs_review,high_priority_alert,structural_novelty_score,True,38.6799,45.0
+20260313T032554_4f9be28c_evt_00004225,46.191.224.0/24,,,57.3014,high,needs_review,high_priority_alert,structural_novelty_score,True,38.5952,45.0
+20260313T032554_4f9be28c_evt_00004236,46.191.225.0/24,,,57.3014,high,needs_review,high_priority_alert,structural_novelty_score,True,38.5952,45.0
+20260313T032554_4f9be28c_evt_00002074,197.44.118.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000012,103.17.110.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000106,103.210.41.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000185,103.243.46.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000495,103.81.252.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000496,103.81.253.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000497,103.81.254.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000499,103.82.185.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000500,103.82.186.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000501,103.82.187.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00001431,150.242.23.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00004079,45.249.168.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00004080,45.249.170.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00004081,45.249.171.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000105,103.210.40.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000124,103.217.84.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000125,103.217.86.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000149,103.232.127.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000184,103.243.44.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000186,103.243.47.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000193,103.252.52.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000194,103.252.53.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000197,103.254.245.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000224,103.38.244.0/22,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000281,103.50.219.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000282,103.51.216.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000283,103.51.217.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000284,103.51.218.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000285,103.51.219.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000288,103.53.74.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000477,103.69.201.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000482,103.72.176.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000483,103.72.178.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000498,103.81.255.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000524,103.91.218.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000650,111.91.21.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000651,111.91.33.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000652,111.91.34.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000653,111.91.35.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000654,111.91.64.0/18,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000655,111.91.65.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000656,111.91.66.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000657,111.91.68.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000658,111.91.75.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000659,111.91.79.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000660,111.91.83.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000661,111.91.84.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000662,111.91.86.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000663,111.91.87.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00000664,111.91.88.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00001186,120.72.90.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00001187,120.88.33.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00001188,120.88.37.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00001189,120.88.41.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00001190,120.88.43.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00001232,123.108.224.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00001430,150.242.21.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00001803,180.211.111.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00002296,202.179.79.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00002297,202.179.80.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00002337,202.53.84.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00002830,220.158.136.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00002831,220.158.137.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00002832,220.158.138.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00003773,43.240.10.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00003774,43.240.11.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00003775,43.240.8.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00003776,43.240.9.0/24,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00003478,2804:8c8::/32,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00004247,46.191.226.0/23,,,52.9206,high,needs_review,high_priority_alert,structural_novelty_score,True,35.9381,45.0
+20260313T032554_4f9be28c_evt_00004472,69.168.232.0/24,,,52.4991,high,needs_review,high_priority_alert,structural_novelty_score,True,35.8749,45.0
+20260313T032554_4f9be28c_evt_00000089,103.204.191.0/24,,,52.4991,high,needs_review,high_priority_alert,structural_novelty_score,True,35.8749,45.0
+20260313T032554_4f9be28c_evt_00000130,103.220.43.0/24,,,52.4991,high,needs_review,high_priority_alert,structural_novelty_score,True,35.8749,45.0
+20260313T032554_4f9be28c_evt_00000478,103.69.32.0/24,,,52.4991,high,needs_review,high_priority_alert,structural_novelty_score,True,35.8749,45.0
+20260313T032554_4f9be28c_evt_00003779,43.242.245.0/24,,,52.4991,high,needs_review,high_priority_alert,structural_novelty_score,True,35.8749,45.0
+20260313T032554_4f9be28c_evt_00003835,45.117.132.0/22,,,52.4991,high,needs_review,high_priority_alert,structural_novelty_score,True,35.8749,45.0
+20260313T032554_4f9be28c_evt_00001786,179.109.95.0/24,,,51.7388,high,needs_review,high_priority_alert,structural_novelty_score,True,35.7608,45.0
+20260313T032554_4f9be28c_evt_00003509,2804:fbc:8000::/33,,,51.4246,high,needs_review,high_priority_alert,structural_novelty_score,True,35.7137,45.0
+20260313T032554_4f9be28c_evt_00003526,2804:fbc::/33,,,51.4246,high,needs_review,high_priority_alert,structural_novelty_score,True,35.7137,45.0
+20260313T032554_4f9be28c_evt_00003624,2a03:4a40::/48,,,48.8726,high,needs_review,high_priority_alert,structural_novelty_score,True,33.3309,45.0
+20260313T032554_4f9be28c_evt_00003167,2620:0:2f0::/48,,,48.0445,high,needs_review,high_priority_alert,structural_novelty_score,True,33.2067,45.0
+20260313T032554_4f9be28c_evt_00004660,91.199.188.0/24,,,48.0445,high,needs_review,high_priority_alert,structural_novelty_score,True,33.2067,45.0
+20260313T032554_4f9be28c_evt_00001352,128.73.35.0/24,,,47.9526,high,needs_review,high_priority_alert,structural_novelty_score,True,33.1929,45.0
+20260313T032554_4f9be28c_evt_00004287,59.145.102.0/24,,,47.9526,high,needs_review,high_priority_alert,structural_novelty_score,True,33.1929,45.0
+20260313T032554_4f9be28c_evt_00004248,46.191.226.0/24,,,47.4804,high,needs_review,high_priority_alert,structural_novelty_score,True,33.1221,45.0
+20260313T032554_4f9be28c_evt_00001666,172.111.241.0/24,,,47.3766,high,needs_review,high_priority_alert,structural_novelty_score,True,33.1065,45.0
+20260313T032554_4f9be28c_evt_00001683,172.94.4.0/24,,,47.3766,high,needs_review,high_priority_alert,structural_novelty_score,True,33.1065,45.0
+20260313T032554_4f9be28c_evt_00001389,141.101.147.0/24,,,47.3556,high,needs_review,high_priority_alert,structural_novelty_score,True,33.1033,45.0
+20260313T032554_4f9be28c_evt_00000609,111.90.198.0/24,,,47.3178,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0977,45.0
+20260313T032554_4f9be28c_evt_00000629,111.90.199.0/24,,,47.3178,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0977,45.0
+20260313T032554_4f9be28c_evt_00000158,103.235.156.0/24,,,47.1245,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0687,45.0
+20260313T032554_4f9be28c_evt_00003643,2a05:2480::/32,,,47.1245,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0687,45.0
+20260313T032554_4f9be28c_evt_00002524,205.99.96.0/20,,,47.0039,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0506,45.0
+20260313T032554_4f9be28c_evt_00002035,193.235.125.0/24,,,47.0039,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0506,45.0
+20260313T032554_4f9be28c_evt_00001826,186.1.197.0/24,,,47.0039,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0506,45.0
+20260313T032554_4f9be28c_evt_00003614,2a02:610:fffa::/48,,,46.9101,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0365,45.0
+20260313T032554_4f9be28c_evt_00001511,170.244.16.0/22,266513.0,6762 26615 53180 266513,46.852,high,needs_review,high_priority_alert,structural_novelty_score,False,64.0278,0.0
+20260313T032554_4f9be28c_evt_00002761,216.238.254.0/23,,,46.717,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0076,45.0
+20260313T032554_4f9be28c_evt_00001877,187.63.254.0/24,,,46.717,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0076,45.0
+20260313T032554_4f9be28c_evt_00001844,186.182.234.0/24,,,46.717,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0076,45.0
+20260313T032554_4f9be28c_evt_00004462,66.233.228.0/22,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00004480,74.60.0.0/20,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00004490,74.60.144.0/20,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00004500,74.60.96.0/22,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00004510,74.61.224.0/19,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00004522,75.93.144.0/20,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00004532,75.93.48.0/20,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00004542,75.94.80.0/20,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00004552,75.95.28.0/22,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00004776,96.24.88.0/24,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00004786,96.26.32.0/20,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00004796,96.26.64.0/18,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00002057,195.234.178.0/24,,,46.6703,high,needs_review,high_priority_alert,structural_novelty_score,True,33.0005,45.0
+20260313T032554_4f9be28c_evt_00001435,151.247.0.0/18,,,46.593,high,needs_review,high_priority_alert,structural_novelty_score,True,32.989,45.0
+20260313T032554_4f9be28c_evt_00001831,186.12.248.0/22,,,46.5604,high,needs_review,high_priority_alert,structural_novelty_score,True,32.9841,45.0
+20260313T032554_4f9be28c_evt_00001853,186.182.80.0/24,,,46.5604,high,needs_review,high_priority_alert,structural_novelty_score,True,32.9841,45.0
+20260313T032554_4f9be28c_evt_00000231,103.41.110.0/24,,,46.5309,high,needs_review,high_priority_alert,structural_novelty_score,True,32.9796,45.0
+20260313T032554_4f9be28c_evt_00004589,80.243.118.0/23,,,46.3647,high,needs_review,high_priority_alert,structural_novelty_score,True,32.9547,45.0
+20260313T032554_4f9be28c_evt_00001989,193.0.132.0/22,,,46.3218,high,needs_review,high_priority_alert,structural_novelty_score,True,32.9483,45.0
+20260313T032554_4f9be28c_evt_00000558,109.111.120.0/22,,,46.3218,high,needs_review,high_priority_alert,structural_novelty_score,True,32.9483,45.0
+20260313T032554_4f9be28c_evt_00000160,103.235.156.0/24,133314.0,3333 1136 24785 3356 6453 4755 45820 133314,43.2113,high,low_priority_or_background,high_priority_alert,history_rarity_score,False,19.4817,45.0
+20260313T032554_4f9be28c_evt_00002344,202.56.215.0/24,24560.0,7018 3356 9498 24560,39.117,high,needs_review,high_priority_alert,structural_novelty_score,False,37.3676,0.0
+20260313T032554_4f9be28c_evt_00004479,74.203.166.0/24,63483.0,3549 63483,38.8476,high,needs_review,high_priority_alert,history_rarity_score,False,24.8271,20.0
+20260313T032554_4f9be28c_evt_00003795,43.250.138.0/24,38742.0,133165 8966 38742,38.6453,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2968,0.0
+20260313T032554_4f9be28c_evt_00003797,43.250.138.0/24,38742.0,18106 8966 38742,38.6453,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2968,0.0
+20260313T032554_4f9be28c_evt_00004415,61.5.201.0/24,38742.0,133165 8966 38742,38.6453,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2968,0.0
+20260313T032554_4f9be28c_evt_00004417,61.5.201.0/24,38742.0,18106 8966 38742,38.6453,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2968,0.0
+20260313T032554_4f9be28c_evt_00003801,43.250.138.0/24,38742.0,6762 8966 38742,38.6453,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2968,0.0
+20260313T032554_4f9be28c_evt_00004421,61.5.201.0/24,38742.0,6762 8966 38742,38.6453,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2968,0.0
+20260313T032554_4f9be28c_evt_00003740,37.72.129.0/24,29049.0,6762 29049,38.229,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2343,0.0
+20260313T032554_4f9be28c_evt_00003733,37.72.129.0/24,29049.0,24482 29049,38.229,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2343,0.0
+20260313T032554_4f9be28c_evt_00001680,172.111.241.0/24,21859.0,38880 21859,38.1669,high,needs_review,high_priority_alert,structural_novelty_score,False,37.225,0.0
+20260313T032554_4f9be28c_evt_00001697,172.94.4.0/24,21859.0,38880 21859,38.1669,high,needs_review,high_priority_alert,structural_novelty_score,False,37.225,0.0
+20260313T032554_4f9be28c_evt_00001668,172.111.241.0/24,21859.0,133165 2914 3491 21859,38.1669,high,needs_review,high_priority_alert,structural_novelty_score,False,37.225,0.0
+20260313T032554_4f9be28c_evt_00001678,172.111.241.0/24,21859.0,24482 6453 3491 21859,38.1669,high,needs_review,high_priority_alert,structural_novelty_score,False,37.225,0.0
+20260313T032554_4f9be28c_evt_00001685,172.94.4.0/24,21859.0,133165 2914 3491 21859,38.1669,high,needs_review,high_priority_alert,structural_novelty_score,False,37.225,0.0
+20260313T032554_4f9be28c_evt_00001695,172.94.4.0/24,21859.0,24482 6453 3491 21859,38.1669,high,needs_review,high_priority_alert,structural_novelty_score,False,37.225,0.0
+20260313T032554_4f9be28c_evt_00001673,172.111.241.0/24,21859.0,18106 6939 3491 21859,38.1669,high,needs_review,high_priority_alert,structural_novelty_score,False,37.225,0.0
+20260313T032554_4f9be28c_evt_00001690,172.94.4.0/24,21859.0,18106 6939 3491 21859,38.1669,high,needs_review,high_priority_alert,structural_novelty_score,False,37.225,0.0
+20260313T032554_4f9be28c_evt_00001394,141.101.147.0/24,21859.0,18106 21859,38.1095,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2164,0.0
+20260313T032554_4f9be28c_evt_00001404,141.101.147.0/24,21859.0,38880 21859,38.1095,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2164,0.0
+20260313T032554_4f9be28c_evt_00001391,141.101.147.0/24,21859.0,133165 2914 3491 21859,38.1095,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2164,0.0
+20260313T032554_4f9be28c_evt_00001402,141.101.147.0/24,21859.0,24482 6453 3491 21859,38.1095,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2164,0.0
+20260313T032554_4f9be28c_evt_00001396,141.101.147.0/24,21859.0,18106 6939 3491 21859,38.1095,high,needs_review,high_priority_alert,structural_novelty_score,False,37.2164,0.0
+20260313T032554_4f9be28c_evt_00000614,111.90.198.0/24,23939.0,18106 23939,38.0067,high,needs_review,high_priority_alert,structural_novelty_score,False,37.201,0.0
+20260313T032554_4f9be28c_evt_00000619,111.90.198.0/24,23939.0,24482 23939,38.0067,high,needs_review,high_priority_alert,structural_novelty_score,False,37.201,0.0
+20260313T032554_4f9be28c_evt_00000623,111.90.198.0/24,23939.0,38880 23939,38.0067,high,needs_review,high_priority_alert,structural_novelty_score,False,37.201,0.0
+20260313T032554_4f9be28c_evt_00000634,111.90.199.0/24,23939.0,18106 23939,38.0067,high,needs_review,high_priority_alert,structural_novelty_score,False,37.201,0.0
+20260313T032554_4f9be28c_evt_00000639,111.90.199.0/24,23939.0,24482 23939,38.0067,high,needs_review,high_priority_alert,structural_novelty_score,False,37.201,0.0
+20260313T032554_4f9be28c_evt_00000643,111.90.199.0/24,23939.0,38880 23939,38.0067,high,needs_review,high_priority_alert,structural_novelty_score,False,37.201,0.0
+20260313T032554_4f9be28c_evt_00000615,111.90.198.0/24,23939.0,18106 3758 4657 23939,38.0067,high,needs_review,high_priority_alert,structural_novelty_score,False,37.201,0.0
+20260313T032554_4f9be28c_evt_00000626,111.90.198.0/24,23939.0,38880 6939 4657 23939,38.0067,high,needs_review,high_priority_alert,structural_novelty_score,False,37.201,0.0
+20260313T032554_4f9be28c_evt_00000635,111.90.199.0/24,23939.0,18106 3758 4657 23939,38.0067,high,needs_review,high_priority_alert,structural_novelty_score,False,37.201,0.0
+20260313T032554_4f9be28c_evt_00000646,111.90.199.0/24,23939.0,38880 6939 4657 23939,38.0067,high,needs_review,high_priority_alert,structural_novelty_score,False,37.201,0.0
+20260313T032554_4f9be28c_evt_00001461,160.202.196.0/22,9829.0,133165 6453 9829,37.617,high,needs_review,high_priority_alert,structural_novelty_score,False,37.1425,0.0
+20260313T032554_4f9be28c_evt_00001465,160.202.196.0/22,9829.0,38880 6453 9829,37.617,high,needs_review,high_priority_alert,structural_novelty_score,False,37.1425,0.0
+20260313T032554_4f9be28c_evt_00002769,216.238.254.0/23,13904.0,7018 3356 13904,37.3934,high,needs_review,high_priority_alert,structural_novelty_score,False,37.109,0.0
+20260313T032554_4f9be28c_evt_00004581,77.82.132.0/23,34974.0,6762 12389 34974,37.3115,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0967,0.0
+20260313T032554_4f9be28c_evt_00000777,117.197.48.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000834,117.215.240.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000850,117.223.112.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000860,117.224.112.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000870,117.224.128.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000880,117.224.192.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000905,117.224.64.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00001022,117.242.200.0/22,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00001035,117.243.96.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00001045,117.244.16.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00001081,117.253.224.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00001091,117.253.32.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00004309,59.89.96.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00004320,59.91.208.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00004365,61.0.48.0/20,9829.0,1836 174 6453 4755 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000774,117.197.48.0/20,9829.0,133165 6453 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000780,117.197.48.0/20,9829.0,24482 6453 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000781,117.197.48.0/20,9829.0,38880 6453 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000831,117.215.240.0/20,9829.0,133165 6453 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000847,117.223.112.0/20,9829.0,133165 6453 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0
+20260313T032554_4f9be28c_evt_00000854,117.223.112.0/20,9829.0,38880 6453 9829,37.1898,high,needs_review,high_priority_alert,structural_novelty_score,False,37.0785,0.0

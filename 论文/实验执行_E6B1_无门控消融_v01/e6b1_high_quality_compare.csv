@@ -1,0 +1,4 @@
+﻿group,count,missing_origin_or_path_count,missing_origin_or_path_rate,risk_score_mean,risk_score_median,certainty_score_mean,certainty_score_median,conflict_score_mean,conflict_score_median,structural_dominance_count,structural_dominance_rate
+default_high,24,0,0.0,52.83297916666667,53.2434,66.75825833333333,66.9865,0.0,0.0,24,1.0
+no_gate_high,266,140,0.5263157894736842,46.57308233082707,47.29235,38.94649436090226,37.0785,23.928571428571427,45.0,264,0.9924812030075187
+newly_added_high,242,140,0.5785123966942148,45.95226611570248,46.69365,36.188302892561985,36.5083,26.301652892561982,45.0,240,0.9917355371900827

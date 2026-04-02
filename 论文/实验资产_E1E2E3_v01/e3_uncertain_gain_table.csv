@@ -1,0 +1,22 @@
+﻿metric,value,note
+uncertain_total,645,uncertain subset size
+flow_count::promoted_suspicious,2 (0.31%),uncertain split
+flow_count::retained_uncertain,625 (96.90%),uncertain split
+flow_count::demoted_suspicious,18 (2.79%),uncertain split
+mapping::promoted_suspicious->high_priority_alert,2 (100.00%),mapping to final label
+mapping::retained_uncertain->needs_review,625 (100.00%),mapping to final label
+mapping::demoted_suspicious->low_priority_or_background,18 (100.00%),mapping to final label
+risk_mean::promoted_suspicious,47.2669,group quality
+certainty_mean::promoted_suspicious,64.0900,group quality
+conflict_mean::promoted_suspicious,0.0000,group quality
+evidence_support_mean::promoted_suspicious,66.1100,group quality
+risk_mean::retained_uncertain,38.6075,group quality
+certainty_mean::retained_uncertain,35.7551,group quality
+conflict_mean::retained_uncertain,10.1120,group quality
+evidence_support_mean::retained_uncertain,40.6612,group quality
+risk_mean::demoted_suspicious,33.8776,group quality
+certainty_mean::demoted_suspicious,34.1650,group quality
+conflict_mean::demoted_suspicious,2.5000,group quality
+evidence_support_mean::demoted_suspicious,31.4917,group quality
+marginal_gain::high_from_augmentation,2/24 (8.33%),augmentation contribution to final high
+marginal_gain::demoted_to_low,18/18 (100.00%),demoted to low ratio

@@ -1,0 +1,274 @@
+% 完整主稿前五章整合版 v01
+% 说明：本稿整合第1章引言、第2章相关工作、第3章方法、第4章实验设置与评估口径、第5章主结果；
+% 仅做并入、统一、消重与过渡衔接，不新增实验、不修改数字与结论边界。
+
+\section{1 引言}
+
+\subsection{1.1 问题背景与挑战}
+
+在公开控制面观测与 ROV 并存的现实环境中，forged-origin 攻击在可观测侧往往表现为弱信号：异常行为可能仅在少量观测点短时出现，且与正常路由扰动在表征上部分重叠。这使得“发现可疑事件”与“确认高优先告警”成为两个不同层次的问题。
+
+本文关注的不是一般意义上的 BGP 异常检测，而是在部分可观测条件下对 weak-signal forged-origin 事件进行可执行分层。当前实验设置进一步体现了这一现实约束：仅单个 run（\texttt{20260313T032554\_4f9be28c}）、两个 collector（\texttt{route-views.sg} 与 \texttt{rrc00}）以及固定短窗口采样。在该边界下，系统目标是形成稳定的分层输出与可解释证据链，而非直接给出全网泛化结论。
+
+\subsection{1.2 为什么单层处理不足}
+
+在弱信号与证据不完备场景中，单层打分通常需要一个统一阈值同时承担两项职责：风险排序与告警确认。该耦合会导致两类常见问题。
+
+第一，阈值难以稳定。阈值偏低时，高优先队列容易混入证据不足样本；阈值偏高时，又会遗漏需要持续关注的边界样本。第二，输出不可执行。单层结果难以明确区分“可立即处置”与“应保留复核”，从而把运营决策压力转移到人工后处理。
+
+因此，本文将问题重述为分层决策任务：先保证候选覆盖与风险排序，再对不确定样本显式分流，最后输出与运营流程一致的优先级标签。该重述的核心不是增加流程复杂度，而是将不同目标放回各自适合的决策层。
+
+\subsection{1.3 本文方法主张}
+
+围绕上述问题重述，本文采用“候选 $\rightarrow$ 评分 $\rightarrow$ 门控 $\rightarrow$ 增强 $\rightarrow$ 最终输出”的分层链路。具体而言：候选层负责覆盖导向的候选压缩，评分层建立相对风险排序，门控层用 \texttt{certainty\_score} 与 \texttt{conflict\_score} 约束高优先入口，增强层仅在 \texttt{suspicious\_but\_uncertain} 子集上执行低成本补证，最终整合层统一映射为 \texttt{high\_priority\_alert}、\texttt{needs\_review}、\texttt{low\_priority\_or\_background}。
+
+该主张的关键是将“是否立即提升为高优先告警”与“uncertain 子集是否应再分流”分置在门控层与增强层，避免单次阈值同时承载风险与可信判断。
+
+\subsection{1.4 贡献点}
+
+本文在当前已完成资产范围内的贡献可归纳为以下三点。
+
+\begin{itemize}
+  \item \textbf{贡献一：提出面向 weak-signal forged-origin 的分层问题定义与决策拆分。}在部分可观测约束下，将“可疑识别”与“高优先确认”解耦，明确单层阈值方法在该场景中的局限。
+
+  \item \textbf{贡献二：实现可复现的端到端分层链路与统一输出口径。}系统覆盖 event、baseline、candidate、score、gating、augmentation、final 全流程，并将中间判别统一收口到三类最终标签，便于与运营优先级接口对齐。
+
+  \item \textbf{贡献三：基于 E1/E2/E3 给出与主张一致的实证证据。}在当前单 run、双 collector 条件下，E1 显示主链从 4808 个事件收敛到三类输出（24/625/457）；E2 显示高优先队列以结构性偏离为主导且缺失关键字段样本未进入高优先；E3 显示增强层在 uncertain 子集上呈现“保守但有效”的再分流行为（2/625/18）。
+\end{itemize}
+
+需要强调的是，以上贡献与结论均限定于当前实验边界：单 run、双 collector、固定短窗口、未引入外部数据面验证。本文据此主张的是“分层链路可运行性、输出质量一致性与 uncertain 再分流收益”，而非跨场景长期泛化性能。
+
+承接上述问题定义与贡献主张，第 2 章先定位相关研究脉络与本文差异，再由第 3 章给出分层链路的职责拆分与系统框架。
+
+
+
+
+\section{2 相关工作}
+
+\subsection{2.1 forged-origin 与路径合法性推断相关工作}
+
+forged-origin 场景比一般路由异常更难，难点不只在“是否异常”，还在“路径是否被有意操纵且仍看似合法”。与传统 origin 冲突型异常不同，这类攻击可通过路径构造使 origin 在形式上仍可通过校验，因此检测核心会转向 AS path 合法性推断，而非仅看前缀归属冲突。
+
+这一方向中，\textit{DFOH} 是与本文最直接的参照。其核心问题定义是：当攻击者操纵 AS path 以维持“合法 origin 外观”时，如何在全网尺度快速推断路径是否被伪造。该工作强调 forged-origin 识别需要面向真实互联网数据偏置与不完备性进行鲁棒设计，并将“路径真伪推断”作为检测主轴。与之相关，\textit{Metis} 关注 fake AS-PATH 检测中的 unseen link 问题，尝试用规则匹配与链路预测过滤正常新链路，以降低误报与后续核验开销。
+
+本文与上述工作的关系是“共享路径合法性问题意识，但组织目标不同”。本文不将工作表述为对现有 forged-origin 检测器的替换式比较，而是面向 weak-signal 条件下的决策组织：在候选、评分、门控、增强、最终输出中拆分不同决策职责，显式区分“高优先入口约束”与“uncertain 子集再分流”，并将结果统一组织为高优先告警（\texttt{high\_priority\_alert}）、待复核样本（\texttt{needs\_review}）、低优先/背景样本（\texttt{low\_priority\_or\_background}）三类可执行输出。
+
+
+\subsection{2.2 告警核实与误报收缩相关工作}
+
+另一类工作关注“告警是否可信”而不止“告警是否触发”。\textit{HEAP} 的代表性价值在于：它不试图直接替代上游检测器，而是对已产生的 hijacking alarm 做可靠性评估，通过多源证据交叉（如注册与关系信息、拓扑推理、扫描侧证据）来排除非恶意事件，并用于收缩误报空间。
+
+本文与该类工作的关系可概括为“相似思想，不同组织方式”。本文继承“告警后仍需评估/核实”的思想，但并不构造一个完全外置的重验证系统；相反，本文将部分核实逻辑内化到主链：门控层利用 \texttt{certainty\_score} 与 \texttt{conflict\_score} 限制高优先入口，增强层仅对 \texttt{suspicious\_but\_uncertain} 子集补证并再分流。
+
+因此，两者差异不在于是否重视误报控制，而在于核实逻辑放置位置：\textit{HEAP} 更偏“检测后评估接口”，本文更偏“链内分层收敛”。在当前实验边界（单 run、双 collector、短窗口、无外部数据面验证）下，本文重点是形成可解释的内部分流结构，而非宣称外部验证意义下的最终定性能力。
+
+
+\subsection{2.3 公开监测局限与监测盲区相关工作}
+
+关于公开控制面监测能力边界，\textit{Global BGP Attacks that Evade Route Monitoring} 给出了直接证据：若攻击传播策略利用监测机制的可见性条件（例如其文中讨论的 NO\_EXPORT 相关策略），攻击可在影响实际流量的同时绕开主流监测视野。该结论的关键不在某一检测算法优劣，而在于“监测前提本身并不完备”。
+
+这类工作对本文不是背景常识，而是方法假设的一部分。若观测链路存在先天盲区，则“高风险信号”不自动等于“高置信结论”；当证据缺失或相互冲突时，系统需要显式保留待复核路径，而非强制二分类闭环。本文把这一假设落实为门控层与增强层的职责拆分：前者控制误升，后者处理 uncertain 子集的保守再分流。
+
+从系统视角看，\textit{BEAM} 一类语义驱动检测系统强调可解释异常检测与告警控制，这与本文在“输出可用性”上的关切一致；但其问题目标是通用路由异常检测自动化。本文聚焦更窄：在 weak-signal forged-origin 且部分可观测条件下，组织一条能够稳定产出“高优先告警/待复核样本/低优先/背景样本”三类结果的分层决策链。
+
+
+\subsection{2.4 与本文的关系与区别}
+
+综合以上相关方向，本文最接近的两条线索分别是：基于路径合法性推断的 forged-origin 检测（如 \textit{DFOH}、\textit{Metis}）与面向告警可信性的评估收缩（如 \textit{HEAP}），并在监测盲区研究（如 \textit{Global BGP Attacks that Evade Route Monitoring}）给出的可观测性约束下重述问题。
+
+本文并非单纯再做一个 forged-origin 检测器替换，也并非纯粹的告警后外部验证系统。本文的新增切口在于：
+
+第一，将 weak-signal forged-origin 检测重述为分层决策问题，而非单层阈值告警问题；
+
+第二，用“候选 $\rightarrow$ 评分 $\rightarrow$ 门控 $\rightarrow$ 增强 $\rightarrow$ 最终输出”拆开覆盖、排序、入口约束、补证分流与运营映射等不同决策目标；
+
+第三，将“高优先入口约束”与“uncertain 子集再分流”放在不同层显式处理，避免由单一阈值同时承担风险与置信判断；
+
+第四，将最终输出直接收口为运营可执行优先级标签（高优先告警（\texttt{high\_priority\_alert}）/待复核样本（\texttt{needs\_review}）/低优先/背景样本（\texttt{low\_priority\_or\_background}））。
+
+需要强调的是，上述区别是问题组织与系统结构层面的定位差异，不构成跨边界性能优劣结论。结合本文当前实验设置，本文支持的主张是分层行为、输出质量约束与 uncertain 再分流收益，不直接外推大规模全网泛化、外部标签意义下的监督式准确率或多 run 稳定性结论。
+承接上述相关方向与定位差异，第 3 章给出本文分层决策链的具体设计与各层职责。
+
+
+\section{3 方法}
+
+\subsection{3.1 方法总览（Method Overview）}
+
+承接第 1 章的问题定义，本文将 forged-origin 弱信号检测建模为分层决策问题，而非单层阈值告警问题。系统采用“候选$\rightarrow$评分$\rightarrow$门控$\rightarrow$增强$\rightarrow$最终输出”的分层链，核心目标是将不同决策问题拆分到不同层次。
+
+该链路的关键不在于增加处理步骤，而在于职责解耦：候选层负责覆盖，评分层负责排序，门控层负责不确定性约束，增强层负责边界样本补证，最终整合层负责与运营接口对齐。系统不追求一次性判定，而是通过逐层收敛将“可疑事件识别”与“高优先告警确认”分离处理。
+
+在 forged-origin 的弱信号场景中，这一分层处理是必要条件而非实现细节。部分可观测意味着“高风险”并不自动等于“高置信”，证据缺口要求保留待复核通道；因此门控层与增强层分别承担高优先入口约束与 uncertain 子集再分流职责，共同形成主链闭环。
+
+
+\subsection{3.2 系统框架与各层职责（System Architecture）}
+
+系统输入为连续 BGP 事件流，输出统一映射为高优先告警（\texttt{high\_priority\_alert}）、待复核样本（\texttt{needs\_review}）、低优先/背景样本（\texttt{low\_priority\_or\_background}）三类。整体依赖关系为：上游层提供结构化上下文，下游层仅在其输入约束内做判别，不回退修改上游定义。
+
+\paragraph{事件层（event construction）}
+输入为原始观测更新；输出为标准化事件对象。该层将离散更新组织为可追踪事件单元，并固定后续共享字段，保证后续层使用同一语义基准。
+
+\paragraph{历史基线层（historical baseline）}
+输入为标准化事件及历史观测摘要；输出为相对历史行为的偏离描述。该层负责给出“偏离程度”的上下文，不直接输出告警等级。
+
+\paragraph{候选层（candidate generation）}
+输入为事件及其基线偏离信息；输出为候选事件集合。该层的职责是在保持潜在异常覆盖的前提下完成第一阶段规模压缩，为后续精细评分提供可处理子集。
+
+\paragraph{风险评分层（risk scoring）}
+输入为候选事件；输出为风险评分结果（\texttt{risk\_score} 及其子分数，如 structural / weak / history / path）。该层建立相对风险排序，不处理证据完整性与冲突约束，也不直接给出最终告警类别。
+
+\paragraph{不确定性门控层（uncertainty-aware gating）}
+输入为风险评分结果；输出为 \texttt{certainty\_score}、\texttt{conflict\_score}、\texttt{gating\_label}，并完成三向分流：\texttt{likely\_malicious}、\texttt{suspicious\_but\_uncertain}、\texttt{likely\_benign}。该层负责基于评分结果施加确定性约束：当冲突高或证据不足时，样本不进入高优先通道，而保留在待复核路径或下调路径。
+
+\paragraph{轻量级证据增强层（evidence augmentation）}
+输入为门控后标记为 \texttt{suspicious\_but\_uncertain} 的 uncertain 子集；输出为补证后的再评估结果。该层处理的是“不确定样本再分流”问题：仅对必要样本执行有限增强，以小代价提升边界样本判别质量。
+
+\paragraph{最终输出整合层（final alert aggregation）}
+输入为门控结果与增强结果；输出为高优先告警、待复核样本、低优先/背景样本。该层将模型侧判别结果映射为运营可执行优先级，形成端到端闭环。
+
+承接上述职责边界，第 4 章给出当前 run 的实验对象、检测链落盘产物与评估口径。
+
+
+\section{4 实验设置与评估口径}
+
+\subsection{4.1 数据来源与观测范围}
+
+本章用于回答“第 3 章链路如何在当前真实 run 上被实例化并评估”。实验基于单个真实运行实例，run\_id 为 \texttt{20260313T032554\_4f9be28c}。观测来源限定于两个控制面 collector：\texttt{route-views.sg} 与 \texttt{rrc00}。该 run 来自循环采样流程中的一个固定观测窗口，采集窗口参数为 \texttt{window\_minutes=5} 与 \texttt{chunk\_minutes=5}，本轮实际采集区间为 \texttt{2017-07-07 00:15:00} 至 \texttt{2017-07-07 00:20:00}。
+
+实验对象是 forged-origin 弱信号检测链在该固定观测窗口内的端到端行为，而非多 run 聚合统计。按链路阶段划分，当前已确认样本规模为：事件层 \texttt{events/event\_units.parquet}（4808 行）、候选层 \texttt{candidates/candidate\_events.parquet}（\texttt{candidate\_flag=true} 为 1106）、评分层 \texttt{scores/scored\_candidates.parquet}（1106 行）、门控层 \texttt{gating/gated\_candidates.parquet}（1106 行）、增强层 \texttt{augmentation/augmented\_candidates.parquet}（645 行，仅 uncertain 子集）、最终层 \texttt{final/final\_alerts.parquet}（1106 行）。
+
+
+\subsection{4.2 完整检测链与中间产物}
+
+系统沿“事件层$\rightarrow$基线层$\rightarrow$候选层$\rightarrow$评分层$\rightarrow$门控层$\rightarrow$增强层$\rightarrow$最终整合层”顺序执行，各层输入输出关系固定，后层不回写前层定义。
+
+\paragraph{事件层（event construction）}
+由 \texttt{scripts/build\_event\_units.py} 生成事件单元。输入为 run 目录内更新 parquet（优先 \texttt{\_\_rel.parquet}），输出为 \texttt{events/event\_units.parquet} 与 \texttt{events/event\_units\_summary.json}。事件按 \texttt{prefix + origin\_as + as\_path\_clean} 及时间窗口归并（默认 \texttt{window\_sec=300}）。
+
+\paragraph{历史基线层（historical baseline）}
+由 \texttt{scripts/build\_historical\_baseline.py} 生成三层基线画像（prefix / prefix-origin / path）。输入为 \texttt{event\_units.parquet}，输出为 \texttt{baseline\_prefix.parquet}、\texttt{baseline\_prefix\_origin.parquet}、\texttt{baseline\_path.parquet} 及 \texttt{baseline\_summary.json}。
+
+\paragraph{候选层（candidate generation）}
+由 \texttt{scripts/build\_weak\_candidates.py} 完成覆盖导向的第一阶段候选压缩。输入为事件层产物与三层基线，输出为 \texttt{candidates/candidate\_events.parquet} 与 \texttt{candidate\_summary.json}。当前可确认口径为：命中任一结构规则，或弱规则命中数达到阈值（默认 \texttt{min\_weak\_rules=2}）即进入候选。
+
+\paragraph{风险评分层（risk scoring）}
+由 \texttt{scripts/score\_weak\_candidates.py} 计算 \texttt{risk\_score} 及子分（\texttt{structural\_novelty\_score}、\texttt{weak\_signal\_score}、\texttt{history\_rarity\_score}、\texttt{path\_consistency\_score}），输出 \texttt{scores/scored\_candidates.parquet} 与 \texttt{score\_summary.json}。当前权重口径为 structural/weak/history\_rarity/path\_consistency = 0.45/0.20/0.20/0.15。
+
+\paragraph{不确定性门控层（uncertainty-aware gating）}
+由 \texttt{scripts/gate\_scored\_candidates.py} 将评分样本映射为三类门控标签：\texttt{likely\_malicious}、\texttt{suspicious\_but\_uncertain}、\texttt{likely\_benign}，并输出 \texttt{certainty\_score} 与 \texttt{conflict\_score}。产物为 \texttt{gating/gated\_candidates.parquet} 与 \texttt{gating\_summary.json}。
+
+\paragraph{轻量级证据增强层（evidence augmentation）}
+由 \texttt{scripts/augment\_uncertain\_candidates.py} 仅对 \texttt{suspicious\_but\_uncertain} 子集补充内部证据，输出 \texttt{augmentation/augmented\_candidates.parquet} 与 \texttt{augmentation\_summary.json}。该层不处理全量样本，定位为 uncertain 子集的低成本再分流。
+
+\paragraph{最终输出整合层（final alert aggregation）}
+由 \texttt{scripts/build\_final\_alerts.py} 合并评分、门控与增强结果，输出 \texttt{final/final\_alerts.parquet} 与 \texttt{final/final\_report.json}。该层负责将中间标签统一映射到最终告警标签口径。
+
+
+\subsection{4.3 评价口径与最终输出标签}
+
+最终评估口径统一基于 \texttt{final\_alert\_label} 三类标签：高优先告警（\texttt{high\_priority\_alert}）、待复核样本（\texttt{needs\_review}）、低优先/背景样本（\texttt{low\_priority\_or\_background}）。
+
+E1、E2、E3 的统计对象与分母定义如下。E1 用于描述主链收敛，统计链路为 \texttt{event -> candidate -> scored -> gated -> augmented -> final}，主分母为 \texttt{total\_events=4808}。E2 聚焦高优先告警质量，统计对象为 \texttt{final\_alert\_label=high\_priority\_alert}，主要报告来源分解、结构性偏离主导程度、缺失字段占比，以及与其余两类在 \texttt{risk\_score}/\texttt{certainty\_score}/\texttt{conflict\_score} 上的组间对比。E3 聚焦 uncertain 子集收益，统计对象为 \texttt{gating\_label=suspicious\_but\_uncertain}，报告 \texttt{promoted/retained/demoted} 三向分流、到最终标签的映射，以及四维质量指标（risk/certainty/conflict/evidence\_support）对比。
+
+该口径与第 5 章结果节保持一一对应：E1 支撑链路收敛主张，E2 支撑高优先质量主张，E3 支撑 uncertain 再分流收益主张。当前评估重点是分层收敛、输出结构、内部质量差异与 uncertain 再分流行为，不构成基于外部攻击标签的大规模监督式准确率评估。
+
+
+\subsection{4.4 当前实验边界与复现说明}
+
+当前设置适合支持三类结论：链路分层行为与收敛结构（E1）、高优先输出的内部质量约束（E2）、uncertain 子集的保守再分流收益（E3）。当前设置不直接支持三类外推主张：大规模全网泛化结论、外部标签意义下的检测准确率结论、多 run 条件下的稳定性结论。实验边界包括：仅单个 run、仅两个 collector、固定短窗口采样、未引入外部数据面验证（如 traceroute/RTT/IHR）。因此，\texttt{high\_priority\_alert} 在本文中表示高优先告警而非外部验证后的攻击定性。
+
+复现时建议按四类材料核对：运行元数据（如 \texttt{run.json}、\texttt{run.log}）、分层中间产物（events/baseline/candidates/scores/gating/augmentation/final）、各层 summary 文件（\texttt{*\_summary.json}）与最终报告文件（\texttt{final\_report.json}）。
+
+在上述设置与口径固定后，第 5 章按 E1/E2/E3 依次报告链路收敛、高优先质量与 uncertain 子集再分流收益。
+
+
+\section{5 主结果（E1/E2/E3）}
+
+\subsection{5.1 端到端最终分层结果（E1）}
+
+对应第 3 章“分层处理而非单层阈值化”的设计动机，E1 首先报告端到端分层链路的总体收敛行为。全量事件为 4808，候选事件为 1106（占全量事件 23.00\%），进入评分阶段的事件为 1106。最终输出中，\texttt{high\_priority\_alert}=24（占评分样本 2.17\%；占全量事件 0.50\%），\texttt{needs\_review}=625，\texttt{low\_priority\_or\_background}=457。高优先告警来源分解为门控路径 22 条、增强路径 2 条；高优先集合中 \texttt{missing\_origin\_or\_path}=0。
+
+\begin{table}[t]
+\centering
+\caption{E1 主结果（端到端最终分层）}
+\label{tab:e1-main-v01}
+\begin{tabular}{lll}
+\hline
+指标 & 数值 & 说明 \\
+\hline
+total\_events & 4808 & 全量事件数 \\
+candidate\_events & 1106（占全量事件 23.00\%） & 进入候选层 \\
+scored\_events & 1106（占全量事件 23.00\%） & 完成风险评分 \\
+final\_high\_priority\_alert & 24（占评分样本 2.17\%；占全量事件 0.50\%） & 最终高优先告警 \\
+final\_needs\_review & 625（占评分样本 56.51\%） & 最终待复核样本 \\
+final\_low\_priority\_or\_background & 457（占评分样本 41.32\%） & 最终低优先/背景样本 \\
+\hline
+\end{tabular}
+\end{table}
+
+上述结果支持三点主张。第一，链路实现了从全量事件到最终三类输出的逐层压缩，而非单次阈值截断。第二，高优先输出规模保持克制（24/4808），与低误报在线检测目标一致。第三，待复核样本占比高（625/1106）表明系统对边界样本采取保守路径：优先避免误升，再进入后续复核流程。
+
+\textit{边界说明：}本节结论针对当前数据与配置下的端到端行为，不直接外推跨场景稳定性。
+
+
+\subsection{5.2 高优先告警质量分析（E2）}
+
+对应第 3 章中门控层的确定性约束定位，E2 聚焦高优先队列的质量属性。\texttt{high\_priority\_alert} 总量为 24，其中 22 条来自门控路径、2 条来自增强路径。高优先集合中，\texttt{structural\_novelty\_score}（结构性偏离）在 24/24 样本中为首要贡献因子，且 \texttt{missing\_origin\_or\_path}=0/24。
+
+\begin{table}[t]
+\centering
+\caption{E2 高优先告警质量分析}
+\label{tab:e2-quality-v01}
+\begin{tabular}{lll}
+\hline
+指标 & 数值 & 说明 \\
+\hline
+high\_priority\_total & 24 & 高优先告警总数 \\
+source\_gating & 22（91.67\%） & 高优先来源：门控 \\
+source\_augmentation & 2（8.33\%） & 高优先来源：增强 \\
+top\_contributing\_factor & structural\_novelty\_score: 24/24（100\%） & 结构性偏离证据主导 \\
+missing\_origin\_or\_path\_in\_high & 0/24（0\%） & 高优先中无缺失字段样本 \\
+risk\_score\_mean & 52.8330 / 38.6075 / 30.2101 & 对应 高优先告警 / 待复核样本 / 低优先/背景样本（high $>$ needs\_review $>$ low） \\
+certainty\_score\_mean & 66.7583 / 35.7551 / 34.0484 & 对应 高优先告警 / 待复核样本 / 低优先/背景样本（high $>$ needs\_review $\approx$ low） \\
+conflict\_score\_mean & 0.0000 / 10.1120 / 0.5361 & 对应 高优先告警 / 待复核样本 / 低优先/背景样本（high $<$ low $\ll$ needs\_review） \\
+\hline
+\end{tabular}
+\end{table}
+
+该组结果给出一致证据链：高优先告警由结构性偏离信号主导，增强层提供有限但可量化的边际增益（2/24），且缺失关键字段样本未进入高优先。与此同时，high 与 needs\_review/low 在 risk、certainty、conflict 三维上呈现方向一致分离，支持“高优先告警值得优先处置”的主张。
+
+\textit{边界说明：}本节关注高优先队列内部质量一致性，不讨论特征因果独立性。
+
+
+\subsection{5.3 uncertain 子集的增强收益（E3）}
+
+对应第 3 章中增强层的定位，E3 报告其在 uncertain 子集上的实际作用。uncertain 总量为 645，其中 \texttt{promoted\_suspicious}=2（0.31\%）、\texttt{retained\_uncertain}=625（96.90\%）、\texttt{demoted\_suspicious}=18（2.79\%）。映射关系为 promoted$\rightarrow$high = 2/2，retained$\rightarrow$needs\_review = 625/625，demoted$\rightarrow$low = 18/18。
+
+\begin{table}[t]
+\centering
+\caption{E3 uncertain 子集增强收益}
+\label{tab:e3-uncertain-v01}
+\begin{tabular}{lll}
+\hline
+指标 & 数值 & 说明 \\
+\hline
+uncertain\_total & 645 & uncertain 子集总数 \\
+promoted\_suspicious & 2（0.31\%） & 增强后上调 \\
+retained\_uncertain & 625（96.90\%） & 增强后保留待复核 \\
+demoted\_suspicious & 18（2.79\%） & 增强后下调 \\
+mapping\_promoted\_to\_high & 2/2 & promoted $\rightarrow$ high\_priority\_alert \\
+mapping\_retained\_to\_needs\_review & 625/625 & retained $\rightarrow$ needs\_review \\
+mapping\_demoted\_to\_low & 18/18 & demoted $\rightarrow$ low\_priority\_or\_background \\
+risk\_score\_mean & 47.2669 / 38.6075 / 33.8776 & 对应 promoted / retained / demoted（promoted $>$ retained $>$ demoted） \\
+certainty\_score\_mean & 64.0900 / 35.7551 / 34.1650 & 对应 promoted / retained / demoted（promoted $>$ retained $>$ demoted） \\
+conflict\_score\_mean & 0.0000 / 10.1120 / 2.5000 & 对应 promoted / retained / demoted（promoted $<$ demoted $<$ retained） \\
+evidence\_support\_score\_mean & 66.1100 / 40.6612 / 31.4917 & 对应 promoted / retained / demoted（promoted $>$ retained $>$ demoted） \\
+\hline
+\end{tabular}
+\end{table}
+
+这组结果表明，增强层不是大规模改判器，而是 uncertain 子集上的保守再分流器：绝大多数样本保持待复核，仅对少量样本执行方向明确的上调或下调。更重要的是，promoted 与 demoted 的判定方向与 risk、certainty、conflict、evidence\_support 四维排序一致，说明增强层改判具有可解释性而非随机波动。
+
+\textit{边界说明：}本节结论限定于当前 uncertain 子集，不外推到未观测场景。
+
+综合 E1/E2/E3，系统在结果层面形成了与设计目标一致的闭环：E1 给出从全量事件到三类输出的收敛结构，E2 说明高优先告警的质量约束来源于门控主导并由结构性偏离证据支撑，E3 说明增强层在 uncertain 子集上提供有限但可解释的补充再分流。三部分共同对应“分层处理优于单层阈值化”的核心主张。

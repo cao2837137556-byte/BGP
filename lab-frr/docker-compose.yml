@@ -1,0 +1,90 @@
+version: '3'
+
+services:
+  as1:
+    image: frrouting/frr:latest
+    container_name: as1
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    volumes:
+      - ./conf/as1:/etc/frr
+    networks:
+      net12:
+        ipv4_address: 172.16.12.11
+
+  as2:
+    image: frrouting/frr:latest
+    container_name: as2
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    volumes:
+      - ./conf/as2:/etc/frr
+    networks:
+      net12:
+        ipv4_address: 172.16.12.2
+      net23:
+        ipv4_address: 172.16.23.2
+
+  as3:
+    image: frrouting/frr:latest
+    container_name: as3
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    volumes:
+      - ./conf/as3:/etc/frr
+    networks:
+      net23:
+        ipv4_address: 172.16.23.3
+      net34:
+        ipv4_address: 172.16.34.3
+      net35:
+        ipv4_address: 172.16.35.3
+
+  as4:
+    image: frrouting/frr:latest
+    container_name: as4
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    volumes:
+      - ./conf/as4:/etc/frr
+    networks:
+      net34:
+        ipv4_address: 172.16.34.4
+
+  as5:
+    image: frrouting/frr:latest
+    container_name: as5
+    privileged: true
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    volumes:
+      - ./conf/as5:/etc/frr
+    networks:
+      net35:
+        ipv4_address: 172.16.35.5
+
+networks:
+  net12:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.12.0/24
+  net23:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.23.0/24
+  net34:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.34.0/24
+  net35:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.35.0/24

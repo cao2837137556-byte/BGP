@@ -1,0 +1,19 @@
+.venv/
+.vscode/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local data artifacts
+data/runs/
+data/parquet/
+data/mrt_cache/
+data/caida/
+outputs/
+
+# OS / temp
+.DS_Store
+Thumbs.db
+*.tmp
+*.log

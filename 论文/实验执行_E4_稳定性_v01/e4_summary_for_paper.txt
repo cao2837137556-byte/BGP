@@ -1,0 +1,7 @@
+E4 论文可用摘要
+
+本次 E4 在与基准 run 同口径的多个 5 分钟窗口上复现实验链路，结果显示当前 forged-origin 分层链不依赖单个 run 偶然性。
+多 run 下 high_priority 占总事件比例保持较低（平均 1.0560%），输出结构持续体现“少量高优先 + 大量待复核 + 可控低优先”。
+高优先样本仍以 structural_novelty 为主导（run 级主导一致率 100.00%），且高优先中的 missing_origin_or_path 基本不进入。
+uncertain 再分流模式保持稳定：retained 占主体（平均 91.61%），promoted 维持小比例，augmentation 对 high_priority 贡献为小幅增益（平均 12.22%）。
+下一步最值得继续的是 E5 参数敏感性与 E6 模块消融，用于补足稳健性边界与因果贡献证据。

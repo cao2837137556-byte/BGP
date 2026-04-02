@@ -1,0 +1,13 @@
+{
+  "base_run": "20260313T032554_4f9be28c",
+  "values": [
+    1,
+    2,
+    3,
+    10
+  ],
+  "notes": [
+    "E6-A candidate audit only; downstream kept default logic.",
+    "All paths rooted at outputs/e6a_candidate_audit_v01."
+  ]
+}

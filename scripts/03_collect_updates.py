@@ -1,0 +1,154 @@
+import argparse
+import csv
+import json
+import os
+import sys
+from datetime import datetime, timedelta
+
+import pybgpstream
+
+
+def elem_to_row(elem):
+    f = elem.fields
+    comm = f.get("communities")
+    if comm is None:
+        comm_list = []
+    elif isinstance(comm, list):
+        comm_list = comm
+    else:
+        comm_list = [str(comm)]
+
+    return {
+        "ts": elem.time,
+        "collector": elem.collector,
+        "type": elem.type,
+        "peer_asn": getattr(elem, "peer_asn", None),
+        "prefix": f.get("prefix"),
+        "as_path": f.get("as-path"),
+        "communities": comm_list,
+        "next_hop": f.get("next-hop"),
+    }
+
+
+def safe(s: str) -> str:
+    return s.replace(":", "-").replace(" ", "_").replace("/", "_")
+
+
+def choose_default_out_base() -> str:
+    # Prefer Docker bind-mount convention if present
+    return "/work/data/parquet" if os.path.isdir("/work") else "data/parquet"
+
+
+def default_outpath(base_dir: str, collector: str, record_type: str, from_time: str, until_time: str, fmt: str) -> str:
+    # from_time: "YYYY-MM-DD HH:MM:SS"
+    date = from_time.split(" ")[0]
+    t1 = from_time.split(" ")[1].replace(":", "-")
+    u = until_time.replace(" UTC", "")
+    t2 = u.split(" ")[1].replace(":", "-")
+
+    out_dir = os.path.join(base_dir, f"collector={safe(collector)}", f"date={date}")
+    os.makedirs(out_dir, exist_ok=True)
+
+    name = f"{record_type}__{t1}__{t2}.{fmt}"
+    return os.path.join(out_dir, name)
+
+
+def write_jsonl(path, rows):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as w:
+        for r in rows:
+            w.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+
+def write_csv(path, rows):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    fields = ["ts", "collector", "type", "peer_asn", "prefix", "as_path", "communities", "next_hop"]
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        for r in rows:
+            rr = dict(r)
+            rr["communities"] = ";".join(rr.get("communities") or [])
+            w.writerow(rr)
+
+
+def write_parquet(path, rows):
+    import pandas as pd
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    df = pd.DataFrame(rows)
+    df.to_parquet(path, index=False)
+    return df
+
+
+def main():
+    ap = argparse.ArgumentParser(
+        description="Collect BGPStream updates/RIBs and save to parquet/csv/jsonl (parameterized)."
+    )
+    ap.add_argument("--collectors", default="route-views.sg", help="Comma-separated collectors, e.g. route-views.sg")
+    ap.add_argument("--record-type", default="updates", choices=["updates", "ribs"])
+    ap.add_argument("--from", dest="from_time", required=True, help='Start time: "YYYY-MM-DD HH:MM:SS"')
+    ap.add_argument("--minutes", type=int, default=None, help="Window length in minutes (preferred).")
+    ap.add_argument("--until", dest="until_time", default=None, help='End time: "YYYY-MM-DD HH:MM:SS UTC"')
+    ap.add_argument("--max-rows", type=int, default=3000)
+    ap.add_argument(
+        "--out-base",
+        default=None,
+        help='Base output directory. Default: "/work/data/parquet" (if /work exists) else "data/parquet".',
+    )
+    ap.add_argument("--format", default="parquet", choices=["parquet", "csv", "jsonl"])
+    ap.add_argument("--out", default=None, help="Explicit output path. If not set, auto-generated.")
+    ap.add_argument("--print-head", type=int, default=0, help="Print first N rows (parquet only).")
+
+    args = ap.parse_args()
+
+    collectors = [c.strip() for c in args.collectors.split(",") if c.strip()]
+    if len(collectors) != 1 and args.out is None:
+        raise SystemExit("Multiple collectors: please pass --out explicitly (keep it simple for now).")
+
+    collector = collectors[0]
+    from_time = args.from_time.strip()
+
+    if args.minutes is not None:
+        dt = datetime.strptime(from_time, "%Y-%m-%d %H:%M:%S")
+        until_time = (dt + timedelta(minutes=args.minutes)).strftime("%Y-%m-%d %H:%M:%S UTC")
+    else:
+        if not args.until_time:
+            raise SystemExit("Either --minutes or --until must be provided")
+        until_time = args.until_time.strip()
+
+    out_base = args.out_base or choose_default_out_base()
+    out_path = args.out or default_outpath(out_base, collector, args.record_type, from_time, until_time, args.format)
+
+    stream = pybgpstream.BGPStream(
+        from_time=from_time,
+        until_time=until_time,
+        collectors=[collector],
+        record_type=args.record_type,
+    )
+
+    rows = []
+    for elem in stream:
+        rows.append(elem_to_row(elem))
+        if len(rows) >= args.max_rows:
+            break
+
+    df = None
+    if args.format == "jsonl":
+        write_jsonl(out_path, rows)
+    elif args.format == "csv":
+        write_csv(out_path, rows)
+    else:
+        df = write_parquet(out_path, rows)
+
+    print("✅ collector:", collector)
+    print("✅ from:", from_time)
+    print("✅ until:", until_time)
+    print("✅ saved:", out_path)
+    print("✅ rows:", len(rows))
+
+    if args.format == "parquet" and args.print_head and df is not None:
+        print(df.head(args.print_head).to_string(index=False))
+
+
+if __name__ == "__main__":
+    main()

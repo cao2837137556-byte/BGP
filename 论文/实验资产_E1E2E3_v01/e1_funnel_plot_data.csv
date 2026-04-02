@@ -1,0 +1,7 @@
+stage_order,stage,stage_label,count
+1,event,Event Units,4808
+2,candidate,Weak Candidates,1106
+3,scored,Scored Candidates,1106
+4,gated,Gated Candidates,1106
+5,augmented,Augmented Uncertain,645
+6,final,Final High Priority,24

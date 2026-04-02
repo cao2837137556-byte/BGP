@@ -1,0 +1,10 @@
+﻿metric,value,note
+run_id,20260313T032554_4f9be28c,experiment run id
+total_events,4808,event layer output
+candidate_events,1106,candidate rate vs events: 23.00%
+scored_rows,1106,score layer rows
+gated_rows,1106,gating layer rows
+augmented_uncertain_rows,645,augmentation input uncertain rows
+final_high_priority_alert,24,high priority ratio vs events: 0.50%
+final_needs_review,625,needs review ratio vs events: 13.00%
+final_low_priority_or_background,457,low or background ratio vs events: 9.50%
