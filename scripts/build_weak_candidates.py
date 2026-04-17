@@ -14,6 +14,7 @@ RULE_DESCRIPTIONS = {
     "unusually_low_visibility_for_prefix_origin": "Visibility lower than prefix-origin baseline.",
     "unseen_exact_path": "Exact prefix-origin-path not seen in path baseline.",
     "weak_path_history": "Path exists but history is weak/stale.",
+    "cross_collector_prefix_origin_burst": "Same prefix-origin bursts across multiple collectors with multiple one-off paths in a short span.",
     "single_collector_visibility": "Only one collector observed the event.",
     "sparse_short_lived_event": "Few records and short duration event.",
 }
@@ -24,6 +25,7 @@ STRUCTURAL_RULES = {
     "unseen_exact_path",
     "weak_path_history",
     "abnormal_path_length_for_prefix_origin",
+    "cross_collector_prefix_origin_burst",
 }
 
 WEAK_RULES = {
@@ -47,6 +49,11 @@ DEFAULT_THRESHOLDS = {
     "weak_path_history_max_events": 2,
     "sparse_record_max": 2,
     "sparse_duration_max_sec": 5.0,
+    "po_burst_max_events": 2,
+    "po_burst_min_unique_paths": 2,
+    "po_burst_min_collectors": 2,
+    "po_burst_max_time_span_sec": 10.0,
+    "po_burst_max_path_events": 1,
 }
 
 
@@ -293,11 +300,25 @@ def evaluate_rules(row: pd.Series, min_weak_rules: int, current_run_id: str) -> 
         if path_last_seen_run and path_last_seen_run != current_run_id:
             reasons.append("weak_path_history")
 
-    # D9 single collector (contextual only)
+    # C9 cross-collector prefix-origin burst
+    po_collector_support = float(row.get("po_collector_support", 0.0) or 0.0)
+    po_time_span_sec = float(row.get("po_time_span_sec", 0.0) or 0.0)
+    if (
+        int(float(row.get("collector_count", 0.0) or 0.0)) == 1
+        and po_total_events > 0
+        and po_total_events <= DEFAULT_THRESHOLDS["po_burst_max_events"]
+        and float(row.get("po_unique_paths", 0.0) or 0.0) >= DEFAULT_THRESHOLDS["po_burst_min_unique_paths"]
+        and po_collector_support >= DEFAULT_THRESHOLDS["po_burst_min_collectors"]
+        and po_time_span_sec <= DEFAULT_THRESHOLDS["po_burst_max_time_span_sec"]
+        and path_total_events <= DEFAULT_THRESHOLDS["po_burst_max_path_events"]
+    ):
+        reasons.append("cross_collector_prefix_origin_burst")
+
+    # D10 single collector (contextual only)
     if int(float(row.get("collector_count", 0.0) or 0.0)) == 1:
         reasons.append("single_collector_visibility")
 
-    # D10 sparse short-lived
+    # D11 sparse short-lived
     rec = float(row.get("record_count", 0.0) or 0.0)
     dur = float(row.get("duration_sec", 0.0) or 0.0)
     wcnt = float(row.get("withdraw_count", 0.0) or 0.0)
@@ -436,6 +457,28 @@ def main():
         how="left",
     )
 
+    po_runtime_stats = (
+        events.groupby(["prefix", "origin_as_num"], dropna=False, sort=False)
+        .agg(
+            po_first_seen=("first_seen", "min"),
+            po_last_seen=("last_seen", "max"),
+            po_collector_support=(
+                "collector_set",
+                lambda s: len({x for v in s.fillna("").astype(str) for x in v.split("|") if x}),
+            ),
+        )
+        .reset_index()
+    )
+    po_runtime_stats["po_time_span_sec"] = (
+        pd.to_numeric(po_runtime_stats["po_last_seen"], errors="coerce").fillna(0.0)
+        - pd.to_numeric(po_runtime_stats["po_first_seen"], errors="coerce").fillna(0.0)
+    )
+    merged = merged.merge(
+        po_runtime_stats[["prefix", "origin_as_num", "po_collector_support", "po_time_span_sec"]],
+        on=["prefix", "origin_as_num"],
+        how="left",
+    )
+
     merged = merged.merge(
         baseline_path_df[
             [
@@ -486,6 +529,8 @@ def main():
         "prefix_unique_origins",
         "po_total_events",
         "po_unique_paths",
+        "po_collector_support",
+        "po_time_span_sec",
         "path_total_events",
         "path_seen_before",
     ]

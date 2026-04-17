@@ -1,0 +1,36 @@
+{
+  "plan_name": "s1a_modern_2024_plan_v01",
+  "generated_on": "2026-04-13",
+  "notes": "Modern-data pilot/full profiles for 2024. April 2024 is preferred for the initial clean-signal baseline because Qrator reported no global BGP incidents in April 2024, while Kentik documented a major global route leak on 2024-03-11.",
+  "baseline_collectors": "route-views.sg,rrc00",
+  "expanded_collectors": "route-views.sg,route-views2,route-views.eqix,route-views.isc,rrc00,rrc01,rrc03,rrc10,rrc18,rrc19,rrc21,rrc23",
+  "profiles": [
+    {
+      "profile_name": "pilot_60m_april16",
+      "description": "Memory-safe first modern-traffic smoke test on a 60-minute April 2024 window.",
+      "collect_from": "2024-04-16 00:00:00",
+      "minutes": 60,
+      "chunk_minutes": 5,
+      "max_rows": 50000,
+      "selection_reason": "Use a smaller first pilot after the 4-hour baseline event-build step hit the local memory boundary."
+    },
+    {
+      "profile_name": "pilot_4h_april16",
+      "description": "Initial 4-hour modern-traffic pilot on a low-cost April 2024 window.",
+      "collect_from": "2024-04-16 00:00:00",
+      "minutes": 240,
+      "chunk_minutes": 5,
+      "max_rows": 50000,
+      "selection_reason": "Pilot-sized 2024 window for first modernity/scalability smoke test before any 24h replay."
+    },
+    {
+      "profile_name": "full_24h_april16",
+      "description": "Full 24-hour modern-traffic replay using the same collector set and start time as the pilot.",
+      "collect_from": "2024-04-16 00:00:00",
+      "minutes": 1440,
+      "chunk_minutes": 5,
+      "max_rows": 50000,
+      "selection_reason": "Main S1-A full-day run after the 4h pilot is stable."
+    }
+  ]
+}

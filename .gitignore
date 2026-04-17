@@ -10,6 +10,8 @@ data/runs/
 data/parquet/
 data/mrt_cache/
 data/caida/
+data/markers/
+data/markers_*/
 outputs/
 
 # OS / temp

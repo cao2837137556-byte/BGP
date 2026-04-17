@@ -14,6 +14,7 @@ STRUCTURAL_REASONS = {
     "unseen_exact_path",
     "weak_path_history",
     "abnormal_path_length_for_prefix_origin",
+    "cross_collector_prefix_origin_burst",
 }
 
 WEAK_REASONS = {
@@ -33,6 +34,10 @@ AUGMENT_CONFIG = {
     "related_window_sec": 300,
     "promoted_threshold": 65.0,
     "demoted_threshold": 35.0,
+    "route_leak_review_prefix_min": 5000.0,
+    "route_leak_review_evidence_min": 30.0,
+    "route_leak_review_conflict_max": 10.0,
+    "route_leak_review_certainty_min": 20.0,
 }
 
 
@@ -127,6 +132,9 @@ def ensure_gating_columns(df: pd.DataFrame) -> pd.DataFrame:
         "missing_origin_or_path": False,
         "candidate_reasons": "[]",
         "path_seen_before": False,
+        "promoted_from_low": False,
+        "origin_burst_event_count": 0.0,
+        "origin_burst_prefix_count": 0.0,
     }
     for col, default in defaults.items():
         if col not in out.columns:
@@ -145,6 +153,8 @@ def ensure_gating_columns(df: pd.DataFrame) -> pd.DataFrame:
         "history_rarity_score",
         "path_consistency_score",
         "matched_rule_count",
+        "origin_burst_event_count",
+        "origin_burst_prefix_count",
     ]
     for col in numeric_cols:
         out[col] = pd.to_numeric(out[col], errors="coerce").fillna(0.0)
@@ -154,6 +164,8 @@ def ensure_gating_columns(df: pd.DataFrame) -> pd.DataFrame:
         out["missing_origin_or_path"] = out["missing_origin_or_path"].fillna(False).astype(bool)
     if out["path_seen_before"].dtype != bool:
         out["path_seen_before"] = out["path_seen_before"].fillna(False).astype(bool)
+    if out["promoted_from_low"].dtype != bool:
+        out["promoted_from_low"] = out["promoted_from_low"].fillna(False).astype(bool)
     return out
 
 
@@ -435,6 +447,28 @@ def choose_augmentation_label(evidence_support_score: float) -> str:
     return "retained_uncertain"
 
 
+def should_preserve_route_leak_review(row: pd.Series, reasons: list[str], evidence_support_score: float) -> bool:
+    if str(row.get("gating_label", "")) != UNCERTAIN_LABEL:
+        return False
+    if evidence_support_score >= AUGMENT_CONFIG["demoted_threshold"]:
+        return False
+    if evidence_support_score < AUGMENT_CONFIG["route_leak_review_evidence_min"]:
+        return False
+    if not bool(row.get("promoted_from_low", False)):
+        return False
+    if "cross_collector_prefix_origin_burst" not in reasons:
+        return False
+    if "single_collector_visibility" not in reasons:
+        return False
+    if safe_num(row.get("origin_burst_prefix_count"), 0.0) < AUGMENT_CONFIG["route_leak_review_prefix_min"]:
+        return False
+    if safe_num(row.get("certainty_score"), 0.0) < AUGMENT_CONFIG["route_leak_review_certainty_min"]:
+        return False
+    if safe_num(row.get("conflict_score"), 0.0) > AUGMENT_CONFIG["route_leak_review_conflict_max"]:
+        return False
+    return True
+
+
 def print_samples(df: pd.DataFrame, title: str, n: int):
     print(f"{title}:")
     if df.empty:
@@ -509,7 +543,17 @@ def main():
     gating_df = ensure_gating_columns(pd.read_parquet(gating_path))
     uncertain_df = gating_df[gating_df["gating_label"] == UNCERTAIN_LABEL].copy()
 
-    events_df = ensure_event_columns(pd.read_parquet(events_path))
+    event_cols = [
+        "event_id",
+        "prefix",
+        "origin_as",
+        "as_path_clean",
+        "first_seen",
+        "last_seen",
+        "collector_set",
+        "collector_count",
+    ]
+    events_df = ensure_event_columns(pd.read_parquet(events_path, columns=event_cols))
     baseline_prefix_df = ensure_baseline_prefix(pd.read_parquet(baseline_prefix_path))
     baseline_po_df = ensure_baseline_prefix_origin(pd.read_parquet(baseline_po_path))
     baseline_path_df = ensure_baseline_path(pd.read_parquet(baseline_path_path))
@@ -548,17 +592,21 @@ def main():
     )
     uncertain_df["path_seen_before"] = uncertain_df["path_total_events"].fillna(0) > 0
 
-    # Build lightweight in-memory indexes for nearby event lookup.
-    prefix_index = {k: grp.copy() for k, grp in events_df.groupby("prefix", sort=False)}
-    po_index = {
-        (k1, k2): grp.copy()
-        for (k1, k2), grp in events_df.groupby(["prefix", "origin_as_num"], dropna=False, sort=False)
-    }
-    path_index = {
-        (k1, k2, k3): grp.copy()
-        for (k1, k2, k3), grp in events_df.groupby(["prefix", "origin_as_num", "as_path_clean"], dropna=False, sort=False)
-    }
-    event_row_index = events_df.set_index("event_id", drop=False)
+    # Keep augmentation scalable for multi-collector experiments: index row
+    # positions instead of copying full DataFrames for every group.
+    relevant_prefixes = set(uncertain_df["prefix"].dropna().astype(str).unique())
+    events_df = events_df[events_df["prefix"].isin(relevant_prefixes)].reset_index(drop=True)
+    empty_events = events_df.iloc[0:0]
+    prefix_index = events_df.groupby("prefix", sort=False).indices
+    po_index = events_df.groupby(["prefix", "origin_as_num"], dropna=False, sort=False).indices
+    path_index = events_df.groupby(["prefix", "origin_as_num", "as_path_clean"], dropna=False, sort=False).indices
+    event_row_pos = {event_id: idx for idx, event_id in enumerate(events_df["event_id"].tolist())}
+
+    def indexed_events(index: dict, key) -> pd.DataFrame:
+        positions = index.get(key)
+        if positions is None:
+            return empty_events
+        return events_df.take(positions)
 
     results = []
     for row in uncertain_df.itertuples(index=False):
@@ -566,10 +614,8 @@ def main():
         event_id = str(row_s.get("event_id", ""))
         reasons = parse_reason_list(row_s.get("candidate_reasons", "[]"))
 
-        if event_id in event_row_index.index:
-            evt_row = event_row_index.loc[event_id]
-            if isinstance(evt_row, pd.DataFrame):
-                evt_row = evt_row.iloc[0]
+        if event_id in event_row_pos:
+            evt_row = events_df.iloc[event_row_pos[event_id]]
         else:
             evt_row = pd.Series(
                 {
@@ -584,11 +630,11 @@ def main():
                 }
             )
 
-        prefix_events = prefix_index.get(str(row_s.get("prefix", "")), events_df.iloc[0:0])
+        prefix_events = indexed_events(prefix_index, str(row_s.get("prefix", "")))
         po_key = (str(row_s.get("prefix", "")), row_s.get("origin_as_num", float("nan")))
-        po_events = po_index.get(po_key, events_df.iloc[0:0])
+        po_events = indexed_events(po_index, po_key)
         path_key = (str(row_s.get("prefix", "")), row_s.get("origin_as_num", float("nan")), str(row_s.get("as_path_clean", "")))
-        path_events = path_index.get(path_key, events_df.iloc[0:0])
+        path_events = indexed_events(path_index, path_key)
 
         multi_score, multi_detail = calc_multi_view_support_score(row_s, evt_row, prefix_events, po_events, path_events)
         hist_score, hist_detail = calc_historical_deviation_support_score(row_s, reasons)
@@ -601,6 +647,10 @@ def main():
         )
         evidence = round(clip_0_100(evidence), 4)
         aug_label = choose_augmentation_label(evidence)
+        route_leak_review_preserved = False
+        if aug_label == "demoted_suspicious" and should_preserve_route_leak_review(row_s, reasons, evidence):
+            aug_label = "retained_uncertain"
+            route_leak_review_preserved = True
 
         explanation = {
             "multi_view_support_detail": multi_detail,
@@ -608,6 +658,7 @@ def main():
             "consistency_recheck_detail": cons_detail,
             "weights": AUGMENT_WEIGHTS,
             "reasons": reasons,
+            "route_leak_review_preserved": route_leak_review_preserved,
         }
 
         results.append(
@@ -629,6 +680,7 @@ def main():
                 "augmentation_explanation": json.dumps(explanation, ensure_ascii=False),
                 "promoted_from_uncertain": bool(aug_label == "promoted_suspicious"),
                 "demoted_from_uncertain": bool(aug_label == "demoted_suspicious"),
+                "route_leak_review_preserved": route_leak_review_preserved,
             }
         )
 
@@ -653,6 +705,7 @@ def main():
                 "augmentation_explanation",
                 "promoted_from_uncertain",
                 "demoted_from_uncertain",
+                "route_leak_review_preserved",
             ]
         )
 

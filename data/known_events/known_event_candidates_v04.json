@@ -1,0 +1,202 @@
+{
+  "manifest_name": "known_event_candidates_v04",
+  "generated_on": "2026-04-12",
+  "notes": "Known public BGP incidents for dual-track evaluation. Route-leak events can use ordered_leak_chain plus optional anchor_origin_as after dedicated audit.",
+  "events": [
+    {
+      "event_name": "Rostelecom AS12389 suspicious-origin burst",
+      "slug": "rostelecom_20170426",
+      "event_type": "forged_origin",
+      "inventory_stage": "core_tested",
+      "selection_priority": "P0",
+      "reproducibility_confidence": "high",
+      "approximate_time_window": "2017-04-26 22:36-22:43 UTC",
+      "collect_from": "2017-04-26 22:34:00",
+      "minutes": 12,
+      "target_prefixes": [
+        "203.112.90.0/24"
+      ],
+      "anchor_type": "exact_prefix",
+      "known_origin_or_attack_as": "malicious_origin=AS12389 (example victim aggregate: AS9221 /23)",
+      "known_malicious_origin_asn": 12389,
+      "known_attacker_asns": [
+        12389
+      ],
+      "public_source_hint": "BGPmon report with explicit prefix example and short event window.",
+      "source_reference": "https://www2.bgpmon.net/bgpstream-and-the-curious-case-of-as12389/",
+      "selected_for_test": true,
+      "selection_reason": "2017 event, minute-level window, explicit prefix/ASN anchor, low incremental data cost.",
+      "fit_reason": "Direct forged-origin stress case for the current layered system."
+    },
+    {
+      "event_name": "Google-Verizon route leak (Japan impact)",
+      "slug": "google_verizon_20170825",
+      "event_type": "route_leak",
+      "inventory_stage": "core_tested",
+      "selection_priority": "P0",
+      "reproducibility_confidence": "high",
+      "approximate_time_window": "2017-08-25 03:22-03:33 UTC",
+      "collect_from": "2017-08-25 03:20:00",
+      "minutes": 15,
+      "target_prefixes": [
+        "114.154.133.0/24"
+      ],
+      "anchor_type": "ordered_leak_chain",
+      "anchor_chain": [
+        "286",
+        "701",
+        "15169",
+        "4713"
+      ],
+      "anchor_origin_as": 4713,
+      "known_origin_or_attack_as": "example affected prefix tied to AS4713; leak path propagated via AS15169 and AS701",
+      "known_malicious_origin_asn": null,
+      "known_attacker_asns": [
+        15169,
+        701
+      ],
+      "public_source_hint": "Public incident analysis with explicit time and prefix example.",
+      "source_reference": "https://www.bgpmon.net/bgp-leak-causing-internet-outages-in-japan-and-beyond/",
+      "selected_for_test": true,
+      "selection_reason": "2017 event with explicit time/prefix anchor; direct fit to partial-observability validation.",
+      "fit_reason": "Route-leak style boundary case now migrated to ordered leak-chain evaluation after dedicated chain-anchor audit."
+    },
+    {
+      "event_name": "Amazon Route53 / MyEtherWallet hijack",
+      "slug": "route53_mew_20180424",
+      "event_type": "forged_origin",
+      "inventory_stage": "core_tested",
+      "selection_priority": "P0",
+      "reproducibility_confidence": "high",
+      "approximate_time_window": "2018-04-24 11:05-12:55 UTC",
+      "collect_from": "2018-04-24 11:03:00",
+      "minutes": 15,
+      "target_prefixes": [
+        "205.251.192.0/24",
+        "205.251.194.0/24",
+        "205.251.196.0/24",
+        "205.251.198.0/24"
+      ],
+      "anchor_type": "exact_prefix",
+      "known_origin_or_attack_as": "malicious_origin=AS10297 against Amazon Route53 space (legit AS16509 aggregate)",
+      "known_malicious_origin_asn": 10297,
+      "known_attacker_asns": [
+        10297
+      ],
+      "public_source_hint": "Widely documented Route53 hijack with explicit malicious /24 set and onset details.",
+      "source_reference": "https://www.internetsociety.org/blog/2018/04/amazons-route-53-bgp-hijack/",
+      "selected_for_test": true,
+      "selection_reason": "Strong public anchor with malicious ASN and target prefixes; short-window replay remains low cost.",
+      "fit_reason": "Classic forged-origin case for high-confidence capability backstop."
+    },
+    {
+      "event_name": "MainOne / Google route leak",
+      "slug": "mainone_google_20181112",
+      "event_type": "route_leak",
+      "inventory_stage": "next_batch",
+      "selection_priority": "P1",
+      "reproducibility_confidence": "medium",
+      "approximate_time_window": "2018-11-12 around 21:12-22:26 UTC",
+      "collect_from": "2018-11-12 21:10:00",
+      "minutes": 20,
+      "target_prefixes": [
+        "8.8.8.0/24"
+      ],
+      "anchor_type": "ordered_leak_chain",
+      "anchor_chain": [
+        "20485",
+        "4809",
+        "37282",
+        "15169"
+      ],
+      "anchor_origin_as": 15169,
+      "known_origin_or_attack_as": "reported leak chain includes AS37282 MainOne, AS4809 China Telecom, AS20485 TransTelecom, victim AS15169 Google",
+      "known_malicious_origin_asn": null,
+      "known_attacker_asns": [
+        37282,
+        4809,
+        20485
+      ],
+      "public_source_hint": "Cloudflare incident write-up with onset time and leak path.",
+      "source_reference": "https://blog.cloudflare.com/how-a-nigerian-isp-knocked-google-offline/",
+      "selected_for_test": false,
+      "selection_reason": "Good next-batch candidate, but path-centric route leak requires careful match logic beyond current core set.",
+      "fit_reason": "Route-leak case audited under ordered leak-chain evaluation rather than single-prefix exact hit."
+    },
+    {
+      "event_name": "D-Vois Amazon more-specific hijack",
+      "slug": "dvois_amazon_20170319",
+      "event_type": "more_specific_hijack",
+      "inventory_stage": "next_batch",
+      "selection_priority": "P1",
+      "reproducibility_confidence": "medium",
+      "approximate_time_window": "2017-03-19 13:45-14:17 UTC",
+      "collect_from": "2017-03-19 13:40:00",
+      "minutes": 40,
+      "target_prefixes": [
+        "50.16.226.0/24"
+      ],
+      "anchor_type": "exact_prefix",
+      "known_origin_or_attack_as": "hijack reported by AS45769 D-Vois Broadband against Amazon space",
+      "known_malicious_origin_asn": 45769,
+      "known_attacker_asns": [
+        45769
+      ],
+      "public_source_hint": "Incident write-up with explicit Amazon prefix example, onset time, and visible withdrawal time.",
+      "source_reference": "https://anuragbhatia.com/2017/03/networking/isp-column/prefix-hijacks-d-vois-broadband/",
+      "selected_for_test": false,
+      "selection_reason": "2017 forged-origin style candidate close to current dataset period; suitable for next expansion round.",
+      "fit_reason": "Potentially stronger than route-leak cases for origin-focused rules."
+    },
+    {
+      "event_name": "Indosat 2014 large-scale hijack",
+      "slug": "indosat_20140402",
+      "event_type": "forged_origin",
+      "inventory_stage": "backup",
+      "selection_priority": "P2",
+      "reproducibility_confidence": "medium",
+      "approximate_time_window": "2014-04-02 around 18:55-19:30 UTC",
+      "collect_from": "2014-04-02 18:55:00",
+      "minutes": 20,
+      "target_prefixes": [
+        "8.37.93.0/24"
+      ],
+      "anchor_type": "exact_prefix",
+      "known_origin_or_attack_as": "AS4761 Indosat announced many foreign prefixes including 8.37.93.0/24",
+      "known_malicious_origin_asn": 4761,
+      "known_attacker_asns": [
+        4761
+      ],
+      "public_source_hint": "NANOG post preserves an explicit affected prefix example tied to the Indosat event.",
+      "source_reference": "https://lists.ding.net/othersite/nanog/2014/apr/msg00041.html",
+      "selected_for_test": false,
+      "selection_reason": "Historically important, but farther from current dataset focus and likely higher repro variance.",
+      "fit_reason": "Good backup stress case if later we need a large-scale origin-hijack benchmark."
+    },
+    {
+      "event_name": "Pakistan Telecom / YouTube hijack",
+      "slug": "pakistan_youtube_20080224",
+      "event_type": "more_specific_hijack",
+      "inventory_stage": "backup",
+      "selection_priority": "P3",
+      "reproducibility_confidence": "medium",
+      "approximate_time_window": "2008-02-24 around public outage window",
+      "collect_from": "2008-02-24 18:00:00",
+      "minutes": 20,
+      "target_prefixes": [
+        "208.65.153.0/24"
+      ],
+      "anchor_type": "exact_prefix",
+      "known_origin_or_attack_as": "Pakistan Telecom AS17557 announced YouTube more-specific 208.65.153.0/24",
+      "known_malicious_origin_asn": 17557,
+      "known_attacker_asns": [
+        17557
+      ],
+      "public_source_hint": "Classic incident with clear more-specific prefix anchor.",
+      "source_reference": "https://routingfreak.wordpress.com/2008/03/02/pakistan-hijacks-youtube/",
+      "selected_for_test": false,
+      "selection_reason": "Canonical example, but very old and not aligned with current 2017/2018 low-cost mainline.",
+      "fit_reason": "Reserved as a historical benchmark, not a current-cost-efficient target."
+    }
+  ]
+}

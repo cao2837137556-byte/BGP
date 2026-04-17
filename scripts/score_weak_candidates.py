@@ -14,6 +14,7 @@ STRUCTURAL_REASONS = {
     "unseen_exact_path",
     "weak_path_history",
     "abnormal_path_length_for_prefix_origin",
+    "cross_collector_prefix_origin_burst",
 }
 
 WEAK_REASONS = {
@@ -33,6 +34,7 @@ STRUCTURAL_REASON_WEIGHTS = {
     "unseen_origin_for_prefix": 0.20,
     "weak_path_history": 0.22,
     "abnormal_path_length_for_prefix_origin": 0.20,
+    "cross_collector_prefix_origin_burst": 0.20,
 }
 
 WEAK_REASON_WEIGHTS = {
@@ -139,6 +141,8 @@ def ensure_candidate_columns(df: pd.DataFrame) -> pd.DataFrame:
         "po_total_events": None,
         "path_total_events": None,
         "po_unique_paths": None,
+        "po_collector_support": None,
+        "po_time_span_sec": None,
         "path_seen_before": None,
     }
     for col, default in defaults.items():
@@ -164,6 +168,8 @@ def ensure_candidate_columns(df: pd.DataFrame) -> pd.DataFrame:
         "po_total_events",
         "path_total_events",
         "po_unique_paths",
+        "po_collector_support",
+        "po_time_span_sec",
     ]
     for col in numeric_cols:
         out[col] = pd.to_numeric(out[col], errors="coerce")
@@ -554,6 +560,8 @@ def main():
         "path_seen_before",
         "path_total_events",
         "po_total_events",
+        "po_collector_support",
+        "po_time_span_sec",
         "prefix_total_events",
         "score_explanation",
     ]

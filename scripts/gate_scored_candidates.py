@@ -13,6 +13,7 @@ STRUCTURAL_REASONS = {
     "unseen_exact_path",
     "weak_path_history",
     "abnormal_path_length_for_prefix_origin",
+    "cross_collector_prefix_origin_burst",
 }
 
 WEAK_REASONS = {
@@ -33,6 +34,10 @@ GATING_CONFIG = {
     "conflict_threshold_medium": 50.0,
     "promote_low_structural_min": 45.0,
     "promote_low_certainty_min": 45.0,
+    "origin_burst_review_prefix_min": 5000,
+    "origin_burst_review_structural_min": 20.0,
+    "origin_burst_review_certainty_min": 20.0,
+    "origin_burst_review_conflict_max": 35.0,
 }
 
 
@@ -116,6 +121,8 @@ def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
         "missing_origin_or_path": False,
         "candidate_reasons": "[]",
         "path_seen_before": False,
+        "origin_burst_event_count": 0.0,
+        "origin_burst_prefix_count": 0.0,
     }
     for col, default in defaults.items():
         if col not in out.columns:
@@ -132,6 +139,8 @@ def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
         "history_rarity_score",
         "path_consistency_score",
         "matched_rule_count",
+        "origin_burst_event_count",
+        "origin_burst_prefix_count",
     ]
     for col in numeric_cols:
         out[col] = pd.to_numeric(out[col], errors="coerce").fillna(0.0)
@@ -231,12 +240,13 @@ def calc_conflict_score(row: pd.Series, reasons: list[str]) -> tuple[float, list
     return clip_0_100(score), flags
 
 
-def gate_label(row: pd.Series, certainty: float, conflict: float) -> tuple[str, bool, bool, str]:
+def gate_label(row: pd.Series, reasons: list[str], certainty: float, conflict: float) -> tuple[str, bool, bool, str]:
     risk_bucket = str(row.get("risk_bucket", "low") or "low")
     structural = safe_num(row.get("structural_novelty_score"))
     weak = safe_num(row.get("weak_signal_score"))
     top_factor = str(row.get("top_contributing_factor", "") or "")
     missing = bool(row.get("missing_origin_or_path", False))
+    origin_burst_prefix_count = safe_num(row.get("origin_burst_prefix_count"))
 
     promoted_from_low = False
     demoted_from_high = False
@@ -270,6 +280,17 @@ def gate_label(row: pd.Series, certainty: float, conflict: float) -> tuple[str, 
             label = "suspicious_but_uncertain"
             promoted_from_low = True
             note = "low bucket promoted due strong structural evidence"
+        elif (
+            "cross_collector_prefix_origin_burst" in reasons
+            and structural >= GATING_CONFIG["origin_burst_review_structural_min"]
+            and certainty >= GATING_CONFIG["origin_burst_review_certainty_min"]
+            and conflict < GATING_CONFIG["origin_burst_review_conflict_max"]
+            and origin_burst_prefix_count >= GATING_CONFIG["origin_burst_review_prefix_min"]
+            and not missing
+        ):
+            label = "suspicious_but_uncertain"
+            promoted_from_low = True
+            note = "low bucket promoted due origin-wide burst cluster"
         else:
             label = "likely_benign"
             note = "low risk with no strong structural certainty"
@@ -284,7 +305,7 @@ def evaluate_row(row: pd.Series) -> dict:
     reasons = parse_reason_list(row.get("candidate_reasons", "[]"))
     certainty, certainty_detail = calc_certainty_score(row, reasons)
     conflict, conflict_flags = calc_conflict_score(row, reasons)
-    label, promoted, demoted, label_note = gate_label(row, certainty, conflict)
+    label, promoted, demoted, label_note = gate_label(row, reasons, certainty, conflict)
 
     explanation = {
         "label_note": label_note,
@@ -359,6 +380,37 @@ def main():
     scored_raw = pd.read_parquet(scores_path)
     scored = ensure_columns(scored_raw)
 
+    reason_lists = scored["candidate_reasons"].apply(parse_reason_list)
+    burst_mask = reason_lists.apply(
+        lambda rs: "cross_collector_prefix_origin_burst" in rs and "single_collector_visibility" in rs
+    )
+    if burst_mask.any():
+        burst_origin = (
+            scored.loc[burst_mask]
+            .groupby("origin_as", dropna=False)
+            .agg(origin_burst_event_count=("event_id", "count"), origin_burst_prefix_count=("prefix", "nunique"))
+            .reset_index()
+        )
+        scored = scored.merge(burst_origin, on="origin_as", how="left", suffixes=("", "_burst"))
+        if "origin_burst_event_count_burst" in scored.columns:
+            scored["origin_burst_event_count"] = pd.to_numeric(
+                scored["origin_burst_event_count_burst"], errors="coerce"
+            ).fillna(pd.to_numeric(scored["origin_burst_event_count"], errors="coerce")).fillna(0.0)
+            scored = scored.drop(columns=["origin_burst_event_count_burst"])
+        else:
+            scored["origin_burst_event_count"] = pd.to_numeric(
+                scored["origin_burst_event_count"], errors="coerce"
+            ).fillna(0.0)
+        if "origin_burst_prefix_count_burst" in scored.columns:
+            scored["origin_burst_prefix_count"] = pd.to_numeric(
+                scored["origin_burst_prefix_count_burst"], errors="coerce"
+            ).fillna(pd.to_numeric(scored["origin_burst_prefix_count"], errors="coerce")).fillna(0.0)
+            scored = scored.drop(columns=["origin_burst_prefix_count_burst"])
+        else:
+            scored["origin_burst_prefix_count"] = pd.to_numeric(
+                scored["origin_burst_prefix_count"], errors="coerce"
+            ).fillna(0.0)
+
     eval_df = scored.apply(evaluate_row, axis=1, result_type="expand")
     gated = pd.concat([scored.reset_index(drop=True), eval_df.reset_index(drop=True)], axis=1)
 
@@ -385,6 +437,8 @@ def main():
         "demoted_from_high",
         "candidate_reasons",
         "path_seen_before",
+        "origin_burst_event_count",
+        "origin_burst_prefix_count",
     ]
     output_df = gated[output_cols].copy()
     output_df.to_parquet(out_gated, index=False)

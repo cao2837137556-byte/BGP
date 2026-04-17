@@ -2,6 +2,7 @@ import argparse
 import json
 import re
 from pathlib import Path
+from datetime import datetime
 
 import pandas as pd
 
@@ -42,6 +43,17 @@ def infer_run_id(path: Path):
 
 def is_rel_file(path: Path) -> bool:
     return path.stem.endswith("__rel") or "__rel." in path.name
+
+
+def chunk_start_key(path: Path) -> tuple[str, str, str]:
+    date_part = ""
+    for part in path.parts:
+        if part.startswith("date="):
+            date_part = part.split("=", 1)[1]
+            break
+    name_parts = path.stem.split("__")
+    start_part = name_parts[1] if len(name_parts) >= 2 else "00-00-00"
+    return (date_part, start_part, path.as_posix())
 
 
 def parse_as_path(value) -> list[int]:
@@ -119,10 +131,10 @@ def pick_input_files(input_path: Path, prefer_rel: bool) -> tuple[list[Path], st
         selected = updates_files if updates_files else rel_files
         input_kind = "updates" if updates_files else "rel"
 
-    return sorted(selected), input_kind
+    return sorted(selected, key=chunk_start_key), input_kind
 
 
-def build_events(df: pd.DataFrame, run_id: str, window_sec: int) -> pd.DataFrame:
+def normalize_updates(df: pd.DataFrame) -> pd.DataFrame:
     if "ts" not in df.columns:
         raise ValueError("Input parquet is missing required column: ts")
     if "collector" not in df.columns:
@@ -141,49 +153,16 @@ def build_events(df: pd.DataFrame, run_id: str, window_sec: int) -> pd.DataFrame
     work["event_key_path"] = work["as_path_clean"].fillna("")
     work["event_key_origin"] = work["origin_as"].fillna(-1).astype(int)
     work["event_key_prefix"] = work["prefix"]
-
-    grouped = work.sort_values(["event_key_prefix", "event_key_origin", "event_key_path", "ts"]).groupby(
-        ["event_key_prefix", "event_key_origin", "event_key_path"], dropna=False, sort=False
-    )
-
-    event_rows = []
-    event_index = 0
-
-    for (_, _, _), group in grouped:
-        current_rows = []
-        prev_ts = None
-        for row in group.itertuples(index=False):
-            ts_val = float(row.ts)
-            if prev_ts is None or (ts_val - prev_ts) <= window_sec:
-                current_rows.append(row)
-            else:
-                event_rows.append(aggregate_event_rows(current_rows, run_id, window_sec, event_index))
-                event_index += 1
-                current_rows = [row]
-            prev_ts = ts_val
-        if current_rows:
-            event_rows.append(aggregate_event_rows(current_rows, run_id, window_sec, event_index))
-            event_index += 1
-
-    events_df = pd.DataFrame(event_rows)
-    if events_df.empty:
-        return events_df
-    events_df = events_df.sort_values(["first_seen", "last_seen", "event_id"]).reset_index(drop=True)
-    return events_df
+    return work
 
 
-def aggregate_event_rows(rows: list, run_id: str, window_sec: int, event_index: int) -> dict:
+def build_fragment(rows: list, run_id: str, window_sec: int, source_file: str) -> dict:
     first_row = rows[0]
     ts_values = [float(r.ts) for r in rows]
     first_seen = min(ts_values)
     last_seen = max(ts_values)
-    duration_sec = float(last_seen - first_seen)
 
     collectors = sorted({str(getattr(r, "collector", "")) for r in rows if str(getattr(r, "collector", ""))})
-    collector_set = "|".join(collectors)
-    collector_count = len(collectors)
-    primary_collector = collectors[0] if collectors else None
-
     visibility = set()
     for r in rows:
         collector = str(getattr(r, "collector", ""))
@@ -192,78 +171,181 @@ def aggregate_event_rows(rows: list, run_id: str, window_sec: int, event_index: 
             visibility.add(f"{collector}:{peer_asn}")
         elif collector:
             visibility.add(collector)
-    visibility_count = len(visibility)
 
-    rel_seq_values = []
+    rel_seq_counts: dict[str, int] = {}
     rel_unknown_values = []
     rel_has_unknown_values = []
-    source_files = set()
     for r in rows:
         rel_seq = getattr(r, "rel_seq", None)
         if rel_seq is not None and str(rel_seq).strip() and str(rel_seq).lower() != "nan":
-            rel_seq_values.append(str(rel_seq))
+            rel_seq_text = str(rel_seq)
+            rel_seq_counts[rel_seq_text] = rel_seq_counts.get(rel_seq_text, 0) + 1
         rel_unknown = getattr(r, "rel_unknown_cnt", None)
         if rel_unknown is not None and not pd.isna(rel_unknown):
             rel_unknown_values.append(int(rel_unknown))
         rel_has_unknown = getattr(r, "rel_has_unknown", None)
         if rel_has_unknown is not None and not pd.isna(rel_has_unknown):
             rel_has_unknown_values.append(bool(rel_has_unknown))
-        source_file = getattr(r, "source_file", None)
-        if source_file is not None and str(source_file).strip():
-            source_files.add(str(source_file))
-
-    rel_seq = None
-    if rel_seq_values:
-        rel_seq = pd.Series(rel_seq_values).value_counts().index[0]
-    rel_unknown_cnt = max(rel_unknown_values) if rel_unknown_values else 0
-    rel_has_unknown = any(rel_has_unknown_values) if rel_has_unknown_values else False
 
     types = [str(getattr(r, "type", "")).upper() for r in rows]
-    announce_count = sum(1 for t in types if t == "A")
-    withdraw_count = sum(1 for t in types if t == "W")
-
-    as_path_len = int(getattr(first_row, "as_path_len", 0) or 0)
     return {
-        "event_id": f"{run_id}_evt_{event_index:08d}",
         "run_id": run_id,
-        "collector": primary_collector,
         "prefix": str(getattr(first_row, "prefix", "")),
         "origin_as": int(getattr(first_row, "origin_as", -1)) if not pd.isna(getattr(first_row, "origin_as", None)) else None,
         "as_path_clean": str(getattr(first_row, "as_path_clean", "")),
-        "as_path_len": as_path_len,
+        "as_path_len": int(getattr(first_row, "as_path_len", 0) or 0),
+        "event_key_prefix": str(getattr(first_row, "event_key_prefix", "")),
+        "event_key_origin": int(getattr(first_row, "event_key_origin", -1)),
+        "event_key_path": str(getattr(first_row, "event_key_path", "")),
         "first_seen": first_seen,
         "last_seen": last_seen,
-        "duration_sec": duration_sec,
         "record_count": len(rows),
-        "announce_count": announce_count,
-        "withdraw_count": withdraw_count,
-        "collector_set": collector_set,
-        "collector_count": collector_count,
-        "visibility_count": visibility_count,
-        "rel_seq": rel_seq,
-        "rel_unknown_cnt": rel_unknown_cnt,
-        "rel_has_unknown": rel_has_unknown,
-        "source_file": "|".join(sorted(source_files)),
+        "announce_count": sum(1 for t in types if t == "A"),
+        "withdraw_count": sum(1 for t in types if t == "W"),
+        "collectors": set(collectors),
+        "visibility": visibility,
+        "rel_seq_counts": rel_seq_counts,
+        "rel_unknown_cnt": max(rel_unknown_values) if rel_unknown_values else 0,
+        "rel_has_unknown": any(rel_has_unknown_values) if rel_has_unknown_values else False,
+        "source_files": {source_file},
         "time_window_sec": window_sec,
     }
 
 
-def make_summary(raw_df: pd.DataFrame, events_df: pd.DataFrame) -> dict:
-    total_records = int(len(raw_df))
+def merge_fragment(target: dict, fragment: dict) -> None:
+    target["last_seen"] = max(float(target["last_seen"]), float(fragment["last_seen"]))
+    target["record_count"] += int(fragment["record_count"])
+    target["announce_count"] += int(fragment["announce_count"])
+    target["withdraw_count"] += int(fragment["withdraw_count"])
+    target["collectors"].update(fragment["collectors"])
+    target["visibility"].update(fragment["visibility"])
+    for rel_seq, count in fragment["rel_seq_counts"].items():
+        target["rel_seq_counts"][rel_seq] = target["rel_seq_counts"].get(rel_seq, 0) + int(count)
+    target["rel_unknown_cnt"] = max(int(target["rel_unknown_cnt"]), int(fragment["rel_unknown_cnt"]))
+    target["rel_has_unknown"] = bool(target["rel_has_unknown"]) or bool(fragment["rel_has_unknown"])
+    target["source_files"].update(fragment["source_files"])
+
+
+def finalize_event(event: dict, event_index: int) -> dict:
+    collectors = sorted(event["collectors"])
+    collector_set = "|".join(collectors)
+    visibility_count = len(event["visibility"])
+    rel_seq = None
+    if event["rel_seq_counts"]:
+        rel_seq = max(event["rel_seq_counts"].items(), key=lambda item: (item[1], item[0]))[0]
+    return {
+        "event_id": f"{event['run_id']}_evt_{event_index:08d}",
+        "run_id": event["run_id"],
+        "collector": collectors[0] if collectors else None,
+        "prefix": event["prefix"],
+        "origin_as": event["origin_as"],
+        "as_path_clean": event["as_path_clean"],
+        "as_path_len": int(event["as_path_len"]),
+        "first_seen": float(event["first_seen"]),
+        "last_seen": float(event["last_seen"]),
+        "duration_sec": float(event["last_seen"]) - float(event["first_seen"]),
+        "record_count": int(event["record_count"]),
+        "announce_count": int(event["announce_count"]),
+        "withdraw_count": int(event["withdraw_count"]),
+        "collector_set": collector_set,
+        "collector_count": len(collectors),
+        "visibility_count": visibility_count,
+        "rel_seq": rel_seq,
+        "rel_unknown_cnt": int(event["rel_unknown_cnt"]),
+        "rel_has_unknown": bool(event["rel_has_unknown"]),
+        "source_file": "|".join(sorted(event["source_files"])),
+        "time_window_sec": int(event["time_window_sec"]),
+    }
+
+
+def flush_ready_events(open_events: dict, threshold_ts: float, event_rows: list[dict], next_index: int, window_sec: int) -> int:
+    ready_keys = [key for key, event in open_events.items() if float(event["last_seen"]) + float(window_sec) < float(threshold_ts)]
+    for key in sorted(ready_keys):
+        event_rows.append(finalize_event(open_events.pop(key), next_index))
+        next_index += 1
+    return next_index
+
+
+def build_events_from_files(input_files: list[Path], run_id: str, window_sec: int) -> tuple[pd.DataFrame, int, int, int]:
+    event_rows: list[dict] = []
+    open_events: dict[tuple[str, int, str], dict] = {}
+    event_index = 0
+    total_records = 0
+    announce_records = 0
+    withdraw_records = 0
+
+    for path in input_files:
+        chunk_key = chunk_start_key(path)
+        chunk_start = datetime.strptime(f"{chunk_key[0]} {chunk_key[1].replace('-', ':')}", "%Y-%m-%d %H:%M:%S").timestamp()
+        event_index = flush_ready_events(open_events, chunk_start, event_rows, event_index, window_sec)
+
+        df = pd.read_parquet(path)
+        total_records += len(df)
+        df["source_file"] = to_rel_path(path)
+        work = normalize_updates(df)
+        if work.empty:
+            continue
+        announce_records += int((work["type"] == "A").sum())
+        withdraw_records += int((work["type"] == "W").sum())
+
+        grouped = work.sort_values(["event_key_prefix", "event_key_origin", "event_key_path", "ts"]).groupby(
+            ["event_key_prefix", "event_key_origin", "event_key_path"], dropna=False, sort=False
+        )
+        source_file = to_rel_path(path)
+        for _, group in grouped:
+            current_rows = []
+            prev_ts = None
+            for row in group.itertuples(index=False):
+                ts_val = float(row.ts)
+                if prev_ts is None or (ts_val - prev_ts) <= window_sec:
+                    current_rows.append(row)
+                else:
+                    fragment = build_fragment(current_rows, run_id, window_sec, source_file)
+                    key = (fragment["event_key_prefix"], fragment["event_key_origin"], fragment["event_key_path"])
+                    if key in open_events and float(fragment["first_seen"]) - float(open_events[key]["last_seen"]) <= window_sec:
+                        merge_fragment(open_events[key], fragment)
+                    else:
+                        if key in open_events:
+                            event_rows.append(finalize_event(open_events.pop(key), event_index))
+                            event_index += 1
+                        open_events[key] = fragment
+                    current_rows = [row]
+                prev_ts = ts_val
+            if current_rows:
+                fragment = build_fragment(current_rows, run_id, window_sec, source_file)
+                key = (fragment["event_key_prefix"], fragment["event_key_origin"], fragment["event_key_path"])
+                if key in open_events and float(fragment["first_seen"]) - float(open_events[key]["last_seen"]) <= window_sec:
+                    merge_fragment(open_events[key], fragment)
+                else:
+                    if key in open_events:
+                        event_rows.append(finalize_event(open_events.pop(key), event_index))
+                        event_index += 1
+                    open_events[key] = fragment
+
+    for key in sorted(open_events):
+        event_rows.append(finalize_event(open_events[key], event_index))
+        event_index += 1
+
+    events_df = pd.DataFrame(event_rows)
+    if events_df.empty:
+        return events_df, total_records, announce_records, withdraw_records
+    events_df = events_df.sort_values(["first_seen", "last_seen", "event_id"]).reset_index(drop=True)
+    return events_df, total_records, announce_records, withdraw_records
+
+
+def make_summary(total_records: int, announce_records: int, withdraw_records: int, events_df: pd.DataFrame) -> dict:
     total_events = int(len(events_df))
     avg_duration_sec = float(events_df["duration_sec"].mean()) if total_events else 0.0
     avg_collector_count = float(events_df["collector_count"].mean()) if total_events else 0.0
     avg_records_per_event = float(events_df["record_count"].mean()) if total_events else 0.0
-    announce_records = int((raw_df["type"].astype(str).str.upper() == "A").sum()) if "type" in raw_df.columns else 0
-    withdraw_records = int((raw_df["type"].astype(str).str.upper() == "W").sum()) if "type" in raw_df.columns else 0
     return {
-        "total_records": total_records,
+        "total_records": int(total_records),
         "total_events": total_events,
         "avg_duration_sec": avg_duration_sec,
         "avg_collector_count": avg_collector_count,
         "avg_records_per_event": avg_records_per_event,
-        "announce_records": announce_records,
-        "withdraw_records": withdraw_records,
+        "announce_records": int(announce_records),
+        "withdraw_records": int(withdraw_records),
     }
 
 
@@ -303,20 +385,12 @@ def main():
             output_path = Path("outputs") / "event_units.parquet"
     summary_path = output_path.with_name("event_units_summary.json")
 
-    dataframes = []
-    total_records = 0
-    for path in input_files:
-        df = pd.read_parquet(path)
-        df["source_file"] = to_rel_path(path)
-        dataframes.append(df)
-        total_records += len(df)
-    raw_df = pd.concat(dataframes, ignore_index=True) if dataframes else pd.DataFrame()
-    events_df = build_events(raw_df, run_id, args.window_sec)
+    events_df, total_records, announce_records, withdraw_records = build_events_from_files(input_files, run_id, args.window_sec)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     events_df.to_parquet(output_path, index=False)
 
-    summary = make_summary(raw_df, events_df)
+    summary = make_summary(total_records, announce_records, withdraw_records, events_df)
     summary["run_id"] = run_id
     summary["input_kind"] = input_kind
     summary["input_files"] = [to_rel_path(p) for p in input_files]

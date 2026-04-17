@@ -132,6 +132,9 @@ def annotate_file(in_path: Path, rel_map: dict, suffix: str, overwrite: bool, pr
         return None
 
     df = pd.read_parquet(in_path)
+    if df.empty:
+        print(f"[SKIP] empty parquet: {in_path}")
+        return None
     df = annotate_df(df, rel_map)
     df.to_parquet(out_path, index=False)
 
