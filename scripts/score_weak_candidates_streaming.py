@@ -215,7 +215,7 @@ def main():
     top_factor_counts: dict[str, int] = {}
     missing_count = 0
 
-    base_cols = [
+    output_cols = [
         "event_id",
         "run_id",
         "prefix",
@@ -227,16 +227,22 @@ def main():
         "collector_set",
         "collector_count",
         "visibility_count",
-        "candidate_flag",
         "candidate_reasons",
         "matched_rule_count",
-        "prefix_total_events",
+        "structural_novelty_score",
+        "weak_signal_score",
+        "history_rarity_score",
+        "path_consistency_score",
+        "risk_score",
+        "top_contributing_factor",
+        "missing_origin_or_path",
+        "path_seen_before",
+        "path_total_events",
         "po_total_events",
-        "po_unique_paths",
         "po_collector_support",
         "po_time_span_sec",
-        "path_total_events",
-        "path_seen_before",
+        "prefix_total_events",
+        "score_explanation",
     ]
 
     try:
@@ -329,8 +335,8 @@ def main():
             for bucket_name, count in batch_df["risk_bucket"].value_counts().to_dict().items():
                 bucket_counts[str(bucket_name)] = bucket_counts.get(str(bucket_name), 0) + int(count)
 
-            ordered_cols = base_cols[:18] + ["risk_bucket"] + base_cols[18:]
-            final_df = batch_df[ordered_cols]
+            ordered_cols = output_cols[:18] + ["risk_bucket"] + output_cols[18:]
+            final_df = batch_df[ordered_cols].copy()
             table = pa.Table.from_pandas(final_df, preserve_index=False)
             if final_writer is None:
                 final_writer = pq.ParquetWriter(out_scored, table.schema)

@@ -30,7 +30,8 @@ Final labels are fixed as:
 - `scripts/`: core pipeline and experiment runners
 - `data/known_events/`: known-event manifests and evaluation anchors
 - `data/modern_2024/`: modern-data experiment plans
-- `runs/prism_handoffs/`: fast experiment context handoff notes
+- `project_docs/`: canonical handoff and experiment mainline docs
+- `runs/prism_handoffs/`: archived fast handoff notes
 - `论文/`: experiment ledger, asset index, and reusable experiment writeups
 - `README_run.md`: unified multi-collector run entry documentation
 - `WORKTREE_SOP.md`: worktree collaboration rules
@@ -64,8 +65,8 @@ Known-event and evaluation work:
 
 Start with these files if you need project context quickly:
 
-- `runs/prism_handoffs/2026-04-08_experiment_context_v1.md`
-- `论文/实验总表_v01.md`
+- `project_docs/HANDOFF.md`
+- `project_docs/EXPERIMENT_MAINLINE.md`
 - `论文/实验资产索引_v01.md`
 - `论文/文献吸收_系统提升规划_v01.md`
 

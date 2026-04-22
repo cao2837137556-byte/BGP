@@ -80,6 +80,8 @@ def run_pipeline_for_window(
     caida_rel: str,
     force: bool,
     marker_dir_name: str,
+    augment_profile: str,
+    augment_script: str,
 ) -> str:
     run_dir = runs_root / run_id
     final_path = run_dir / "final" / "final_alerts.parquet"
@@ -224,7 +226,7 @@ def run_pipeline_for_window(
     run_cmd(
         [
             sys.executable,
-            "scripts/score_weak_candidates.py",
+            "scripts/score_weak_candidates_streaming.py",
             "--run-id",
             run_id,
             "--candidates",
@@ -245,7 +247,7 @@ def run_pipeline_for_window(
     run_cmd(
         [
             sys.executable,
-            "scripts/gate_scored_candidates.py",
+        "scripts/gate_scored_candidates_streaming.py",
             "--run-id",
             run_id,
             "--scores",
@@ -260,7 +262,7 @@ def run_pipeline_for_window(
     run_cmd(
         [
             sys.executable,
-            "scripts/augment_uncertain_candidates.py",
+            augment_script,
             "--run-id",
             run_id,
             "--events",
@@ -273,6 +275,8 @@ def run_pipeline_for_window(
             str(baseline_dir / "baseline_prefix_origin.parquet"),
             "--baseline-path",
             str(baseline_dir / "baseline_path.parquet"),
+            "--profile",
+            augment_profile,
             "--output-dir",
             str(aug_dir),
             "--overwrite",
@@ -283,7 +287,7 @@ def run_pipeline_for_window(
     run_cmd(
         [
             sys.executable,
-            "scripts/build_final_alerts.py",
+            "scripts/build_final_alerts_streaming.py",
             "--run-id",
             run_id,
             "--scores",
@@ -449,6 +453,16 @@ def main() -> None:
     parser.add_argument("--force-baseline", default="false")
     parser.add_argument("--force-expanded", default="false")
     parser.add_argument("--print-plan", default="false")
+    parser.add_argument(
+        "--augment-profile",
+        default="default",
+        help="Augment profile forwarded to augment_uncertain_candidates.py. default preserves historical behavior.",
+    )
+    parser.add_argument(
+        "--augment-script",
+        default="scripts/augment_uncertain_candidates.py",
+        help="Augment script to run. Default preserves the historical implementation; S2 can pass the fast S1-F implementation.",
+    )
     args = parser.parse_args()
 
     workdir = Path.cwd()
@@ -496,6 +510,8 @@ def main() -> None:
             caida_rel=args.caida_rel,
             force=to_bool(args.force_baseline),
             marker_dir_name="markers_s1a_baseline",
+            augment_profile=args.augment_profile,
+            augment_script=args.augment_script,
         )
 
     if to_bool(args.execute_expanded):
@@ -511,6 +527,8 @@ def main() -> None:
             caida_rel=args.caida_rel,
             force=to_bool(args.force_expanded),
             marker_dir_name="markers_s1a_expanded",
+            augment_profile=args.augment_profile,
+            augment_script=args.augment_script,
         )
 
     rows: list[dict[str, Any]] = []

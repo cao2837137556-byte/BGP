@@ -2,6 +2,7 @@ import argparse
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 
@@ -317,6 +318,158 @@ def calc_multi_view_support_score(
     return clip_0_100(base), detail
 
 
+def build_fast_event_context(events_df: pd.DataFrame) -> dict:
+    """Build array-backed event indexes to avoid per-row DataFrame slicing."""
+    event_ids = events_df["event_id"].astype(str).to_numpy()
+    first_seen = events_df["first_seen"].to_numpy()
+    last_seen = events_df["last_seen"].to_numpy()
+    collector_sets = events_df["collector_set"].astype(str).to_numpy()
+    collector_counts = events_df["collector_count"].to_numpy()
+    prefix_index = events_df.groupby("prefix", sort=False).indices
+    po_index = events_df.groupby(["prefix", "origin_as_num"], dropna=False, sort=False).indices
+    path_index = events_df.groupby(["prefix", "origin_as_num", "as_path_clean"], dropna=False, sort=False).indices
+
+    def build_interval_index(index: dict) -> dict:
+        out = {}
+        for key, positions in index.items():
+            positions = np.asarray(positions, dtype=np.int64)
+            first_order = positions[np.argsort(first_seen[positions], kind="mergesort")]
+            last_order = positions[np.argsort(last_seen[positions], kind="mergesort")]
+            out[key] = {
+                "first_positions": first_order,
+                "first_values": first_seen[first_order],
+                "last_positions": last_order,
+                "last_values": last_seen[last_order],
+                "size": int(len(positions)),
+            }
+        return out
+
+    return {
+        "event_ids": event_ids,
+        "first_seen": first_seen,
+        "last_seen": last_seen,
+        "collector_sets": collector_sets,
+        "collector_counts": collector_counts,
+        "prefix_interval_index": build_interval_index(prefix_index),
+        "po_interval_index": build_interval_index(po_index),
+        "path_interval_index": build_interval_index(path_index),
+        "event_row_pos": {event_id: idx for idx, event_id in enumerate(event_ids.tolist())},
+        "collector_cache": {},
+    }
+
+
+def parse_collector_set_cached(value, cache: dict) -> set[str]:
+    key = "" if value is None or pd.isna(value) else str(value)
+    cached = cache.get(key)
+    if cached is not None:
+        return cached
+    parsed = parse_collector_set(key)
+    cache[key] = parsed
+    return parsed
+
+
+def calc_multi_view_support_score_fast(row: dict, ctx: dict) -> tuple[float, dict]:
+    """Equivalent multi-view score using array indexes instead of DataFrame take/filter."""
+    event_id = str(row.get("event_id", ""))
+    event_idx = ctx["event_row_pos"].get(event_id)
+    collector_cache = ctx["collector_cache"]
+
+    if event_idx is None:
+        own_collectors = parse_collector_set_cached(row.get("event_collector_set", ""), collector_cache)
+        own_count = int(safe_num(row.get("event_collector_count"), len(own_collectors)))
+        current_start = safe_num(row.get("first_seen"), 0.0)
+        current_end = safe_num(row.get("last_seen"), current_start)
+    else:
+        own_collectors = parse_collector_set_cached(ctx["collector_sets"][event_idx], collector_cache)
+        own_count = int(safe_num(ctx["collector_counts"][event_idx], len(own_collectors)))
+        current_start = safe_num(ctx["first_seen"][event_idx], 0.0)
+        current_end = safe_num(ctx["last_seen"][event_idx], current_start)
+
+    if own_count <= 0:
+        own_count = len(own_collectors)
+
+    base = 0.0
+    if own_count >= 3:
+        base += 40.0
+    elif own_count == 2:
+        base += 26.0
+    elif own_count == 1:
+        base += 12.0
+
+    related_window = safe_num(AUGMENT_CONFIG["related_window_sec"], 300.0)
+    left = current_start - related_window
+    right = current_end + related_window
+
+    prefix = str(row.get("prefix", ""))
+    origin = row.get("origin_as_num", float("nan"))
+    path = str(row.get("as_path_clean", ""))
+
+    def interval_count(index_name: str, key) -> int:
+        data = ctx[index_name].get(key)
+        if data is None:
+            return 0
+        hi_first = int(np.searchsorted(data["first_values"], right, side="right"))
+        lo_last = int(np.searchsorted(data["last_values"], left, side="left"))
+        count = hi_first - lo_last
+        if event_idx is not None:
+            count -= 1
+        return max(0, int(count))
+
+    def near_prefix_stats(key) -> tuple[int, set[str]]:
+        data = ctx["prefix_interval_index"].get(key)
+        if data is None:
+            return 0, set()
+        count = 0
+        collector_union = set()
+        hi_first = int(np.searchsorted(data["first_values"], right, side="right"))
+        lo_last = int(np.searchsorted(data["last_values"], left, side="left"))
+        first_candidates = data["first_positions"][:hi_first]
+        last_candidates = data["last_positions"][lo_last:]
+        positions = first_candidates if len(first_candidates) <= len(last_candidates) else last_candidates
+        first_seen = ctx["first_seen"]
+        last_seen = ctx["last_seen"]
+        event_ids = ctx["event_ids"]
+        collector_sets = ctx["collector_sets"]
+        for pos in positions:
+            if first_seen[pos] <= right and last_seen[pos] >= left and event_ids[pos] != event_id:
+                count += 1
+                collector_union.update(parse_collector_set_cached(collector_sets[pos], collector_cache))
+        return count, collector_union
+
+    near_prefix_count, prefix_collector_union = near_prefix_stats(prefix)
+    near_po_count = interval_count("po_interval_index", (prefix, origin))
+    near_path_count = interval_count("path_interval_index", (prefix, origin, path))
+
+    extra_collectors = prefix_collector_union - own_collectors
+
+    if len(extra_collectors) >= 2:
+        base += 30.0
+    elif len(extra_collectors) == 1:
+        base += 16.0
+
+    if near_po_count >= 2:
+        base += 15.0
+    elif near_po_count == 1:
+        base += 8.0
+
+    if near_path_count >= 1:
+        base += 15.0
+
+    isolated = near_prefix_count == 0 and near_po_count == 0 and near_path_count == 0
+    if isolated:
+        base -= 20.0
+
+    detail = {
+        "own_collector_count": own_count,
+        "extra_collectors_near_prefix": sorted(extra_collectors),
+        "near_prefix_event_count": int(near_prefix_count),
+        "near_prefix_origin_event_count": int(near_po_count),
+        "near_exact_path_event_count": int(near_path_count),
+        "isolated": isolated,
+    }
+    return clip_0_100(base), detail
+
+
 def rarity_support(count: float, low1: float, low2: float, low3: float) -> float:
     c = safe_num(count, 0.0)
     if c <= low1:
@@ -622,51 +775,19 @@ def main():
     )
     uncertain_df["path_seen_before"] = uncertain_df["path_total_events"].fillna(0) > 0
 
-    # Keep augmentation scalable for multi-collector experiments: index row
-    # positions instead of copying full DataFrames for every group.
+    # Keep augmentation scalable for multi-collector experiments: use
+    # array-backed indexes instead of materializing DataFrame slices per row.
     relevant_prefixes = set(uncertain_df["prefix"].dropna().astype(str).unique())
     events_df = events_df[events_df["prefix"].isin(relevant_prefixes)].reset_index(drop=True)
-    empty_events = events_df.iloc[0:0]
-    prefix_index = events_df.groupby("prefix", sort=False).indices
-    po_index = events_df.groupby(["prefix", "origin_as_num"], dropna=False, sort=False).indices
-    path_index = events_df.groupby(["prefix", "origin_as_num", "as_path_clean"], dropna=False, sort=False).indices
-    event_row_pos = {event_id: idx for idx, event_id in enumerate(events_df["event_id"].tolist())}
-
-    def indexed_events(index: dict, key) -> pd.DataFrame:
-        positions = index.get(key)
-        if positions is None:
-            return empty_events
-        return events_df.take(positions)
+    fast_event_context = build_fast_event_context(events_df)
 
     results = []
     for row in uncertain_df.itertuples(index=False):
-        row_s = pd.Series(row._asdict())
+        row_s = row._asdict()
         event_id = str(row_s.get("event_id", ""))
         reasons = parse_reason_list(row_s.get("candidate_reasons", "[]"))
 
-        if event_id in event_row_pos:
-            evt_row = events_df.iloc[event_row_pos[event_id]]
-        else:
-            evt_row = pd.Series(
-                {
-                    "event_id": event_id,
-                    "prefix": row_s.get("prefix", ""),
-                    "origin_as_num": row_s.get("origin_as_num", None),
-                    "as_path_clean": row_s.get("as_path_clean", ""),
-                    "first_seen": row_s.get("first_seen", 0.0),
-                    "last_seen": row_s.get("last_seen", 0.0),
-                    "collector_set": row_s.get("event_collector_set", ""),
-                    "collector_count": row_s.get("event_collector_count", 0.0),
-                }
-            )
-
-        prefix_events = indexed_events(prefix_index, str(row_s.get("prefix", "")))
-        po_key = (str(row_s.get("prefix", "")), row_s.get("origin_as_num", float("nan")))
-        po_events = indexed_events(po_index, po_key)
-        path_key = (str(row_s.get("prefix", "")), row_s.get("origin_as_num", float("nan")), str(row_s.get("as_path_clean", "")))
-        path_events = indexed_events(path_index, path_key)
-
-        multi_score, multi_detail = calc_multi_view_support_score(row_s, evt_row, prefix_events, po_events, path_events)
+        multi_score, multi_detail = calc_multi_view_support_score_fast(row_s, fast_event_context)
         hist_score, hist_detail = calc_historical_deviation_support_score(row_s, reasons)
         cons_score, cons_detail = calc_consistency_recheck_score(row_s, reasons)
 

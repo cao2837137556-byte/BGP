@@ -1,0 +1,51 @@
+﻿# 实验主线总表
+
+最后更新：2026-04-21
+定位：项目唯一长期维护的实验主线表。
+维护方式：按时间推进顺序维护一张表；后续新实验直接在末尾追加新行，并同步更新结论与状态。
+
+| 时间顺序 | 实验编号 | 核心问题 | 固定口径 / 变量 | 关键结果摘要 | 当前结论 / 标签 | 状态 | 主要产物 / 代码 |
+|---|---|---|---|---|---|---|---|
+| 01 | E1-E3 | 主链基础收敛、高优质量、uncertain 增益 | 基于基线 run `20260313T032554_4f9be28c` | 形成主表、漏斗表、高优质量表、uncertain 增益表 | 基础盘固定，可作为写作起点 | 已完成 | `论文/实验资产_E1E2E3_v01/` |
+| 02 | E4 | 多窗口稳定性 | 多 run 对比，主链不改 | forged-origin 分层链不依赖单一幸运 run | 稳定性可用于方法可靠性支撑 | 已完成 | `论文/实验执行_E4_稳定性_v01/` |
+| 03 | E5 | 参数敏感性 | 默认参数附近扰动 | 参数整体稳定，但 `min_weak_rules` 解释后续以 E6-A 为准 | E5 保留，candidate 解释由 E6-A 接管 | 已完成 | `论文/实验执行_E5_参数敏感性_v01/` |
+| 04 | E6-A | candidate 是否真实有效 | 只审计 `min_weak_rules` 口径，不改后层 | candidate `1680/1106/1098/1098`，final high 恒定 `24` | `candidate=真实有效`，主要负责前置压缩 | 已完成 | `论文/实验执行_E6A_candidate审计_v01/` |
+| 05 | E6-B-1 | gate 是否独立有效 | default vs no-gate | high `24 -> 265`，新增 high `241`，质量明显退化 | `gate=独立有效` | 已完成 | `outputs/e6b1_nogate_ablation_v02/` |
+| 06 | E6-B-2 | augment 是否独立有效 | default vs no-augment | high `24 -> 22`，2 条 high 回落，18 条 low 回流 needs | `augment=作用有限` | 已完成 | `outputs/e6b2_noaugment_ablation_v01/` |
+| 07 | E6-B-3 | gate 与 augment 是分工还是冗余 | no-gate + no-augment 联合消融 | high `266`，比 no-gate 仅 `+1` | `joint_ablation=支持分层分工` | 已完成 | `outputs/e6b3_joint_ablation_v01/` |
+| 08 | E7-A | 可见度下降时系统如何退化 | full vs single-collector | full high `24`，sg_only `4`，rrc00_only `1`，无 new high 误抬升 | `visibility_ablation=支持主线` | 已完成 | `outputs/e7a_visibility_ablation_v01/` |
+| 09 | E7-B | 单 collector 是否存在视角结构差异 | `route-views.sg_only` vs `rrc00_only` | candidate 交集 `33`，needs 交集 `33`，high 交集 `0` | `collector_structure=存在显著差异` | 已完成 | `outputs/e7b_collector_structure_v01/` |
+| 10 | E8-A | 哪些事件最适合作为论文案例 | 从 E6/E7 已有结果选样 | 正式池 `9` 条，D 类候补 `3` 条，共 `12` 条 | `case_pool=已可进入正式E8` | 已完成 | `outputs/e8a_case_pool_v01/` |
+| 11 | E8-B | 高价值事件能否做外部验证挂载 | 对 12 条案例做控制面 / 外部证据补充 | `strongly_suspicious=8`，`needs_external_review=4` | `external_validation=形成初步validated suspicious set` | 已完成 | `outputs/e8b_case_external_validation_v01/` |
+| 12 | E8-C | 少量公开已知事件能否背书系统能力 | 候选 4，入选 3 | 命中 `1/3`，Rostelecom 命中 high | 小规模支持，但 visibility 限制明显 | 已完成 | `outputs/e8c_known_events_test_v01/` |
+| 13 | E9-A | 扩大 collector 后，已知事件命中是否改善 | baseline `2 collector` vs expanded `8 collector` | `1/3 -> 3/3 response`，其中 `2 high + 1 needs` | `known_events_visibility=强支持` | 已完成 | `outputs/e9a_known_event_visibility_v02/` |
+| 14 | E9-B | Google-Verizon 为什么在 review 而不是 high | route-leak 专项审计 | target prefix 进入 `needs_review=2` | route-leak 风格事件稳定 review 不是失败 | 已完成 | `outputs/e9b_route_leak_review_audit_v01/` |
+| 15 | E9-C | 如何把已知事件测试做成可扩容库存 | manifest + inventory | manifest `7` 个事件，core / next_batch / backup 三层开始成形 | 已知事件不再依赖脚本常量 | 已完成 | `data/known_events/known_event_candidates_v02+.json`，`scripts/build_e9c_known_event_inventory.py` |
+| 16 | E9-D | MainOne 为什么 exact-prefix miss | exact-prefix vs ordered leak-chain 审计 | exact-prefix `0`，chain raw `1193 -> 4213`，final mostly needs | route-leak 不能只用单前缀判卷 | 已完成 | `outputs/e9d_route_leak_gap_audit_v01/` |
+| 17 | S0-A | 是否需要双轨制阅卷标准 | forged-origin 看 high，route-leak 看 needs/high | `MainOne` 从 miss 变为 `Hit Expected` | 双轨制评估成立 | 已完成 | `outputs/s0_dual_track_eval_v01/` |
+| 18 | E9-E | Google-Verizon 是否应迁到 chain-anchor | `286 -> 701 -> 15169 -> 4713` 审计 | expanded chain final Google-origin prefixes `9407`，主要落在 needs | Google-Verizon 应转入 route-leak 口径 | 已完成 | `outputs/e9e_google_verizon_chain_audit_v01/` |
+| 19 | S0-B | Google-Verizon 迁入双轨后结论是否稳定 | dual-track v02 | hit_expected `6 -> 7`，Google expanded=`Hit Expected` | core 事件形成 `forged-origin/high` 与 `route-leak/needs` 分工 | 已完成 | `outputs/s0_dual_track_eval_v02/` |
+| 20 | E9-F | inventory 是否已与双轨制对齐 | `manifest_v04 + dual-track_v02` | baseline hit `2`，expanded hit `5` | inventory 对齐双轨口径 | 已完成 | `outputs/e9c_known_event_inventory_v03/` |
+| 21 | E9-G | backup 池首轮复测结果如何 | 事件：Indosat + Pakistan | `Indosat` expanded=`needs_review`，`Pakistan` 原窄窗=`no_visibility` | `Indosat` 属于 route-leak 正确隔离命中 | 已完成 | `outputs/e9f_backup_visibility_v01/` |
+| 22 | E9-H | inventory 是否已纳入 backup 池 | 全部 7 个已知事件统一汇总 | expanded 主库存达到 `3 high + 3 needs + 1 no_visibility` | 已知事件库存可直接复用 | 已完成 | `outputs/e9c_known_event_inventory_v04/` |
+| 23 | E9-I | Pakistan 是否真的完全不可见 | 原窗口前后各扩 2 小时审计 | baseline 可见 `35` 行，expanded 可见 `201` 行 | 原始 miss 主要来自窄时间窗，不再继续死磕 | 已完成 | `outputs/e9i_pakistan_time_window_audit_v01/` |
+| 24 | S1-A | 2024 现代数据面 pilot 能否稳定跑通 | modern 2024，baseline `2 collector`，expanded `12 collector` | baseline：`events=614892`，`candidate=276652`，`high=20284`；expanded：`events=2628659`，`candidate=1610525`，`high=138525`，`needs=732603`，`low=739397`；旧 gate / final 在 modern 规模下失稳，已完成流式化修复 | modern 2024 60 分钟 pilot 已跑通，现代阶段可继续放大时间窗与 collector 覆盖 | 已完成 | `outputs/s1a_modern_2024_pilot_60m_v02/`，`scripts/run_s1a_modern_2024.py`，`scripts/build_weak_candidates_streaming.py`，`scripts/score_weak_candidates_streaming.py`，`scripts/gate_scored_candidates_streaming.py`，`scripts/build_final_alerts_streaming.py` |
+| 25 | S1-B | expanded high 为什么膨胀，哪些 high 最值得降回 needs_review | 只审计 S1-A 现有产物，不重跑主链；strict key=`prefix+origin_as+as_path_clean`，relaxed key=`prefix+origin_as` | expanded final high=`138525`；`clean=0`，`fragile=101279`，`noisy=37246`；其中 noisy-high `37233` 来自 `augmentation_promoted` 且 `missing=true`；strict expanded-only high keys=`84188`，relaxed expanded-only high keys=`26411` | `modern_purity_audit=已定位主要膨胀来源`；当前最该收紧的是 augment / score，不是 gate | 已完成 | `outputs/s1b_modern_high_audit_v01/`，`scripts/run_s1b_purity_audit.py` |
+| 26 | S1-C | 只收紧 augment，能否止住 modern noisy-high 膨胀 | 固定 S1-B 质量桶；只改 augment promotion；R0 vs A1/A2/A3；Join Key=`event_id` | R0：`high=138525`，`missing_rate=0.2688`，`noisy=37246`；A1：`high=101292`，`missing_rate=0`，`noisy=13`；A2 与 A1 完全一致；A3：`high=88916`，`noisy=13`，但额外压掉更多 augment-high | `augment_tightening=已找到有效止血方案`；最优小步变体为 `A1_missing_block`，A2 无额外收益，A3 偏激进 | 已完成 | `outputs/s1c_augment_tightening_v01/`，`scripts/run_s1c_augment_tightening.py` |
+| 27 | S1-D | A1_missing_block 并回 modern 主流程后，是否能稳定复现新稳态 | 只重走 `augment+final`；modern profile=`modern_missing_block`；最小历史兼容性 spot-check 使用 `e9a_expanded_v01_rostelecom_20170426` | S1-D end-to-end：`high=101292`，`needs=769836`，`low=739397`，与 S1-C A1 严格一致；`high_missing_rate=0`，`noisy=13`，`gating_likely_malicious_to_high=85511` 不变；历史 spot-check 有 `31` 条 `augmentation_promoted + missing=true` 从 high 回落到 needs，但 `gate_high_retained_ratio=1.0` | `s1d_modern_baseline=基本成功但需复查`；modern 新稳态已确立，但历史全局默认行为仍不宜直接切换 | 已完成 | `outputs/s1d_modern_new_baseline_v01/`，`scripts/run_s1d_modern_new_baseline.py`，`scripts/augment_uncertain_candidates.py` |
+| 28 | S1-E | augment 为什么 60 分钟 modern 数据要跑约 110 分钟 | 不改业务逻辑；对 `modern_missing_block` 做确定性小样本 profiling；样本 `20000` 条 uncertain | 总耗时 `207.88s`；`core_augment_loop=198.04s`（`95.27%`）；`calc_multi_view_support_score=151.08s`（核心 loop `76.29%`）；`near_time=124.35s`（核心 loop `62.79%`）；I/O 仅 `6.78s` | `s1e_profiling=瓶颈已定位`；瓶颈是逐行 DataFrame 过滤 / take / Series 构造，不是 I/O，也不是 merge/groupby | 已完成 | `outputs/s1e_augment_profiling_v01/`，`scripts/run_s1e_augment_profiling.py` |
+| 29 | S1-F | 能否只优化 augment 实现而不改变业务判定 | 保守方案：新增 fast augment 引擎，不替换原脚本；全量对齐 S1-D；只优化 `calc_multi_view_support_score` 的近时间窗查找与 collector 支持计算 | full modern 60m：augment `6634.60s -> 399.29s`，提速 `16.62x`；final `42.02s`；augment 输出与 S1-D `878063/878063` 行严格一致，label / evidence / subscore / blocked flags mismatch 全为 `0`；final 输出 `1610525/1610525` 行严格一致，final label mismatch `0` | `s1f_optimization=提速成功_业务无损`；性能瓶颈已显著缓解，可恢复 modern 扩窗复测，但仍需监控全链路其他阶段耗时 | 已完成 | `outputs/s1f_augment_optimization_v01/`，`scripts/augment_uncertain_candidates_fast.py`，`scripts/run_s1f_augment_optimization.py` |
+| 30 | S2-A | 2024 modern 窗口从 60 分钟扩到 6 小时后是否还能本地稳定复测 | 不改算法；新增 `pilot_6h_april16`；使用 `modern_missing_block + fast augment`；先跑 baseline 2 collectors，再评估是否继续 expanded 12 collectors | baseline 6h 完成：`events=3431103`，`candidate=1804382`，`high=123849`，`needs=605585`，`low=1074948`，`high_missing_rate=0`；Docker 容器在 baseline augment 被 `-9` 杀掉，但 host fast augment 成功 `354.6s`，final `54.8s`；12-collector expanded 未继续本地硬跑 | `s2a_modern_6h=baseline_completed_expanded_deferred_by_resource_stop`；S1-F 解决了 augment 计算瓶颈，但 6h 本地串行 collection/orchestration 成为新瓶颈 | 暂停/待续 | `outputs/s2a_modern_2024_6h_v01/`，`data/runs/s2a_baseline_v01_pilot_6h_april16/` |
+
+## 当前主线阶段判断
+
+- 历史阶段：已经完成主链因果、可见度、案例、已知事件、双轨制评估的核心闭环。
+- 当前主任务：历史阶段已经收口，modern 阶段已经完成 S1-A~S1-F；S2-A 证明 6h baseline 可跑通且 high_missing_rate 稳定为 `0`，但本地串行 collection/orchestration 不适合直接跑 12 collectors x 6h。
+- 当前默认下一步：不要继续本地硬跑 expanded 6h。优先选择：HPC `sbatch` 执行 12-collector 6h，或先做本地 collector 并行化 / 阶段计时优化后再跑。
+
+## 后续维护规则
+
+- 新实验结束后，直接在本表最后新增一行。
+- 若已有实验只是补充结论或修正状态，不新开第二张表，直接更新对应行。
+- `状态` 统一只用：`已完成`、`进行中`、`暂停/待续`。
+- `主要产物 / 代码` 只填正式可复用路径，不填临时调试目录。
