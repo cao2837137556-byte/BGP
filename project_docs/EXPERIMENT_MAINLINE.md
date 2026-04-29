@@ -1,6 +1,6 @@
 ﻿# 实验主线总表
 
-最后更新：2026-04-21
+最后更新：2026-04-29
 定位：项目唯一长期维护的实验主线表。
 维护方式：按时间推进顺序维护一张表；后续新实验直接在末尾追加新行，并同步更新结论与状态。
 
@@ -36,12 +36,15 @@
 | 28 | S1-E | augment 为什么 60 分钟 modern 数据要跑约 110 分钟 | 不改业务逻辑；对 `modern_missing_block` 做确定性小样本 profiling；样本 `20000` 条 uncertain | 总耗时 `207.88s`；`core_augment_loop=198.04s`（`95.27%`）；`calc_multi_view_support_score=151.08s`（核心 loop `76.29%`）；`near_time=124.35s`（核心 loop `62.79%`）；I/O 仅 `6.78s` | `s1e_profiling=瓶颈已定位`；瓶颈是逐行 DataFrame 过滤 / take / Series 构造，不是 I/O，也不是 merge/groupby | 已完成 | `outputs/s1e_augment_profiling_v01/`，`scripts/run_s1e_augment_profiling.py` |
 | 29 | S1-F | 能否只优化 augment 实现而不改变业务判定 | 保守方案：新增 fast augment 引擎，不替换原脚本；全量对齐 S1-D；只优化 `calc_multi_view_support_score` 的近时间窗查找与 collector 支持计算 | full modern 60m：augment `6634.60s -> 399.29s`，提速 `16.62x`；final `42.02s`；augment 输出与 S1-D `878063/878063` 行严格一致，label / evidence / subscore / blocked flags mismatch 全为 `0`；final 输出 `1610525/1610525` 行严格一致，final label mismatch `0` | `s1f_optimization=提速成功_业务无损`；性能瓶颈已显著缓解，可恢复 modern 扩窗复测，但仍需监控全链路其他阶段耗时 | 已完成 | `outputs/s1f_augment_optimization_v01/`，`scripts/augment_uncertain_candidates_fast.py`，`scripts/run_s1f_augment_optimization.py` |
 | 30 | S2-A | 2024 modern 窗口从 60 分钟扩到 6 小时后是否还能本地稳定复测 | 不改算法；新增 `pilot_6h_april16`；使用 `modern_missing_block + fast augment`；先跑 baseline 2 collectors，再评估是否继续 expanded 12 collectors | baseline 6h 完成：`events=3431103`，`candidate=1804382`，`high=123849`，`needs=605585`，`low=1074948`，`high_missing_rate=0`；Docker 容器在 baseline augment 被 `-9` 杀掉，但 host fast augment 成功 `354.6s`，final `54.8s`；12-collector expanded 未继续本地硬跑 | `s2a_modern_6h=baseline_completed_expanded_deferred_by_resource_stop`；S1-F 解决了 augment 计算瓶颈，但 6h 本地串行 collection/orchestration 成为新瓶颈 | 暂停/待续 | `outputs/s2a_modern_2024_6h_v01/`，`data/runs/s2a_baseline_v01_pilot_6h_april16/` |
+| 31 | S2-A-HPC-Prep | 如何让 expanded 12 collectors x 6h 在超算上可断点、可补采、可继续实验 | 不改检测主链；新增 HPC 编排脚本：collector-wise array 采集、collector run 合并、downstream 单独执行；允许失败 collector 留档后补采 | 新增 `run_s2a_collect_one.py` 支持单 collector 安全 resume；新增 `run_s2a_merge_collector_runs.py` 合并 collector run；新增 `run_s2a_downstream_from_raw.py` 从 merged raw 跑 label/event/baseline/candidate/score/gate/fast-augment/final；新增两个 slurm 模板 | `s2a_hpc_pipeline=已准备可执行`；先做了超算直拉尝试，但结果不稳定 | 已完成 | `scripts/run_s2a_collect_one.py`，`scripts/run_s2a_merge_collector_runs.py`，`scripts/run_s2a_downstream_from_raw.py`，`scripts/hpc/s2a_collect_array.slurm`，`scripts/hpc/s2a_merge_downstream.slurm` |
+| 32 | S2-A-LocalRaw | 现代 6h expanded raw 数据是否应改由本地稳定拉取，再交给超算做计算 | 明确分层：本地/Docker 负责 raw parquet 拉取；超算只负责 merge/downstream；不再让超算直接在线拉 BGPStream | 首轮超算直拉 6h array 中，多 collector 长时间卡在 `scripts/run.py`，`live.log` 无新增且 parquet 仅少量落盘，确认问题主要在远端数据拉取稳定性，不在主链计算；新增 `run_s2a_local_collect.py` 固化本地 raw 采集入口 | `s2a_collection_strategy=local_raw_hpc_downstream`；后续 modern 大窗口默认按此路线执行 | 进行中 | `scripts/run_s2a_local_collect.py`，`outputs/s2a_local_collect_v01/`，`scripts/hpc/s2a_merge_downstream.slurm` |
+| 33 | S2-B1 | score 阶段是否已成为 6h expanded 新瓶颈，能否在不改业务语义下优化 | 不重跑 raw/events/baseline/candidate；保留原 scorer 作 reference；新增 fast scorer + part checkpoint；本地用 60m S1-A 资产做 correctness + benchmark | S2-A 6h 已完成资产：`events=15667871`、`candidate=10236431`、`candidate_rate=65.33%`；S2-B1 correctness sample `50000` rows，实际 scored `31556`，关键字段 mismatch `0`；fast benchmark `27162.13 rows/sec`，相对 reference sample `6.75x`，估算 full `10.236M` score 约 `376.86s` | `s2b_score_optimization=本地验证通过_待超算续跑`；score 可从瓶颈转为可 checkpoint 续跑阶段 | 已完成 | `scripts/score_weak_candidates_streaming_fast.py`，`scripts/run_s2b_score_validation.py`，`scripts/run_s2b_score_resume.py`，`scripts/hpc/s2b_score_resume.slurm`，`outputs/s2b_score_optimization_v01/` |
 
 ## 当前主线阶段判断
 
 - 历史阶段：已经完成主链因果、可见度、案例、已知事件、双轨制评估的核心闭环。
-- 当前主任务：历史阶段已经收口，modern 阶段已经完成 S1-A~S1-F；S2-A 证明 6h baseline 可跑通且 high_missing_rate 稳定为 `0`，但本地串行 collection/orchestration 不适合直接跑 12 collectors x 6h。
-- 当前默认下一步：不要继续本地硬跑 expanded 6h。优先选择：HPC `sbatch` 执行 12-collector 6h，或先做本地 collector 并行化 / 阶段计时优化后再跑。
+- 当前主任务：历史阶段已经收口，modern 阶段已经完成 S1-A~S1-F；S2-A expanded 12 collectors x 6h 已完成 raw/events/baseline/candidate，但 score 阶段成为新瓶颈。
+- 当前默认下一步：执行 S2-B2，把 `score_weak_candidates_streaming_fast.py`、`run_s2b_score_resume.py` 和 `scripts/hpc/s2b_score_resume.slurm` 上传到超算，只从 score 阶段续跑 `s2a_expanded_v01_pilot_6h_april16`，不要重跑 raw/events/baseline/candidate。
 
 ## 后续维护规则
 

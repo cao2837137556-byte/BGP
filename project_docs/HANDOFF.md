@@ -1,6 +1,6 @@
 ﻿# BGP Platform Handoff
 
-最后更新：2026-04-20
+最后更新：2026-04-24
 定位：项目唯一长期维护的交接总览文件。
 
 ## 1. 固定工作边界
@@ -120,6 +120,13 @@
   - `gating_high=122979`
   - `augment_high=870`
 - S2-A 资源结论：Docker 容器在 baseline fast augment 阶段被 `-9` 杀掉，host Python fast augment 成功；12 collectors x 6h expanded 未继续本地硬跑。当前新瓶颈是本地串行 collection/orchestration，而不是 augment 业务逻辑。
+- S2-A-HPC 执行准备已完成：
+  - `scripts/run_s2a_collect_one.py`：单 collector raw collection，支持 marker resume，已完成 collector 自动跳过。
+  - `scripts/run_s2a_merge_collector_runs.py`：把 collector-wise raw runs 合并成统一 expanded run。
+  - `scripts/run_s2a_downstream_from_raw.py`：从 merged raw 继续跑 CAIDA / event / baseline / candidate / score / gate / fast augment / final，并输出 downstream 报告。
+  - `scripts/hpc/s2a_collect_array.slurm`：12 collectors 的 Slurm array 采集模板，默认并发 `%4`。
+  - `scripts/hpc/s2a_merge_downstream.slurm`：merge + downstream + bundle 的 Slurm 模板。
+  - 设计原则：远端拉取失败不阻塞全实验；失败 collector 可补采；最终报告记录 `successful_collectors / partial_collectors / failed_collectors`。
 
 ## 6. 当前最重要的代码与文档入口
 
@@ -147,6 +154,11 @@
 - `scripts/run_s1e_augment_profiling.py`
 - `scripts/augment_uncertain_candidates_fast.py`
 - `scripts/run_s1f_augment_optimization.py`
+- `scripts/run_s2a_collect_one.py`
+- `scripts/run_s2a_merge_collector_runs.py`
+- `scripts/run_s2a_downstream_from_raw.py`
+- `scripts/hpc/s2a_collect_array.slurm`
+- `scripts/hpc/s2a_merge_downstream.slurm`
 
 ### 6.3 当前默认文档入口
 
@@ -219,6 +231,55 @@
 - `run_s1a_modern_2024.py` 增加 `--augment-script` 参数，默认仍使用原始 augment；S2 显式使用 fast augment。
 - S2-A baseline 2 collectors 6h 完成，但 expanded 12 collectors 6h 因本地串行耗时过高暂停。产物固定在 `outputs/s2a_modern_2024_6h_v01/`。
 
+### 2026-04-23
+
+- 固定 S2-A-HPC 超算执行方案。
+- 新增 collector-wise collection array，避免 12 collectors 被单个远端超时拖死。
+- 新增 collector run merge 与 downstream 分离脚本，保证采集失败时不浪费 downstream 计算。
+- 新增 HPC slurm 模板，保持此前固定的超算逻辑：`sbatch` 提交，`live.log` 可观察，bundle 便于下载。
+
+### 2026-04-24
+
+- 通过 S2-A-HPC 首轮尝试确认：超算侧直接在线拉取 2024 RouteViews/RIS 原始 updates 不稳定，多个 collector 会长时间卡在 `scripts/run.py` 原始采集阶段，`live.log` 无新增而 parquet 仅少量落盘。
+- 当前默认策略正式切换为：
+  1. 本地 / Docker 侧负责 raw parquet 拉取；
+  2. 超算只负责 merge、CAIDA、event、baseline、candidate、score、gate、fast augment、final。
+- 为此新增本地 orchestrator：`scripts/run_s2a_local_collect.py`
+  - 作用：顺序调用 `scripts/run_s2a_collect_one.py`，按 collector 本地拉取 raw 数据；
+  - 输出：`outputs/s2a_local_collect_v01/`
+  - 目的：减少手工拼 collector/run_id，固定“本地拉 raw -> 上传 -> 超算下游”流程。
+- 当前对 S2-A 的执行判断更新为：
+  - 不再优先尝试“超算直接在线拉 raw”
+  - 后续 modern 大窗口实验默认先在本地完成 raw 采集，再把 `data/runs/<base_run_id>__collector_*` 上传到超算
+  - 超算只用 `scripts/hpc/s2a_merge_downstream.slurm` 做计算，不再承担不稳定的网络拉取职责
+
+### 2026-04-29
+
+- 完成 S2-A expanded 12 collectors x 6h 的阶段性定位。
+- 已完成并固定的 6h expanded 中间资产：
+  - raw/rel chunks：`864`
+  - events：`15667871`
+  - baseline prefix：`820226`
+  - baseline prefix-origin：`928780`
+  - baseline path：`8009034`
+  - candidate：`10236431`
+  - candidate_rate：`65.33%`
+- S2-A 超算 downstream 失败位置已明确：不是 raw / events / baseline / candidate，而是 score 阶段在 12h wall time 内未完成。
+- 新增 S2-B1：score fast scorer 本地正确性与性能验证。
+- 新增 `scripts/score_weak_candidates_streaming_fast.py`：
+  - 保留原 scorer 作为 reference；
+  - 新增 part/checkpoint/resume 输出：`scores/parts/part_*.parquet` + `score_parts_manifest.json`；
+  - 正式 `scored_candidates.parquet` 只在全部 part 完成后生成，避免中途失败产物被误用；
+  - 默认 `score_explanation_mode=minimal`，核心审计字段仍由显式 component columns 保留；如需逐行 JSON，可用 `--score-explanation-mode full` 小规模复跑。
+- S2-B1 本地 validation 结果：
+  - correctness sample：`50000` candidate rows，实际 scored `31556`
+  - mismatch：`0`（event_id、四个 score、risk_score、risk_bucket、top factor、missing flag 全对齐）
+  - reference sample：`4024.66 rows/sec`
+  - fast benchmark：`27162.13 rows/sec`
+  - speedup：`6.75x`
+  - 估算 full `10236431` candidate score 阶段：约 `376.86s`（约 `6.3min`）
+- 当前判断：S2-B1 已证明 score 阶段可从性能瓶颈转为可续跑阶段；下一步应上传新增 S2-B 脚本到超算，并只从 score 阶段续跑，不重跑 events/baseline/candidate。
+
 ## 8. 下一步默认动作
 
 如果后续继续推进实验，默认顺序如下：
@@ -226,12 +287,12 @@
 1. 先看 `project_docs/EXPERIMENT_MAINLINE.md` 确认当前做到哪一步。
 2. 保持 `modern_missing_block` 作为 modern profile 默认；历史 default profile 暂不改写。
 3. S1-F 已证明 fast augment 业务无损，后续 modern 扩窗优先使用 fast augment 路径，同时保留原始 augment 脚本作为回归参照。
-4. 下一轮不要继续本地串行跑 expanded 12 collectors x 6h。优先二选一：
-   - HPC `sbatch`：用容器 + live log 方式跑 expanded 6h。
-   - 本地工程优化：先做 collector 并行化 / 分阶段计时脚本，再重跑 expanded。
-5. expanded 6h 完成后，再决定是否进入 24h；不要直接跳 24h。
-6. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
-7. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
+4. S2-A expanded 6h 的 raw/events/baseline/candidate 已经是重要资产，不要删除或重建。
+5. 下一轮默认执行 S2-B2：上传新增 fast scorer / resume runner / slurm，到超算后只从 score 阶段续跑。
+6. 如果 score 续跑仍失败，优先依靠 `scores/parts/` checkpoint resume，不要回到 raw/events/baseline/candidate。
+7. expanded 6h 完成后，再决定是否进入 24h；不要直接跳 24h。
+8. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
+9. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
 ## 9. 使用规则
 
