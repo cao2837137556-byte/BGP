@@ -279,6 +279,31 @@
   - speedup：`6.75x`
   - 估算 full `10236431` candidate score 阶段：约 `376.86s`（约 `6.3min`）
 - 当前判断：S2-B1 已证明 score 阶段可从性能瓶颈转为可续跑阶段；下一步应上传新增 S2-B 脚本到超算，并只从 score 阶段续跑，不重跑 events/baseline/candidate。
+- 完成 S2-B2：在超算上从 score 阶段续跑 `s2a_expanded_v01_pilot_6h_april16`，未重跑 raw / events / baseline / candidate。
+- S2-B2 正式产物：
+  - 远端 run：`/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/repo/data/runs/s2a_expanded_v01_pilot_6h_april16/`
+  - 本地报告：`outputs/s2b_score_optimization_v01/s2b_score_optimization_report.md`
+  - 本地 summary：`outputs/s2b_score_optimization_v01/s2b_summary.json`
+  - bundle：`outputs/bundles/s2b_score_optimization_bundle.zip`
+- S2-B2 关键耗时：
+  - score stage：`169.87s`
+  - scorer core：`123.20s`，`83089.77 rows/sec`
+  - gate：`631.36s`
+  - fast augment：`2055.74s`
+  - final：`1627.28s`
+  - score->bundle 总耗时约 `4484.49s`（约 `74.7min`）
+- S2-B2 关键结果：
+  - total_events：`15667871`
+  - candidate_count / scored_count / gated_count：`10236431`
+  - final_high：`639548`
+  - final_needs：`4839755`
+  - final_low：`4757128`
+  - high_missing_rate：`0.0`
+  - gating_likely_malicious_to_high：`581112`
+  - augmentation_promoted_to_high：`58436`
+  - score risk buckets：low `4094488`，medium `4094284`，high `2047659`
+  - score parts：`63`
+- 当前判断：S2-B2 已证明 expanded 6h 全链路可以从已完成 candidate 资产稳定续跑到 final；score 不再是瓶颈，新的主要耗时集中在 fast augment 与 final。`modern_missing_block` 在 6h expanded 上继续把 `high_missing_rate` 保持为 `0`。后续不应回到 score 性能修复，而应转入 S2-C 级别的 6h expanded high composition / purity audit，再决定是否进入 24h。
 
 ## 8. 下一步默认动作
 
@@ -288,9 +313,9 @@
 2. 保持 `modern_missing_block` 作为 modern profile 默认；历史 default profile 暂不改写。
 3. S1-F 已证明 fast augment 业务无损，后续 modern 扩窗优先使用 fast augment 路径，同时保留原始 augment 脚本作为回归参照。
 4. S2-A expanded 6h 的 raw/events/baseline/candidate 已经是重要资产，不要删除或重建。
-5. 下一轮默认执行 S2-B2：上传新增 fast scorer / resume runner / slurm，到超算后只从 score 阶段续跑。
-6. 如果 score 续跑仍失败，优先依靠 `scores/parts/` checkpoint resume，不要回到 raw/events/baseline/candidate。
-7. expanded 6h 完成后，再决定是否进入 24h；不要直接跳 24h。
+5. S2-B2 已完成；不要再重跑 raw/events/baseline/candidate，也不要把旧的 `scores/scored_candidates_tmp.parquet` 当正式结果。
+6. 下一轮默认执行 S2-C：基于 `outputs/s2b_score_optimization_v01/` 与远端 final parquet 做 6h expanded high composition / purity audit，重点看 high 来源、augment promoted 组成、是否存在新的 noisy-high 模式，以及与 S1-D/S1-F 60min 稳态的按小时可比性。
+7. 如果 S2-C 未发现结构性异常，再决定是否进入 24h；不要直接跳 24h。
 8. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
 9. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
