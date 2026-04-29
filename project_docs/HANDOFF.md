@@ -304,6 +304,12 @@
   - score risk buckets：low `4094488`，medium `4094284`，high `2047659`
   - score parts：`63`
 - 当前判断：S2-B2 已证明 expanded 6h 全链路可以从已完成 candidate 资产稳定续跑到 final；score 不再是瓶颈，新的主要耗时集中在 fast augment 与 final。`modern_missing_block` 在 6h expanded 上继续把 `high_missing_rate` 保持为 `0`。后续不应回到 score 性能修复，而应转入 S2-C 级别的 6h expanded high composition / purity audit，再决定是否进入 24h。
+- S2-C 审计 workflow 已准备，尚未运行：
+  - 新增 `scripts/run_s2c_high_audit.py`
+  - 新增 `scripts/hpc/s2c_high_audit.slurm`
+  - 作用：只读 S2-B2 已有 `final/events/augmentation` 产物，输出 high composition / purity audit；不重跑检测主链。
+  - 计划输出目录：`outputs/s2c_expanded_6h_high_audit_v01/`
+  - 计划 bundle：`outputs/bundles/s2c_expanded_6h_high_audit_bundle.zip`
 
 ## 8. 下一步默认动作
 
@@ -314,8 +320,8 @@
 3. S1-F 已证明 fast augment 业务无损，后续 modern 扩窗优先使用 fast augment 路径，同时保留原始 augment 脚本作为回归参照。
 4. S2-A expanded 6h 的 raw/events/baseline/candidate 已经是重要资产，不要删除或重建。
 5. S2-B2 已完成；不要再重跑 raw/events/baseline/candidate，也不要把旧的 `scores/scored_candidates_tmp.parquet` 当正式结果。
-6. 下一轮默认执行 S2-C：基于 `outputs/s2b_score_optimization_v01/` 与远端 final parquet 做 6h expanded high composition / purity audit，重点看 high 来源、augment promoted 组成、是否存在新的 noisy-high 模式，以及与 S1-D/S1-F 60min 稳态的按小时可比性。
-7. 如果 S2-C 未发现结构性异常，再决定是否进入 24h；不要直接跳 24h。
+6. 下一轮默认执行 S2-C：把 `scripts/run_s2c_high_audit.py` 和 `scripts/hpc/s2c_high_audit.slurm` 上传到超算，在已有 `s2a_expanded_v01_pilot_6h_april16` 上只做审计；重点看 high 来源、augment promoted 组成、是否存在新的 noisy-high 模式，以及与 S1-D/S1-F 60min 稳态的按小时可比性。
+7. S2-C 作业完成后拉回 `outputs/s2c_expanded_6h_high_audit_v01/`、bundle 和 live log，再更新本文件与主线表；如果 S2-C 未发现结构性异常，再决定是否进入 24h，不要直接跳 24h。
 8. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
 9. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
