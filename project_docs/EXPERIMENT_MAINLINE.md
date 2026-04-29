@@ -1,6 +1,6 @@
 ﻿# 实验主线总表
 
-最后更新：2026-04-29
+最后更新：2026-04-30
 定位：项目唯一长期维护的实验主线表。
 维护方式：按时间推进顺序维护一张表；后续新实验直接在末尾追加新行，并同步更新结论与状态。
 
@@ -40,13 +40,13 @@
 | 32 | S2-A-LocalRaw | 现代 6h expanded raw 数据是否应改由本地稳定拉取，再交给超算做计算 | 明确分层：本地/Docker 负责 raw parquet 拉取；超算只负责 merge/downstream；不再让超算直接在线拉 BGPStream | 首轮超算直拉 6h array 中，多 collector 长时间卡在 `scripts/run.py`，`live.log` 无新增且 parquet 仅少量落盘，确认问题主要在远端数据拉取稳定性，不在主链计算；新增 `run_s2a_local_collect.py` 固化本地 raw 采集入口 | `s2a_collection_strategy=local_raw_hpc_downstream`；后续 modern 大窗口默认按此路线执行 | 进行中 | `scripts/run_s2a_local_collect.py`，`outputs/s2a_local_collect_v01/`，`scripts/hpc/s2a_merge_downstream.slurm` |
 | 33 | S2-B1 | score 阶段是否已成为 6h expanded 新瓶颈，能否在不改业务语义下优化 | 不重跑 raw/events/baseline/candidate；保留原 scorer 作 reference；新增 fast scorer + part checkpoint；本地用 60m S1-A 资产做 correctness + benchmark | S2-A 6h 已完成资产：`events=15667871`、`candidate=10236431`、`candidate_rate=65.33%`；S2-B1 correctness sample `50000` rows，实际 scored `31556`，关键字段 mismatch `0`；fast benchmark `27162.13 rows/sec`，相对 reference sample `6.75x`，估算 full `10.236M` score 约 `376.86s` | `s2b_score_optimization=本地验证通过_待超算续跑`；score 可从瓶颈转为可 checkpoint 续跑阶段 | 已完成 | `scripts/score_weak_candidates_streaming_fast.py`，`scripts/run_s2b_score_validation.py`，`scripts/run_s2b_score_resume.py`，`scripts/hpc/s2b_score_resume.slurm`，`outputs/s2b_score_optimization_v01/` |
 | 34 | S2-B2 | 6h expanded 是否能不重跑前置阶段，直接从 score 续跑到 final | 固定 run `s2a_expanded_v01_pilot_6h_april16`；只跑 fast score -> gate -> fast augment -> final -> bundle；不重跑 raw/events/baseline/candidate | score stage `169.87s`，scorer core `123.20s`、`83089.77 rows/sec`、`63` parts；gate `631.36s`，fast augment `2055.74s`，final `1627.28s`；`events=15667871`，`candidate=scored=gated=10236431`，`high=639548`，`needs=4839755`，`low=4757128`，`high_missing_rate=0.0`，`gating_high=581112`，`augment_high=58436` | `s2b_score_resume=完成`；score 瓶颈解除，expanded 6h 全链路已稳定跑到 final；下一步应做 6h high composition / purity audit，而不是直接跳 24h | 已完成 | `outputs/s2b_score_optimization_v01/`，`outputs/bundles/s2b_score_optimization_bundle.zip`，`data/runs/s2a_expanded_v01_pilot_6h_april16/` |
-| 35 | S2-C | 6h expanded high 池是否仍保持可解释、可控，没有出现新的 noisy-high 模式 | 只读 S2-B2 产物；审计 high quality bucket、source layer、hourly stability、augment promoted high、top prefix-origin、与 S1-D/S1-F 60m 参考按小时对比；不重跑检测主链 | 审计脚本与 Slurm 已准备：`run_s2c_high_audit.py` 输出 summary/report/source/hourly/noisy/augment/top-prefix/sample 表；`s2c_high_audit.slurm` 在超算现有 final/events/augmentation 上运行并打 bundle | `s2c_high_audit=待超算运行`；该步用于决定是否可以进入 24h，不能跳过 | 进行中 | `scripts/run_s2c_high_audit.py`，`scripts/hpc/s2c_high_audit.slurm`，计划产物 `outputs/s2c_expanded_6h_high_audit_v01/` |
+| 35 | S2-C | 6h expanded high 池是否仍保持可解释、可控，没有出现新的 noisy-high 模式 | 只读 S2-B2 产物；审计 high quality bucket、source layer、hourly stability、augment promoted high、top prefix-origin、与 S1-D/S1-F 60m 参考按小时对比；不重跑检测主链 | `events=15667871`，`candidate=10236431`，`high=639548`，`needs=4839755`，`low=4757128`，`high_missing_rate=0.0`；`clean_high=0`，`fragile_high=639535`，`noisy_high=13`；high 来源：gate `581112`（`90.86%`），augment `58436`（`9.14%`）；hourly high rate `5.72%~6.67%`，无小时尖峰；相对 S1-D/S1-F 60m 按小时：candidate `1.059x`、high `1.052x`、needs `1.048x`、low `1.072x`；noisy-high 13 条均来自 gate high conflict，不来自 augment promotion | `s2c_high_audit=通过`；6h expanded 没有复发 missing=true noisy-high 膨胀，也未发现新的 augment noisy-high 模式；可进入 S2-D 24h 扩窗资源规划与执行准备 | 已完成 | `outputs/s2c_expanded_6h_high_audit_v01/`，`outputs/bundles/s2c_expanded_6h_high_audit_bundle.zip`，`scripts/run_s2c_high_audit.py`，`scripts/hpc/s2c_high_audit.slurm` |
 
 ## 当前主线阶段判断
 
 - 历史阶段：已经完成主链因果、可见度、案例、已知事件、双轨制评估的核心闭环。
-- 当前主任务：历史阶段已经收口，modern 阶段已经完成 S1-A~S1-F；S2-B2 已把 expanded 12 collectors x 6h 从 score 阶段续跑到 final，score 瓶颈解除；S2-C 审计 workflow 已准备。
-- 当前默认下一步：上传并提交 `scripts/run_s2c_high_audit.py` 与 `scripts/hpc/s2c_high_audit.slurm`，在超算已有 `s2a_expanded_v01_pilot_6h_april16` 上只做 high composition / purity audit；作业完成后拉回 `outputs/s2c_expanded_6h_high_audit_v01/` 再更新结论。不要直接跳 24h。
+- 当前主任务：历史阶段已经收口，modern 阶段已经完成 S1-A~S1-F；S2-B2 已把 expanded 12 collectors x 6h 从 score 阶段续跑到 final，score 瓶颈解除；S2-C high composition / purity audit 已完成并通过。
+- 当前默认下一步：进入 S2-D 24h expanded 的资源规划与执行准备，沿用 `local raw -> HPC downstream/score resume/audit` 路线，检测主链不改；进入 24h 前先明确预计 raw chunks、candidate 规模、score/augment/final wall time 与下载产物范围。
 
 ## 后续维护规则
 
