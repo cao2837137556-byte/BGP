@@ -323,6 +323,20 @@
   - 与 S1-D/S1-F 60min 参考按小时对比：candidate `1.059x`，final_high `1.052x`，final_needs `1.048x`，final_low `1.072x`，整体近线性；gate high `1.133x`，augment high `0.617x`。
   - noisy-high 的 `13` 条全部来自 `gating_likely_malicious + structural_novelty_score + conflict_score=30`，不来自 augment promotion；augmentation-promoted high 全部为 `fragile-high`，missing/conflict 均为 `0`。
   - 当前判断：S2-C 通过，6h expanded high 池没有复发 S1 的 missing=true noisy-high 膨胀，也未发现新的 augment noisy-high 模式；可以进入 S2-D 24h 扩窗的资源规划与执行准备，但不要改检测主链。
+- 吸收 GPT 深度调研报告 `gpt调研/BGP 弱信号系统升级与事件聚合研究报告.docx` 后，下一步顺序修正：
+  - 不直接先跑 24h event-level 主评估。
+  - 先做 S3-A incident aggregation / ticketization，把 `high_priority_alert + needs_review` 从 event-level 输出聚合为 incident tickets。
+  - 原因：S2-C 已证明 6h high purity 稳定，当前瓶颈是 `needs_review=4839755` 仍以逐条 event 暴露，评估单位不对。
+  - S3-A 不改上游检测主链，只在 final 之后新增 post-processing layer。
+- S3-A workflow 已准备，尚未在超算全量运行：
+  - 新增 `project_docs/S3A_INCIDENT_AGGREGATION.md`
+  - 新增 `scripts/build_incident_aggregation.py`
+  - 新增 `scripts/run_s3a_incident_aggregation.py`
+  - 新增 `scripts/hpc/s3a_incident_aggregation.slurm`
+  - 默认输入：`data/runs/s2a_expanded_v01_pilot_6h_april16/final/final_alerts.parquet` 与 `events/event_units.parquet`
+  - 默认输出：`data/runs/s2a_expanded_v01_pilot_6h_april16/incidents/` 与 `outputs/s3a_incident_aggregation_v01/`
+  - 首版 family：`forged_origin_like`、`route_leak_like`、`stealth_visibility_like`、`unknown_weak_signal`
+  - 首版指标：`compression_ratio`、`analyst_workload_reduction`、`incident_count_by_family`、`incident_count_by_priority`、top incidents
 
 ## 8. 下一步默认动作
 
@@ -334,9 +348,11 @@
 4. S2-A expanded 6h 的 raw/events/baseline/candidate 已经是重要资产，不要删除或重建。
 5. S2-B2 已完成；不要再重跑 raw/events/baseline/candidate，也不要把旧的 `scores/scored_candidates_tmp.parquet` 当正式结果。
 6. S2-C 已完成并通过；不要为 6h high purity 再反复重跑主链。
-7. 下一轮默认进入 S2-D：做 24h expanded 的资源规划与执行准备，沿用 `local raw -> HPC downstream/score resume/audit` 路线，检测主链不改。进入 24h 前先明确预计 raw chunks、candidate 规模、score/augment/final wall time 与下载产物范围。
-8. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
-9. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
+7. 下一轮默认执行 S3-A：上传 `build_incident_aggregation.py`、`run_s3a_incident_aggregation.py`、`s3a_incident_aggregation.slurm` 到超算，在已有 `s2a_expanded_v01_pilot_6h_april16` 上只做 incident aggregation。
+8. S3-A 完成后优先看三件事：`compression_ratio` 是否足够高；top incidents 的 family/reason purity 是否合理；`route_leak_like` 与 `forged_origin_like` 是否形成不同审查队列。
+9. S3-A 通过后，再进入 S3-B incident-level verification pilot；24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
+10. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
+11. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
 ## 9. 使用规则
 
