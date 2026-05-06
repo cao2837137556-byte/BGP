@@ -352,6 +352,19 @@
   - S3-A 证明 event -> incident 框架可行，但 clean stable window 下 high/needs 仍过大；当前主矛盾已经从 pipeline scalability 转为 detection quality。
   - 后续不能只继续聚合或直接扩到 24h，而要用 S3-A 暴露出的噪声结构，反向指导 score/gate/verification 的检测能力升级。
   - candidate 可以保持宽口径召回，但 score/gate/priority 必须增强语义区分能力，使系统从“能筛很多弱信号”转为“能把值得看的弱信号排到前面”。
+- S3-A2 priority calibration 已完成：
+  - 新增 `scripts/run_s3a2_incident_priority_calibration.py`
+  - 新增 `project_docs/S3A2_PRIORITY_CALIBRATION.md`
+  - 输出目录：`outputs/s3a2_incident_priority_calibration_v01/`
+  - 不重跑上游检测链，只读 S3-A `incident_tickets.parquet` 与 `incident_membership.parquet`
+  - membership 校验：rows `5479303`，incident count `217165`，ticket member_count sum `5479303`，mismatch `0`
+  - 校准前 tickets：P1 `42047`，P2 `13039`，P3 `162079`
+  - 校准后 tickets：P1 `41885`，P2 `13198`，P3 `162082`
+  - 校准前 member coverage：P1 `2775776`，P2 `1999368`，P3 `704159`
+  - 校准后 member coverage：P1 `2565156`，P2 `1861280`，P3 `1052867`
+  - 降级：共 `165` tickets / `559328` members；P1->P2 `162` tickets；P2->P3 `3` tickets
+  - 3 个 `dominant_origin_as=NA` 超大 P2 全部降为 P3，覆盖 `348708` needs、`0` high，confidence `0.5065~0.5229`
+  - 当前判断：S3-A2 成功隔离明显坏工单，但 calibrated P1/P2 仍大；下一步进入 S3-B noise source audit，而不是 24h。
 
 ## 8. 下一步默认动作
 
@@ -364,8 +377,8 @@
 5. S2-B2 已完成；不要再重跑 raw/events/baseline/candidate，也不要把旧的 `scores/scored_candidates_tmp.parquet` 当正式结果。
 6. S2-C 已完成并通过；不要为 6h high purity 再反复重跑主链。
 7. S3-A 已完成；不要重复运行首版 incident aggregation，除非代码参数改动后做 S3-A2。
-8. 下一轮默认执行 S3-A2：只基于现有 S3-A outputs / incidents 做 priority calibration 与 `dominant_origin_as=NA` handling，目标是把超大 unknown-origin 背景工单从 P2 中拆出或降级，并降低 P1/P2 review 队列规模。
-9. S3-A2 后执行 S3-B noise source audit：审 P1/P2、needs_review、large fan-out incidents 的 reason/origin/prefix/path 模式，回答 clean stable window 为什么仍有大量 suspicious rows。
+8. S3-A2 已完成；不要重复运行，除非调整 calibration thresholds/rules。
+9. 下一轮默认执行 S3-B noise source audit：审 P1/P2、needs_review、large fan-out incidents 的 reason/origin/prefix/path 模式，回答 clean stable window 为什么仍有大量 suspicious rows。
 10. S3-B 后执行 S3-C detection capability upgrade design：围绕 role churn、AS Hegemony delta、forged-origin path plausibility、route-leak triplet legality、RPKI/IRR/PeeringDB、NO_EXPORT/communities 等，决定哪些进入 score/gate/augment/verification。
 11. S3-D 再做 incident-level verification，形成 high-confidence set，反向校准 score/gate/priority。
 12. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。

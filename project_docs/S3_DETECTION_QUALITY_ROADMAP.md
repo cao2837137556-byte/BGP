@@ -38,7 +38,7 @@ BGP raw data
 | broad candidate generation | done | candidate 召回宽，但偏宽 |
 | score / gate / augment | baseline done | 白盒可解释，但语义检测仍粗 |
 | incident aggregation | S3-A done | compression 有效，但 P1/P2 仍大 |
-| priority calibration | pending | 需要处理 NA-origin 与大背景工单 |
+| priority calibration | S3-A2 done | 已隔离 NA-origin 超大背景工单，但 P1/P2 仍大 |
 | verification | pending | 需要在 incident 层建立高置信样本 |
 | semantic detection upgrade | pending | 需要 role/path/triplet/verification 特征增强 |
 
@@ -46,7 +46,7 @@ BGP raw data
 
 ### S3-A2 Priority Calibration
 
-只读现有 S3-A outputs / incidents，不重跑上游检测链。
+已完成。只读现有 S3-A outputs / incidents，未重跑上游检测链。
 
 重点处理：
 
@@ -55,7 +55,13 @@ BGP raw data
 - low confidence but high incident_score
 - P1/P2 队列规模过大
 
-目标是把 unknown-origin / background artifact 从 P2 中拆出或降级，并给 S3-B 提供更干净的 top-K pool。
+结果：
+
+- 3 个 `dominant_origin_as=NA` 超大 P2 全部降为 P3，覆盖 `348708` needs、`0` high。
+- P1->P2 `162` tickets，P2->P3 `3` tickets。
+- calibrated P1 `41885` tickets，calibrated P2 `13198` tickets。
+
+结论：明显坏工单已隔离，但 calibrated P1/P2 仍大，下一步必须进入 S3-B noise source audit。
 
 ### S3-B Noise Source Audit
 
