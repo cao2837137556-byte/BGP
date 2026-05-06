@@ -346,6 +346,12 @@
   - 关键观察：incident layer 成功把 547.9 万 high/needs event 压缩为 21.7 万 tickets，证明评估单位转换有效；route-leak-like 与 forged-origin-like 已形成不同队列。
   - 关键风险：3 个 `dominant_origin_as=NA` 的超大 P2 incident 覆盖 `348708` 条 needs、`149178` 个 affected prefix，`incident_score=100` 但 confidence 约 `0.51`，更像 unknown-origin / background artifact；P1 tickets 仍有 `42047` 个，直接进入人工验证仍偏大。
   - 当前判断：S3-A 首版完成且有效，但需要 S3-A2 做 priority calibration / NA-origin handling，再进入 S3-B verification pilot；不需要重跑 raw/events/baseline/candidate/score/gate/augment/final。
+- 吸收 2026-05-06 GPT 讨论后的项目级判断：
+  - 新增 `project_docs/S3_DETECTION_QUALITY_ROADMAP.md`
+  - 500 多万 high/needs rows 不应被视为最终异常，更准确是宽口径 suspicious event rows。
+  - S3-A 证明 event -> incident 框架可行，但 clean stable window 下 high/needs 仍过大；当前主矛盾已经从 pipeline scalability 转为 detection quality。
+  - 后续不能只继续聚合或直接扩到 24h，而要用 S3-A 暴露出的噪声结构，反向指导 score/gate/verification 的检测能力升级。
+  - candidate 可以保持宽口径召回，但 score/gate/priority 必须增强语义区分能力，使系统从“能筛很多弱信号”转为“能把值得看的弱信号排到前面”。
 
 ## 8. 下一步默认动作
 
@@ -359,9 +365,12 @@
 6. S2-C 已完成并通过；不要为 6h high purity 再反复重跑主链。
 7. S3-A 已完成；不要重复运行首版 incident aggregation，除非代码参数改动后做 S3-A2。
 8. 下一轮默认执行 S3-A2：只基于现有 S3-A outputs / incidents 做 priority calibration 与 `dominant_origin_as=NA` handling，目标是把超大 unknown-origin 背景工单从 P2 中拆出或降级，并降低 P1/P2 review 队列规模。
-9. S3-A2 通过后，再进入 S3-B incident-level verification pilot；24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
-10. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
-11. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
+9. S3-A2 后执行 S3-B noise source audit：审 P1/P2、needs_review、large fan-out incidents 的 reason/origin/prefix/path 模式，回答 clean stable window 为什么仍有大量 suspicious rows。
+10. S3-B 后执行 S3-C detection capability upgrade design：围绕 role churn、AS Hegemony delta、forged-origin path plausibility、route-leak triplet legality、RPKI/IRR/PeeringDB、NO_EXPORT/communities 等，决定哪些进入 score/gate/augment/verification。
+11. S3-D 再做 incident-level verification，形成 high-confidence set，反向校准 score/gate/priority。
+12. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
+13. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
+14. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
 ## 9. 使用规则
 
