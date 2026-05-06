@@ -365,6 +365,17 @@
   - 降级：共 `165` tickets / `559328` members；P1->P2 `162` tickets；P2->P3 `3` tickets
   - 3 个 `dominant_origin_as=NA` 超大 P2 全部降为 P3，覆盖 `348708` needs、`0` high，confidence `0.5065~0.5229`
   - 当前判断：S3-A2 成功隔离明显坏工单，但 calibrated P1/P2 仍大；下一步进入 S3-B noise source audit，而不是 24h。
+- S3-B noise source audit 已完成：
+  - 新增 `scripts/run_s3b_noise_source_audit.py`
+  - 新增 `project_docs/S3B_NOISE_SOURCE_AUDIT.md`
+  - 输出目录：`outputs/s3b_noise_source_audit_v01/`
+  - 输出：`s3b_noise_summary.json`、`s3b_priority_reason_patterns.csv`、`s3b_needs_review_source_patterns.csv`、`s3b_large_fanout_incidents.csv`、`s3b_origin_prefix_path_hotspots.csv`、`s3b_p1_p2_quality_by_pattern.csv`、`s3b_detection_upgrade_candidates.csv`、`s3b_report.md`
+  - calibrated P1/P2：`55083` tickets，`4426436` rows，其中 high `632640`、needs `3793796`
+  - large fan-out：`1832` tickets；其中 P1/P2 `1829` tickets / `1102322` rows
+  - needs_review 来源：with-high weak support `2826078` rows，single-collector/sparse/short-lived `1242749` rows，large-fanout background-like `764874` rows，route-leak-like `3952` rows，forged-origin-like residual `2102` rows
+  - 最大 P1/P2 噪声/弱信号结构：`single_collector_visibility + structural_novelty_score + unseen_path_for_prefix_origin + unusually_short_duration_for_prefix`，覆盖 `27120` tickets / `3943362` rows，weighted high share 约 `0.095`
+  - 第二结构：`abnormal_path_length_for_prefix_origin + single_collector_visibility + structural_novelty_score + unseen_path_for_prefix_origin`，覆盖 `24311` tickets / `343856` rows，weighted high share 约 `0.681`
+  - 当前判断：S3-B 证明 P1/P2 偏大主要来自低可见度/短时 path novelty 在 clean stable window 中过度贡献；large fan-out 是重要噪声源但不是唯一噪声源；route-leak-like 与 forged-origin-like 应继续分队列。
 
 ## 8. 下一步默认动作
 
@@ -378,8 +389,8 @@
 6. S2-C 已完成并通过；不要为 6h high purity 再反复重跑主链。
 7. S3-A 已完成；不要重复运行首版 incident aggregation，除非代码参数改动后做 S3-A2。
 8. S3-A2 已完成；不要重复运行，除非调整 calibration thresholds/rules。
-9. 下一轮默认执行 S3-B noise source audit：审 P1/P2、needs_review、large fan-out incidents 的 reason/origin/prefix/path 模式，回答 clean stable window 为什么仍有大量 suspicious rows。
-10. S3-B 后执行 S3-C detection capability upgrade design：围绕 role churn、AS Hegemony delta、forged-origin path plausibility、route-leak triplet legality、RPKI/IRR/PeeringDB、NO_EXPORT/communities 等，决定哪些进入 score/gate/augment/verification。
+9. S3-B 已完成；不要重复做泛化噪声审计，除非 S3-C 后检测逻辑发生变化。
+10. 下一轮默认执行 S3-C detection capability upgrade design：优先围绕 visibility-aware path plausibility、gate evidence support ablation、route-leak triplet legality pilot 设计小型校准/消融。
 11. S3-D 再做 incident-level verification，形成 high-confidence set，反向校准 score/gate/priority。
 12. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
 13. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。

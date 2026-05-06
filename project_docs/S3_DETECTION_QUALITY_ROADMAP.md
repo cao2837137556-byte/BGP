@@ -40,7 +40,8 @@ BGP raw data
 | incident aggregation | S3-A done | compression 有效，但 P1/P2 仍大 |
 | priority calibration | S3-A2 done | 已隔离 NA-origin 超大背景工单，但 P1/P2 仍大 |
 | verification | pending | 需要在 incident 层建立高置信样本 |
-| semantic detection upgrade | pending | 需要 role/path/triplet/verification 特征增强 |
+| noise source audit | S3-B done | 已定位低可见度/短时 path novelty 为 P1/P2 主体来源 |
+| semantic detection upgrade | pending | 需要 visibility-aware path plausibility、path/triplet/verification 特征增强 |
 
 ## 4. Next Sequence
 
@@ -65,7 +66,7 @@ BGP raw data
 
 ### S3-B Noise Source Audit
 
-回答：
+已完成。回答：
 
 ```text
 547.9 万 high/needs rows 和 21.7 万 tickets 到底由哪些 reason / origin / prefix / path 模式撑起来？
@@ -73,15 +74,24 @@ BGP raw data
 
 重点输出：
 
-- P1/P2 reason signature 分布
-- needs_review 的主要来源模式
-- large fan-out incidents
-- route-leak-like 与 forged-origin-like 的队列差异
-- 哪些规则在 clean stable window 中贡献了过多 suspicious rows
+核心结果：
+
+- calibrated P1/P2 `55083` tickets / `4426436` rows。
+- P1/P2 中 needs `3793796` rows，high `632640` rows。
+- 最大结构为 `single_collector_visibility + structural_novelty_score + unseen_path_for_prefix_origin + unusually_short_duration_for_prefix`，覆盖 `27120` tickets / `3943362` rows，weighted high share 约 `0.095`。
+- needs_review 主要来源为 with-high weak support、single-collector/sparse/short-lived、large fan-out background-like。
+- large fan-out 是重要噪声源，但不是唯一噪声源。
+- route-leak-like 与 forged-origin-like 表现不同，应继续分队列。
+
+结论：下一步应进入 S3-C detection capability upgrade design，而不是直接扩 24h。
 
 ### S3-C Detection Capability Upgrade Design
 
-基于 S3-B 暴露的噪声结构，设计检测能力增强，而不是盲目加入模型。
+基于 S3-B 暴露的噪声结构，设计检测能力增强，而不是盲目加入模型。优先方向从泛泛的 role/path/triplet 扩展，收敛为：
+
+- visibility-aware path plausibility scoring pilot
+- gate evidence support ablation
+- route-leak triplet legality pilot
 
 候选方向：
 
