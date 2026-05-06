@@ -1,6 +1,6 @@
 # S3-A Incident Aggregation Plan
 
-最后更新：2026-04-30
+最后更新：2026-05-06
 
 定位：S3-A 是 `final_alerts.parquet` 之后的 post-processing incident layer，不改变上游检测主链。
 
@@ -138,6 +138,45 @@ Macro incident：
 - `outputs/s3a_incident_aggregation_v01/`
 - `data/runs/s2a_expanded_v01_pilot_6h_april16/incidents/`
 
-## 9. Next Step
+## 9. Run Result
 
-上传 S3-A 脚本到超算，基于已有 6h expanded final/events 运行首版 incident aggregation。作业完成后拉回输出，更新 `HANDOFF.md` 与 `EXPERIMENT_MAINLINE.md`，再决定是否进入 S3-B verification pilot 或 S2-D 24h with incidents。
+S3-A 已在超算完成并拉回本地。
+
+产物：
+
+- `outputs/s3a_incident_aggregation_v01/`
+- `data/runs/s2a_expanded_v01_pilot_6h_april16/incidents/`
+- `outputs/bundles/s3a_incident_aggregation_bundle.zip`
+
+核心指标：
+
+- `raw_alert_count=5479303`
+- `raw_high_count=639548`
+- `raw_needs_count=4839755`
+- `micro_incident_count=1839957`
+- `incident_count=217165`
+- `compression_ratio=25.231059`
+- `analyst_workload_reduction=0.960366`
+- `incident_count_by_family={forged_origin_like:216801, route_leak_like:364}`
+- `incident_count_by_priority={P1_high:42047, P2_review:13039, P3_background:162079}`
+
+有效结论：
+
+- incident layer 成功把 547.9 万 high/needs event 压缩为 21.7 万 tickets，证明 event-level 到 incident-level 的评估单位转换有效。
+- `route_leak_like` 与 `forged_origin_like` 已经形成不同队列，route-leak-like 规模小且多数停留在 review/background。
+- top P1 incidents 主要由 `structural_novelty_score + unseen_path_for_prefix_origin` 相关 reason signature 驱动，整体符合弱信号 forged-origin-like 主线。
+
+风险与不足：
+
+- 3 个 `dominant_origin_as=NA` 的超大 P2 incident 覆盖 `348708` 条 needs、`149178` 个 affected prefix，`incident_score=100` 但 confidence 约 `0.51`，更像 unknown-origin / background artifact。
+- P1 tickets 仍有 `42047` 个，虽然比 event-level 大幅压缩，但直接进入人工验证仍偏大。
+- 首版 macro key 对 forged-origin-like 使用 `origin_as + path_signature + 2h bucket`，对 NA-origin 或超广 prefix fan-out 需要额外保护。
+
+## 10. Next Step
+
+执行 S3-A2 priority calibration / NA-origin handling：
+
+- 不重跑 raw/events/baseline/candidate/score/gate/augment/final。
+- 只读 S3-A `incident_tickets.parquet` / `incident_membership.parquet`，或轻量重跑 incident aggregation 后处理。
+- 将 `dominant_origin_as=NA` 且超大 affected-prefix 的背景工单拆出或降级。
+- 校准 P1/P2 priority 规则，使 S3-B top-K verification 面向更干净的 incident pool。

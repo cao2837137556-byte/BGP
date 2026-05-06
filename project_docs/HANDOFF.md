@@ -328,15 +328,24 @@
   - 先做 S3-A incident aggregation / ticketization，把 `high_priority_alert + needs_review` 从 event-level 输出聚合为 incident tickets。
   - 原因：S2-C 已证明 6h high purity 稳定，当前瓶颈是 `needs_review=4839755` 仍以逐条 event 暴露，评估单位不对。
   - S3-A 不改上游检测主链，只在 final 之后新增 post-processing layer。
-- S3-A workflow 已准备，尚未在超算全量运行：
+- S3-A incident aggregation 已在超算完成并拉回：
   - 新增 `project_docs/S3A_INCIDENT_AGGREGATION.md`
   - 新增 `scripts/build_incident_aggregation.py`
   - 新增 `scripts/run_s3a_incident_aggregation.py`
   - 新增 `scripts/hpc/s3a_incident_aggregation.slurm`
   - 默认输入：`data/runs/s2a_expanded_v01_pilot_6h_april16/final/final_alerts.parquet` 与 `events/event_units.parquet`
-  - 默认输出：`data/runs/s2a_expanded_v01_pilot_6h_april16/incidents/` 与 `outputs/s3a_incident_aggregation_v01/`
-  - 首版 family：`forged_origin_like`、`route_leak_like`、`stealth_visibility_like`、`unknown_weak_signal`
-  - 首版指标：`compression_ratio`、`analyst_workload_reduction`、`incident_count_by_family`、`incident_count_by_priority`、top incidents
+  - 输出：`data/runs/s2a_expanded_v01_pilot_6h_april16/incidents/`、`outputs/s3a_incident_aggregation_v01/`、`outputs/bundles/s3a_incident_aggregation_bundle.zip`
+  - 输入 raw alerts：`5479303`，其中 high `639548`、needs `4839755`
+  - micro incidents：`1839957`
+  - incident tickets：`217165`
+  - compression_ratio：`25.231059`
+  - analyst_workload_reduction：`0.960366`
+  - family tickets：`forged_origin_like=216801`，`route_leak_like=364`
+  - priority tickets：`P1_high=42047`，`P2_review=13039`，`P3_background=162079`
+  - priority event coverage：P1 `2775776` rows，P2 `1999368` rows，P3 `704159` rows
+  - 关键观察：incident layer 成功把 547.9 万 high/needs event 压缩为 21.7 万 tickets，证明评估单位转换有效；route-leak-like 与 forged-origin-like 已形成不同队列。
+  - 关键风险：3 个 `dominant_origin_as=NA` 的超大 P2 incident 覆盖 `348708` 条 needs、`149178` 个 affected prefix，`incident_score=100` 但 confidence 约 `0.51`，更像 unknown-origin / background artifact；P1 tickets 仍有 `42047` 个，直接进入人工验证仍偏大。
+  - 当前判断：S3-A 首版完成且有效，但需要 S3-A2 做 priority calibration / NA-origin handling，再进入 S3-B verification pilot；不需要重跑 raw/events/baseline/candidate/score/gate/augment/final。
 
 ## 8. 下一步默认动作
 
@@ -348,9 +357,9 @@
 4. S2-A expanded 6h 的 raw/events/baseline/candidate 已经是重要资产，不要删除或重建。
 5. S2-B2 已完成；不要再重跑 raw/events/baseline/candidate，也不要把旧的 `scores/scored_candidates_tmp.parquet` 当正式结果。
 6. S2-C 已完成并通过；不要为 6h high purity 再反复重跑主链。
-7. 下一轮默认执行 S3-A：上传 `build_incident_aggregation.py`、`run_s3a_incident_aggregation.py`、`s3a_incident_aggregation.slurm` 到超算，在已有 `s2a_expanded_v01_pilot_6h_april16` 上只做 incident aggregation。
-8. S3-A 完成后优先看三件事：`compression_ratio` 是否足够高；top incidents 的 family/reason purity 是否合理；`route_leak_like` 与 `forged_origin_like` 是否形成不同审查队列。
-9. S3-A 通过后，再进入 S3-B incident-level verification pilot；24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
+7. S3-A 已完成；不要重复运行首版 incident aggregation，除非代码参数改动后做 S3-A2。
+8. 下一轮默认执行 S3-A2：只基于现有 S3-A outputs / incidents 做 priority calibration 与 `dominant_origin_as=NA` handling，目标是把超大 unknown-origin 背景工单从 P2 中拆出或降级，并降低 P1/P2 review 队列规模。
+9. S3-A2 通过后，再进入 S3-B incident-level verification pilot；24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
 10. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
 11. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
