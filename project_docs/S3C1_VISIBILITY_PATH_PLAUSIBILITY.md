@@ -46,6 +46,7 @@ single_collector_visibility
 新增脚本：
 
 - `scripts/run_s3c1_visibility_path_plausibility_pilot.py`
+- `scripts/hpc/s3c1_visibility_path_plausibility.slurm`
 
 输出目录：
 
@@ -145,6 +146,86 @@ smoke 结果：
 该 smoke 只验证代码路径，不作为 S2-C1 正式实验结果。
 
 ## 6. Fixed-Run Commands
+
+### 6.1 超算同步与执行
+
+超算不是 git repo，不使用 `git pull`。本地改动后用 `scp` 同步到超算。
+
+本地上传 S3-C1 代码与文档：
+
+```powershell
+cd D:\study\paper\worktrees\bgp-platform-exp-mainline
+
+scp .\scripts\run_s3c1_visibility_path_plausibility_pilot.py jiangxinwei.zr@school-hpc:/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/repo/scripts/
+scp .\scripts\hpc\s3c1_visibility_path_plausibility.slurm jiangxinwei.zr@school-hpc:/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/repo/scripts/hpc/
+scp .\project_docs\S3C1_VISIBILITY_PATH_PLAUSIBILITY.md jiangxinwei.zr@school-hpc:/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/repo/project_docs/
+scp .\project_docs\HANDOFF.md jiangxinwei.zr@school-hpc:/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/repo/project_docs/
+scp .\project_docs\EXPERIMENT_MAINLINE.md jiangxinwei.zr@school-hpc:/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/repo/project_docs/
+scp .\project_docs\S3_DETECTION_QUALITY_ROADMAP.md jiangxinwei.zr@school-hpc:/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/repo/project_docs/
+```
+
+登录超算并确认输入：
+
+```bash
+ssh jiangxinwei.zr@school-hpc
+cd /public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/repo
+
+ls data/runs/s2a_expanded_v01_pilot_6h_april16/scores/scored_candidates.parquet
+ls data/runs/s2a_expanded_v01_pilot_6h_april16/events/event_units.parquet
+ls data/runs/s2a_expanded_v01_pilot_6h_april16/candidates/candidate_events.parquet
+ls data/runs/s2a_expanded_v01_pilot_6h_april16/gating/gated_candidates.parquet
+ls data/runs/s2a_expanded_v01_pilot_6h_april16/final/final_alerts.parquet
+ls data/runs/s2a_expanded_v01_pilot_6h_april16/baseline/baseline_prefix_origin.parquet
+ls data/runs/s2a_expanded_v01_pilot_6h_april16/incidents/incident_membership.parquet
+ls outputs/s3a2_incident_priority_calibration_v01/s3a2_calibrated_incident_tickets.parquet
+```
+
+先提交 S2 fixed-run smoke：
+
+```bash
+MODE=smoke \
+OUTPUT_DIR=outputs/s3c1_visibility_path_plausibility_smoke_s2 \
+BUNDLE_NAME=s3c1_visibility_path_plausibility_smoke_bundle \
+sbatch scripts/hpc/s3c1_visibility_path_plausibility.slurm
+```
+
+查看队列：
+
+```bash
+squeue -u $USER
+```
+
+实时日志中的 job id 要替换成 `sbatch` 返回的实际 id：
+
+```bash
+tail -f /public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/logs/s3c1_visibility_path_plausibility_<实际jobid>.live.log
+```
+
+smoke 通过后提交 full：
+
+```bash
+MODE=full \
+OUTPUT_DIR=outputs/s3c1_visibility_path_plausibility_v01 \
+BUNDLE_NAME=s3c1_visibility_path_plausibility_bundle \
+sbatch scripts/hpc/s3c1_visibility_path_plausibility.slurm
+```
+
+### 6.2 本地拉回 full 输出
+
+full 完成后，在本地 PowerShell 执行：
+
+```powershell
+cd D:\study\paper\worktrees\bgp-platform-exp-mainline
+
+New-Item -ItemType Directory -Force .\outputs\s3c1_visibility_path_plausibility_v01 | Out-Null
+New-Item -ItemType Directory -Force .\outputs\bundles | Out-Null
+
+scp -r "jiangxinwei.zr@school-hpc:/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/repo/outputs/s3c1_visibility_path_plausibility_v01/*" .\outputs\s3c1_visibility_path_plausibility_v01\
+scp "jiangxinwei.zr@school-hpc:/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/repo/outputs/bundles/s3c1_visibility_path_plausibility_bundle.zip" .\outputs\bundles\
+scp "jiangxinwei.zr@school-hpc:/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/logs/s3c1_visibility_path_plausibility_<实际jobid>.live.log" .\outputs\s3c1_visibility_path_plausibility_v01\
+```
+
+### 6.3 本地直接执行，仅用于已拉回完整输入时
 
 先确认固定 run 输入是否已拉回：
 
