@@ -93,6 +93,25 @@ BGP raw data
 - gate evidence support ablation
 - route-leak triplet legality pilot
 
+#### S3-C1 visibility-aware path plausibility
+
+代码已实现，fixed-run full 待执行。
+
+新增：
+
+- `scripts/run_s3c1_visibility_path_plausibility_pilot.py`
+- `project_docs/S3C1_VISIBILITY_PATH_PLAUSIBILITY.md`
+
+当前状态：
+
+- 脚本只输出离线 `adjusted_risk_score_s3c1 / adjusted_risk_bucket_s3c1`，不覆盖 score/gate/final/incidents。
+- pattern_A 默认降权对象为 `single_collector_visibility + structural_novelty_score + unseen_path_for_prefix_origin + unusually_short_duration_for_prefix`。
+- pattern_B `abnormal_path_length_for_prefix_origin + single_collector_visibility + structural_novelty_score + unseen_path_for_prefix_origin` 默认只做诊断，不直接强降。
+- 本地已用 `s1a_expanded_v02_pilot_60m_april16` 20 万行 smoke 验证脚本路径，`pattern_B_adjusted_down_rows=0`。
+- 固定 S2 run 本地缺 `scores/scored_candidates.parquet` 等主输入，因此 S3-C1 正式 full 结果尚未生成。
+
+下一步：先拉回 S2 fixed-run score/events/candidates/gating/final/baseline 输入，跑 S3-C1 smoke/full，再决定进入 S3-C2 还是先调权重。
+
 候选方向：
 
 | Upgrade | Likely Layer |
