@@ -407,6 +407,20 @@
     - touched_p1_p2_incidents `32469`
   - known-event inventory 未上传到超算，regression check 为空。
   - 当前判断：S3-C1 证明 visibility-aware plausibility 能精准打到 pattern_A 且保护 pattern_B，但默认 penalty 对 bucket 迁移过强；不能直接并入主链，下一步先做 S3-C1b 权重/penalty 校准。
+- S3-C1b penalty calibration 已完成本地代码与 smoke：
+  - 新增 `scripts/run_s3c1b_penalty_calibration.py`
+  - 新增 `scripts/hpc/s3c1b_penalty_calibration.slurm`
+  - 新增 `project_docs/S3C1B_PENALTY_CALIBRATION.md`
+  - 作用：复用 S3-C1 plausibility feature logic，比较 default、low-only、soft-medium、gate-only、medium-gate-only 等策略；不覆盖任何主链输出。
+  - 本地 `s1a_expanded_v02_pilot_60m_april16` 20 万行 smoke 通过：
+    - default bucket_changed_rows `84041`
+    - recommended_strategy `strategy_medium_gate_only`
+    - recommended bucket_changed_rows `28`
+    - recommended pattern_A_adjusted_down_rows `144`
+    - recommended pattern_A_gate_evidence_rows `122812`
+    - pattern_B_adjusted_down_rows `0`
+    - known_event_available `true`，matched rows `0`
+  - 当前判断：S3-C1b 代码和 HPC 执行入口 ready；fixed S2 full 待超算执行。
 
 ## 8. 下一步默认动作
 
@@ -421,8 +435,8 @@
 7. S3-A 已完成；不要重复运行首版 incident aggregation，除非代码参数改动后做 S3-A2。
 8. S3-A2 已完成；不要重复运行，除非调整 calibration thresholds/rules。
 9. S3-B 已完成；不要重复做泛化噪声审计，除非 S3-C 后检测逻辑发生变化。
-10. S3-C1 full 已完成；下一步先做 S3-C1b 权重/penalty 校准，并补 known-event inventory regression。
-11. S3-C2 gate evidence support ablation 可以继续设计，但应把 S3-C1 plausibility 作为 gate 证据输入，不要直接采用当前 default penalty。
+10. S3-C1b 代码与 Slurm 已 ready；下一步用 `scp` 同步到超算，在 fixed S2 run 上跑 S3-C1b smoke/full，再拉回 outputs。
+11. 如果 S3-C1b full 继续推荐 `strategy_medium_gate_only`，进入 S3-C2 gate evidence support ablation；如果策略不稳，先继续 S3-C1b 微调。
 12. S3-C3 route-leak triplet legality 应作为 route-leak-like 专项线，不用于解决 forged-origin-like 主体噪声。
 13. S3-D 再做 incident-level verification，形成 high-confidence set，反向校准 score/gate/priority。
 14. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。

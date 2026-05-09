@@ -122,6 +122,26 @@ BGP raw data
 
 下一步：先做 S3-C1b 权重/penalty 校准，并补 known-event inventory regression；S3-C2 可以继续设计，但应把 S3-C1 plausibility 当作 gate evidence，而不是直接采用当前 default score penalty。
 
+#### S3-C1b penalty calibration
+
+代码已实现，fixed-run full 待超算执行。
+
+新增：
+
+- `scripts/run_s3c1b_penalty_calibration.py`
+- `scripts/hpc/s3c1b_penalty_calibration.slurm`
+- `project_docs/S3C1B_PENALTY_CALIBRATION.md`
+
+比较策略：
+
+- default S3-C1 upper bound
+- low-only score penalty
+- low/medium soft score penalty
+- gate-only
+- medium-gate-only
+
+本地 60min smoke 显示 `strategy_medium_gate_only` 最稳：只对 low plausibility 小幅动 score，medium plausibility 作为 gate evidence，pattern_B 保持不动。
+
 候选方向：
 
 | Upgrade | Likely Layer |

@@ -328,6 +328,6 @@ S3-C1 full 已完成。它证明 visibility-aware plausibility 对 S3-B dominant
 当前判断：
 
 - 不把 S3-C1 default penalty 直接并入主链。
-- 先做 S3-C1b：调小/分层 penalty，至少比较 `-5/-2`、只对 `low_plausibility` 降权、或把 medium plausibility 交给 gate evidence。
+- 已新增 S3-C1b：调小/分层 penalty，比较 `low_only`、`low+medium soft`、`gate_only`、`medium_gate_only` 等策略。
 - 同步补 known-event inventory regression check。
 - S3-C2 可以继续设计，但应把 S3-C1 plausibility 当 gate 证据输入，而不是直接接受当前 full-run 的 score bucket 迁移。
