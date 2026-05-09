@@ -376,7 +376,7 @@
   - 最大 P1/P2 噪声/弱信号结构：`single_collector_visibility + structural_novelty_score + unseen_path_for_prefix_origin + unusually_short_duration_for_prefix`，覆盖 `27120` tickets / `3943362` rows，weighted high share 约 `0.095`
   - 第二结构：`abnormal_path_length_for_prefix_origin + single_collector_visibility + structural_novelty_score + unseen_path_for_prefix_origin`，覆盖 `24311` tickets / `343856` rows，weighted high share 约 `0.681`
   - 当前判断：S3-B 证明 P1/P2 偏大主要来自低可见度/短时 path novelty 在 clean stable window 中过度贡献；large fan-out 是重要噪声源但不是唯一噪声源；route-leak-like 与 forged-origin-like 应继续分队列。
-- S3-C1 visibility-aware path plausibility pilot 已完成本地代码与 smoke：
+- S3-C1 visibility-aware path plausibility pilot 已完成 full：
   - 新增 `scripts/run_s3c1_visibility_path_plausibility_pilot.py`
   - 新增 `scripts/hpc/s3c1_visibility_path_plausibility.slurm`
   - 新增 `project_docs/S3C1_VISIBILITY_PATH_PLAUSIBILITY.md`
@@ -391,9 +391,22 @@
     - adjusted_risk_changed_rows `122956`
     - risk_bucket_changed_rows `84041`
     - pattern_B_adjusted_down_rows `0`
-  - 固定 S2 run 本地目前只有 `incidents/`，缺 `scores/scored_candidates.parquet` 等 S3-C1 主输入，因此 fixed-run full 尚未执行。
-  - S3-C1 Slurm 支持 `MODE=smoke/full`，默认 full；默认资源 `amd`、`16c`、`256G`、`8h`。
-  - 当前判断：S3-C1 代码和 HPC 执行入口 ready，但正式实验结论待在超算 S2 fixed-run 上执行 smoke/full 后拉回。
+  - S2 fixed-run full 已在超算完成并拉回：
+    - input / loaded / joined rows `10236431 / 10236431 / 10236431`
+    - missing_join_rows `0`
+    - pattern_A_rows `7440623`
+    - pattern_A_adjusted_down_rows `6885990`
+    - pattern_B_rows `659862`
+    - pattern_B_adjusted_down_rows `0`
+    - risk_bucket_changed_rows `4576319`
+    - score high `2047659 -> 1187117`
+    - score medium `4094284 -> 937913`
+    - score low `4094488 -> 8111401`
+    - P1/P2 joined rows `4426436`
+    - adjusted_down_rows_in_p1_p2 `3510753`
+    - touched_p1_p2_incidents `32469`
+  - known-event inventory 未上传到超算，regression check 为空。
+  - 当前判断：S3-C1 证明 visibility-aware plausibility 能精准打到 pattern_A 且保护 pattern_B，但默认 penalty 对 bucket 迁移过强；不能直接并入主链，下一步先做 S3-C1b 权重/penalty 校准。
 
 ## 8. 下一步默认动作
 
@@ -408,8 +421,8 @@
 7. S3-A 已完成；不要重复运行首版 incident aggregation，除非代码参数改动后做 S3-A2。
 8. S3-A2 已完成；不要重复运行，除非调整 calibration thresholds/rules。
 9. S3-B 已完成；不要重复做泛化噪声审计，除非 S3-C 后检测逻辑发生变化。
-10. S3-C1 代码与 Slurm 已 ready；下一步用 `scp` 同步到超算，在超算 S2 fixed-run 上跑 S3-C1 smoke/full，再拉回 outputs。
-11. 如果 S3-C1 full 显示 pattern_A 降权合理，再进入 S3-C2 gate evidence support ablation；如果 bucket change 过强，先调 S3-C1 权重。
+10. S3-C1 full 已完成；下一步先做 S3-C1b 权重/penalty 校准，并补 known-event inventory regression。
+11. S3-C2 gate evidence support ablation 可以继续设计，但应把 S3-C1 plausibility 作为 gate 证据输入，不要直接采用当前 default penalty。
 12. S3-C3 route-leak triplet legality 应作为 route-leak-like 专项线，不用于解决 forged-origin-like 主体噪声。
 13. S3-D 再做 incident-level verification，形成 high-confidence set，反向校准 score/gate/priority。
 14. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。

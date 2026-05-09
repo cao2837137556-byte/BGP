@@ -1,6 +1,6 @@
 # S3-C1 Visibility-Aware Path Plausibility
 
-最后更新：2026-05-07
+最后更新：2026-05-09
 
 ## 1. Scope
 
@@ -118,14 +118,11 @@ Composite plausibility:
 
 `pattern_B` 不默认降权的原因是 S3-B 中该结构 weighted high share 明显更高，需要 S3-C2/S3-C3 的额外证据检查，而不是粗暴套用 pattern_A 的 penalty。
 
-## 5. Current Local Validation
+## 5. Current Results
 
-固定 S2 run 的本地主输入尚未拉全：
+### 5.1 Local Smoke
 
-- 缺失：`data/runs/s2a_expanded_v01_pilot_6h_april16/scores/scored_candidates.parquet`
-- 当前本地该 run 只有 `incidents/`
-
-因此 S3-C1 fixed-run full 尚未执行。脚本已用本地完整的 60min expanded run 做 smoke：
+脚本先用本地完整的 60min expanded run 做 smoke：
 
 ```text
 run_id=s1a_expanded_v02_pilot_60m_april16
@@ -144,6 +141,54 @@ smoke 结果：
 - pattern_B_adjusted_down_rows：`0`
 
 该 smoke 只验证代码路径，不作为 S2-C1 正式实验结果。
+
+### 5.2 S2 Fixed-Run Full
+
+超算 full-run 已完成并拉回：
+
+- 输出目录：`outputs/s3c1_visibility_path_plausibility_v01/`
+- bundle：`outputs/bundles/s3c1_visibility_path_plausibility_bundle.zip`
+- live log：`outputs/s3c1_visibility_path_plausibility_v01/s3c1_visibility_path_plausibility_17378.live.log`
+
+关键结果：
+
+- input / loaded / joined rows：`10236431 / 10236431 / 10236431`
+- missing_join_rows：`0`
+- pattern_A_rows：`7440623`
+- pattern_B_rows：`659862`
+- low / medium / high plausibility rows：`51785 / 9726656 / 457990`
+- adjusted_risk_changed_rows：`6885990`
+- risk_bucket_changed_rows：`4576319`
+- pattern_A_adjusted_down_rows：`6885990`
+- pattern_B_adjusted_down_rows：`0`
+- estimated P1/P2 rows joined：`4426436`
+- adjusted_down_rows_in_p1_p2：`3510753`
+- touched_p1_p2_incidents：`32469`
+- touched_p1_incidents：`20242`
+- touched_p2_incidents：`12227`
+
+Risk bucket before/after：
+
+| bucket | before | after | delta |
+| --- | ---: | ---: | ---: |
+| high | 2047659 | 1187117 | -860542 |
+| medium | 4094284 | 937913 | -3156371 |
+| low | 4094488 | 8111401 | +4016913 |
+
+Pattern-level diagnosis：
+
+| pattern | rows | adjusted_down | mean risk before | mean adjusted risk | mean plausibility | bucket changed rate | high share before | needs share before |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| pattern_A | 7440623 | 6885990 | 33.9596 | 29.3118 | 58.1047 | 0.6150 | 0.0745 | 0.5814 |
+| pattern_B | 659862 | 0 | 49.8664 | 49.8664 | 53.2718 | 0.0 | 0.9063 | 0.0937 |
+
+结论：
+
+- S3-C1 成功命中 S3-B 的主噪声结构 pattern_A。
+- pattern_B 被保留，说明“abnormal path length 不粗暴降权”的保护逻辑有效。
+- 但 default penalty 对 score bucket 的影响过强：全体 `44.7%` rows bucket changed，score-high 减少 `860542`，P1/P2 中 `3510753` rows 被离线降权。
+- 因此当前 S3-C1 不能直接作为主链替换；下一步应做 S3-C1b 权重/penalty 校准，或在 S3-C2 中只把 plausibility 作为 gate evidence requirement，而不是直接改 score。
+- known-event inventory 未上传到超算，`s3c1_known_event_regression_check.csv` 为空；后续需要补传 `data/known_events/known_event_candidates_v05.json` 后复跑轻量 regression check。
 
 ## 6. Fixed-Run Commands
 
@@ -278,10 +323,11 @@ python scripts\run_s3c1_visibility_path_plausibility_pilot.py `
 
 ## 7. Next Judgment
 
-S3-C1 代码已 ready，但固定 S2 run full 结果待补齐输入后执行。
+S3-C1 full 已完成。它证明 visibility-aware plausibility 对 S3-B dominant pattern 有强识别能力，但默认 penalty 过强。
 
-full 结果出来后再判断：
+当前判断：
 
-- 若 pattern_A 的 bucket change 合理，进入 S3-C2 gate evidence support ablation。
-- 若 pattern_A 降权过强，先调 S3-C1 权重。
-- 若 known-event / verification 输入不足，先补 final / inventory / incident join 后复跑。
+- 不把 S3-C1 default penalty 直接并入主链。
+- 先做 S3-C1b：调小/分层 penalty，至少比较 `-5/-2`、只对 `low_plausibility` 降权、或把 medium plausibility 交给 gate evidence。
+- 同步补 known-event inventory regression check。
+- S3-C2 可以继续设计，但应把 S3-C1 plausibility 当 gate 证据输入，而不是直接接受当前 full-run 的 score bucket 迁移。

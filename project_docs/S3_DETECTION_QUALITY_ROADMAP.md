@@ -95,7 +95,7 @@ BGP raw data
 
 #### S3-C1 visibility-aware path plausibility
 
-代码已实现，fixed-run full 待执行。
+已完成 fixed-run full。
 
 新增：
 
@@ -109,9 +109,18 @@ BGP raw data
 - pattern_A 默认降权对象为 `single_collector_visibility + structural_novelty_score + unseen_path_for_prefix_origin + unusually_short_duration_for_prefix`。
 - pattern_B `abnormal_path_length_for_prefix_origin + single_collector_visibility + structural_novelty_score + unseen_path_for_prefix_origin` 默认只做诊断，不直接强降。
 - 本地已用 `s1a_expanded_v02_pilot_60m_april16` 20 万行 smoke 验证脚本路径，`pattern_B_adjusted_down_rows=0`。
-- 固定 S2 run 本地缺 `scores/scored_candidates.parquet` 等主输入；已补 S3-C1 Slurm，正式 full 应在超算固定 run 上执行。
+- S2 fixed-run full 结果：
+  - input / loaded / joined rows：`10236431 / 10236431 / 10236431`
+  - pattern_A rows：`7440623`，adjusted down `6885990`
+  - pattern_B rows：`659862`，adjusted down `0`
+  - risk bucket changed：`4576319`
+  - score-high：`2047659 -> 1187117`
+  - P1/P2 adjusted-down rows：`3510753`
+  - touched P1/P2 incidents：`32469`
 
-下一步：用 `scp` 同步 S3-C1 代码/Slurm 到超算，跑 S3-C1 fixed-run smoke/full，拉回 outputs 后再决定进入 S3-C2 还是先调权重。
+判断：S3-C1 成功识别 S3-B dominant pattern，且保护 pattern_B；但 default penalty 导致 bucket migration 过强，不能直接进入主链。
+
+下一步：先做 S3-C1b 权重/penalty 校准，并补 known-event inventory regression；S3-C2 可以继续设计，但应把 S3-C1 plausibility 当作 gate evidence，而不是直接采用当前 default score penalty。
 
 候选方向：
 
