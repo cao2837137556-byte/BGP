@@ -173,3 +173,9 @@ S3-C1b full 完成后判断：
 - 若 `strategy_medium_gate_only` 仍稳定，进入 S3-C2 gate evidence support ablation。
 - 若所有 score-changing strategy 仍迁移过大，则使用 `strategy_gate_only`。
 - 不推荐 `strategy_default_s3c1` 直接进入主链。
+
+## 9. S3-C2 Scaffold Note
+
+- `scripts/run_s3c2_gate_evidence_ablation.py` has been added.
+- Local S1A 200k smoke passed under `outputs/s3c2_gate_evidence_ablation_smoke_s1a/`.
+- This is only scaffold/smoke. Do not treat it as fixed S2 full evidence until S3-C1b full is pulled back and S3-C2 is rerun on `s2a_expanded_v01_pilot_6h_april16`.

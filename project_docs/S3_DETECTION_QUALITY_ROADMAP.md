@@ -142,6 +142,29 @@ BGP raw data
 
 本地 60min smoke 显示 `strategy_medium_gate_only` 最稳：只对 low plausibility 小幅动 score，medium plausibility 作为 gate evidence，pattern_B 保持不动。
 
+#### S3-C2 gate evidence ablation scaffold
+
+代码已实现并完成本地 smoke。
+新增：
+- `scripts/run_s3c2_gate_evidence_ablation.py`
+- `project_docs/S3C2_GATE_EVIDENCE_ABLATION.md`
+
+当前定位：
+- S3-C2 不是 score replacement。
+- S3-C2 把 `path_plausibility_score / plausibility_bucket / pattern_A_flag / pattern_B_flag` 转成 gate-layer evidence。
+- S3-C1b full 未完成前，只允许做 scaffold + S1A smoke，不提交新的 fixed S2 full 超算任务。
+
+本地 `s1a_expanded_v02_pilot_60m_april16` 20 万行 smoke：
+- loaded_rows `200000`
+- recommended_variant `variant_medium_gate_only`
+- gate_evidence_rows `122956`
+- final_label_changed_rows `0`
+- pattern_A_gate_evidence_rows `122956`
+- pattern_B_label_changed_rows `0`
+- known-event inventory 可读但 matched rows `0`
+
+判断：S3-C2 scaffold 证明 plausibility 可以作为 gate evidence 通道，而不是继续直接打 score。当前结果不能写成 fixed S2 正式结论；必须等 S3-C1b full 拉回后，用 `outputs/s3c1b_penalty_calibration_v01/` 复跑 fixed S2。
+
 候选方向：
 
 | Upgrade | Likely Layer |

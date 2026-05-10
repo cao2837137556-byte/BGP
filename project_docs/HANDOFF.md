@@ -421,6 +421,20 @@
     - pattern_B_adjusted_down_rows `0`
     - known_event_available `true`，matched rows `0`
   - 当前判断：S3-C1b 代码和 HPC 执行入口 ready；fixed S2 full 待超算执行。
+- S3-C2 gate evidence ablation scaffold 已完成本地代码与 smoke：
+  - 新增 `scripts/run_s3c2_gate_evidence_ablation.py`
+  - 新增 `project_docs/S3C2_GATE_EVIDENCE_ABLATION.md`
+  - 作用：把 S3-C1/S3-C1b 的 path plausibility 转成 gate-layer evidence，离线模拟 gate evidence variants；不覆盖 score/gate/final/incidents。
+  - 当前只做 scaffold + S1A smoke；不得把它当 fixed S2 正式结论。
+  - 本地 `s1a_expanded_v02_pilot_60m_april16` 20 万行 smoke 通过：
+    - loaded_rows `200000`
+    - recommended_variant `variant_medium_gate_only`
+    - gate_evidence_rows `122956`
+    - final_label_changed_rows `0`
+    - pattern_A_gate_evidence_rows `122956`
+    - pattern_B_label_changed_rows `0`
+    - S3-C1b full output 缺失与 S1A incident membership 缺失均只 warning。
+  - 当前判断：S3-C2 scaffold ready；等待 S3-C1b fixed S2 full 拉回后，接入推荐策略并复跑 fixed S2。
 
 ## 8. 下一步默认动作
 
@@ -435,8 +449,8 @@
 7. S3-A 已完成；不要重复运行首版 incident aggregation，除非代码参数改动后做 S3-A2。
 8. S3-A2 已完成；不要重复运行，除非调整 calibration thresholds/rules。
 9. S3-B 已完成；不要重复做泛化噪声审计，除非 S3-C 后检测逻辑发生变化。
-10. S3-C1b 代码与 Slurm 已 ready；下一步用 `scp` 同步到超算，在 fixed S2 run 上跑 S3-C1b smoke/full，再拉回 outputs。
-11. 如果 S3-C1b full 继续推荐 `strategy_medium_gate_only`，进入 S3-C2 gate evidence support ablation；如果策略不稳，先继续 S3-C1b 微调。
+10. S3-C1b 代码与 Slurm 已 ready，fixed S2 full 已提交超算排队时不要重复提交；完成后拉回 `outputs/s3c1b_penalty_calibration_v01/`。
+11. S3-C2 scaffold 已完成本地 smoke；等 S3-C1b full 回来后，再接入推荐策略并在 fixed S2 上复跑 S3-C2，不要提前提交新的 S2 full 超算任务。
 12. S3-C3 route-leak triplet legality 应作为 route-leak-like 专项线，不用于解决 forged-origin-like 主体噪声。
 13. S3-D 再做 incident-level verification，形成 high-confidence set，反向校准 score/gate/priority。
 14. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
