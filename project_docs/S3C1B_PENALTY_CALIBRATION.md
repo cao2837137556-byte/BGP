@@ -179,3 +179,26 @@ S3-C1b full 完成后判断：
 - `scripts/run_s3c2_gate_evidence_ablation.py` has been added.
 - Local S1A 200k smoke passed under `outputs/s3c2_gate_evidence_ablation_smoke_s1a/`.
 - This is only scaffold/smoke. Do not treat it as fixed S2 full evidence until S3-C1b full is pulled back and S3-C2 is rerun on `s2a_expanded_v01_pilot_6h_april16`.
+
+## 10. Fixed S2 Full Result
+
+Full result pulled back on 2026-05-11:
+- run_id `s2a_expanded_v01_pilot_6h_april16`
+- input/loaded rows `10236431 / 10236431`
+- status `completed`
+- warnings `0`
+- recommended_strategy `strategy_medium_gate_only`
+- default bucket_changed_rows `4576319`
+- default score-high `2047659 -> 1187117`
+- recommended bucket_changed_rows `5183`
+- recommended score-high `2047659 -> 2042688`
+- recommended pattern_A_adjusted_down_rows `15294`
+- recommended pattern_A_gate_evidence_rows `6870696`
+- recommended pattern_B_adjusted_down_rows `0`
+- recommended pattern_B_bucket_changed_rows `0`
+- recommended P1/P2 adjusted_down_rows `31`
+- recommended P1/P2 gate_evidence_rows `3510722`
+- touched P1/P2 incidents `32469`
+- known-event inventory was readable, but matched rows were `0`; this should not be interpreted as no regression risk.
+
+Conclusion: `strategy_medium_gate_only` is stable on fixed S2 full. Use it as S3-C2 gate evidence input; do not adopt S3-C1 default penalty as mainline behavior.

@@ -142,6 +142,19 @@ BGP raw data
 
 本地 60min smoke 显示 `strategy_medium_gate_only` 最稳：只对 low plausibility 小幅动 score，medium plausibility 作为 gate evidence，pattern_B 保持不动。
 
+Fixed S2 full update:
+- input/loaded rows `10236431 / 10236431`
+- recommended_strategy `strategy_medium_gate_only`
+- default bucket_changed_rows `4576319` and score-high `2047659 -> 1187117`
+- recommended bucket_changed_rows `5183` and score-high `2047659 -> 2042688`
+- recommended pattern_A_adjusted_down_rows `15294`
+- recommended pattern_A_gate_evidence_rows `6870696`
+- recommended P1/P2 adjusted_down_rows `31`
+- recommended P1/P2 gate_evidence_rows `3510722`
+- pattern_B adjusted/bucket changed rows `0`
+
+Conclusion: S3-C1b fixed full confirms the gate-evidence direction. Do not adopt S3-C1 default penalty into the mainline.
+
 #### S3-C2 gate evidence ablation scaffold
 
 代码已实现并完成本地 smoke。

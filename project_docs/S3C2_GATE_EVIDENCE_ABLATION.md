@@ -113,11 +113,16 @@ Interpretation:
 
 ## 6. Fixed S2 Rerun Plan
 
-Wait for S3-C1b full task to complete and pull back:
+S3-C1b full has completed and has been pulled back:
 
 ```text
 outputs/s3c1b_penalty_calibration_v01/
 ```
+
+It recommends `strategy_medium_gate_only` on fixed S2 full:
+- recommended bucket_changed_rows `5183`
+- recommended pattern_A_gate_evidence_rows `6870696`
+- recommended pattern_B adjusted/bucket changed rows `0`
 
 Then rerun S3-C2 on fixed S2:
 
@@ -129,7 +134,7 @@ python scripts\run_s3c2_gate_evidence_ablation.py ^
   --full-run
 ```
 
-Do not submit a new S2 full HPC task for S3-C2 until the pending S3-C1b full result is available and reviewed.
+Do not rerun S3-C1b. The next S2-side action is S3-C2 fixed-run gate evidence ablation.
 
 ## 7. Current Judgment
 
@@ -143,7 +148,6 @@ incident priority / verification decide analyst workload
 ```
 
 Next action:
-- wait for S3-C1b fixed S2 full result,
-- pull it back,
-- inspect `s3c1b_recommended_strategy.json`,
-- rerun S3-C2 fixed S2 if the recommendation is stable.
+- rerun S3-C2 fixed S2 using `outputs/s3c1b_penalty_calibration_v01/`,
+- keep S3-C2 as offline gate evidence ablation,
+- do not overwrite score/gate/final/incidents.

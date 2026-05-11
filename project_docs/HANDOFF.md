@@ -420,7 +420,20 @@
     - recommended pattern_A_gate_evidence_rows `122812`
     - pattern_B_adjusted_down_rows `0`
     - known_event_available `true`，matched rows `0`
-  - 当前判断：S3-C1b 代码和 HPC 执行入口 ready；fixed S2 full 待超算执行。
+  - fixed S2 full 已完成并拉回：
+    - input/loaded rows `10236431 / 10236431`
+    - status `completed`，warnings `0`
+    - recommended_strategy `strategy_medium_gate_only`
+    - default bucket_changed_rows `4576319`，score-high `2047659 -> 1187117`
+    - recommended bucket_changed_rows `5183`，score-high `2047659 -> 2042688`
+    - recommended pattern_A_adjusted_down_rows `15294`
+    - recommended pattern_A_gate_evidence_rows `6870696`
+    - pattern_B_adjusted_down_rows `0`，pattern_B_bucket_changed_rows `0`
+    - P1/P2 adjusted_down_rows `31`
+    - P1/P2 gate_evidence_rows `3510722`
+    - touched_p1_p2_incidents `32469`
+    - known-event inventory 可读，但 matched rows `0`，不能据此声称无 regression 风险。
+  - 当前判断：S3-C1b fixed S2 full 支持 `strategy_medium_gate_only`；下一步把该推荐接入 S3-C2 fixed S2 gate evidence ablation。
 - S3-C2 gate evidence ablation scaffold 已完成本地代码与 smoke：
   - 新增 `scripts/run_s3c2_gate_evidence_ablation.py`
   - 新增 `project_docs/S3C2_GATE_EVIDENCE_ABLATION.md`
@@ -434,7 +447,7 @@
     - pattern_A_gate_evidence_rows `122956`
     - pattern_B_label_changed_rows `0`
     - S3-C1b full output 缺失与 S1A incident membership 缺失均只 warning。
-  - 当前判断：S3-C2 scaffold ready；等待 S3-C1b fixed S2 full 拉回后，接入推荐策略并复跑 fixed S2。
+  - 当前判断：S3-C2 scaffold ready；S3-C1b full 已回来，下一步在 fixed S2 上复跑 S3-C2。当前本地缺完整 S2 score/final parquet，优先在超算执行或先拉回大 parquet。
 
 ## 8. 下一步默认动作
 
@@ -449,8 +462,8 @@
 7. S3-A 已完成；不要重复运行首版 incident aggregation，除非代码参数改动后做 S3-A2。
 8. S3-A2 已完成；不要重复运行，除非调整 calibration thresholds/rules。
 9. S3-B 已完成；不要重复做泛化噪声审计，除非 S3-C 后检测逻辑发生变化。
-10. S3-C1b 代码与 Slurm 已 ready，fixed S2 full 已提交超算排队时不要重复提交；完成后拉回 `outputs/s3c1b_penalty_calibration_v01/`。
-11. S3-C2 scaffold 已完成本地 smoke；等 S3-C1b full 回来后，再接入推荐策略并在 fixed S2 上复跑 S3-C2，不要提前提交新的 S2 full 超算任务。
+10. S3-C1b fixed S2 full 已完成；不要重复提交 S3-C1b。
+11. S3-C2 scaffold 已完成本地 smoke；下一步接入 `outputs/s3c1b_penalty_calibration_v01/` 推荐策略，在 fixed S2 上复跑 S3-C2 gate evidence ablation。
 12. S3-C3 route-leak triplet legality 应作为 route-leak-like 专项线，不用于解决 forged-origin-like 主体噪声。
 13. S3-D 再做 incident-level verification，形成 high-confidence set，反向校准 score/gate/priority。
 14. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
