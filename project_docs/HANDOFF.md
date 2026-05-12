@@ -436,8 +436,16 @@
   - 当前判断：S3-C1b fixed S2 full 支持 `strategy_medium_gate_only`；下一步把该推荐接入 S3-C2 fixed S2 gate evidence ablation。
 - S3-C2 gate evidence ablation scaffold 已完成本地代码与 smoke：
   - 新增 `scripts/run_s3c2_gate_evidence_ablation.py`
+  - 新增 `scripts/hpc/s3c2_gate_evidence_ablation.slurm`
   - 新增 `project_docs/S3C2_GATE_EVIDENCE_ABLATION.md`
   - 作用：把 S3-C1/S3-C1b 的 path plausibility 转成 gate-layer evidence，离线模拟 gate evidence variants；不覆盖 score/gate/final/incidents。
+  - 已增强 fixed S2 输出口径：
+    - `s3c2_event_label_delta.csv`
+    - `s3c2_incident_priority_delta.csv`
+    - `s3c2_p1_p2_total_burden.csv`
+    - `s3c2_review_subtype_distribution.csv`
+    - 所有 label/priority 变化均按 simulated 字段输出。
+    - P1->P2 transfer 单独统计，不算 workload reduction。
   - 当前只做 scaffold + S1A smoke；不得把它当 fixed S2 正式结论。
   - 本地 `s1a_expanded_v02_pilot_60m_april16` 20 万行 smoke 通过：
     - loaded_rows `200000`
@@ -447,7 +455,7 @@
     - pattern_A_gate_evidence_rows `122956`
     - pattern_B_label_changed_rows `0`
     - S3-C1b full output 缺失与 S1A incident membership 缺失均只 warning。
-  - 当前判断：S3-C2 scaffold ready；S3-C1b full 已回来，下一步在 fixed S2 上复跑 S3-C2。当前本地缺完整 S2 score/final parquet，优先在超算执行或先拉回大 parquet。
+  - 当前判断：S3-C2 fixed S2 smoke/full 入口 ready；S3-C1b full 已回来，下一步在超算上跑 S3-C2 fixed S2。当前本地缺完整 S2 score/final parquet，优先在超算执行或先拉回大 parquet。
 
 ## 8. 下一步默认动作
 
@@ -463,7 +471,7 @@
 8. S3-A2 已完成；不要重复运行，除非调整 calibration thresholds/rules。
 9. S3-B 已完成；不要重复做泛化噪声审计，除非 S3-C 后检测逻辑发生变化。
 10. S3-C1b fixed S2 full 已完成；不要重复提交 S3-C1b。
-11. S3-C2 scaffold 已完成本地 smoke；下一步接入 `outputs/s3c1b_penalty_calibration_v01/` 推荐策略，在 fixed S2 上复跑 S3-C2 gate evidence ablation。
+11. S3-C2 scaffold 已完成本地 smoke，fixed S2 Slurm 入口已 ready；下一步接入 `outputs/s3c1b_penalty_calibration_v01/` 推荐策略，在超算 fixed S2 上跑 S3-C2 gate evidence ablation。
 12. S3-C3 route-leak triplet legality 应作为 route-leak-like 专项线，不用于解决 forged-origin-like 主体噪声。
 13. S3-D 再做 incident-level verification，形成 high-confidence set，反向校准 score/gate/priority。
 14. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。

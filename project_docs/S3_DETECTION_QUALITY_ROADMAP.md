@@ -190,6 +190,14 @@ Conclusion: S3-C1b fixed full confirms the gate-evidence direction. Do not adopt
 | NO_EXPORT / communities | augment / verification |
 | learning-based scoring | later, after verified set |
 
+#### S3-C2 fixed S2 execution readiness
+
+S3-C2 is ready for fixed S2 smoke/full execution:
+- added `scripts/hpc/s3c2_gate_evidence_ablation.slurm`
+- added event label delta, simulated incident priority delta, P1/P2 total burden, and review subtype distribution outputs
+- all label/priority changes are simulated and do not overwrite score/gate/final/incident parquet
+- P1->P2 transfer is reported separately and is not counted as workload reduction
+
 ### S3-D Verified High-Confidence Set
 
 在 incident 层做 verification，而不是逐行 event verification。

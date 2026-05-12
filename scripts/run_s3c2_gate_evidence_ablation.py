@@ -225,12 +225,16 @@ def apply_variant(df: pd.DataFrame, variant: dict[str, Any]) -> pd.DataFrame:
     out["gate_flag_only"] = flag_only | pattern_b_verify
     out["adjusted_gating_label_s3c2"] = adjusted_gate
     out["adjusted_final_alert_label_s3c2"] = adjusted_final
+    out["simulated_gating_label_s3c2"] = adjusted_gate
+    out["simulated_final_alert_label_s3c2"] = adjusted_final
     out["adjusted_gate_reason_s3c2"] = reason
+    out["simulated_gate_reason_s3c2"] = reason
     out["final_label_changed_s3c2"] = original_final.ne(adjusted_final)
     priority = text_col(df, "calibrated_priority", "unavailable")
     adjusted_priority = priority.copy()
     adjusted_priority.loc[out["final_label_changed_s3c2"] & priority.isin(["P1_high", "P2_review"])] = "requires_incident_recalibration"
     out["adjusted_incident_priority_s3c2"] = adjusted_priority
+    out["simulated_incident_priority_s3c2"] = adjusted_priority
     out["high_to_needs_s3c2"] = original_final.eq("high_priority_alert") & adjusted_final.eq("needs_review")
     out["needs_to_low_s3c2"] = original_final.eq("needs_review") & adjusted_final.eq("low_priority_or_background")
     out["pattern_A_controlled_s3c2"] = pattern_a & (out["gate_evidence_flag"] | out["final_label_changed_s3c2"])
@@ -344,6 +348,262 @@ def p1_p2_impact(df: pd.DataFrame, result: pd.DataFrame, variant_name: str) -> d
     }
 
 
+def build_event_label_delta(df: pd.DataFrame, result: pd.DataFrame, variant_name: str) -> pd.DataFrame:
+    tmp = pd.DataFrame(
+        {
+            "variant": variant_name,
+            "original_final_alert_label": text_col(df, "original_final_alert_label_s3c2", "needs_review"),
+            "simulated_final_alert_label_s3c2": text_col(result, "simulated_final_alert_label_s3c2", "needs_review"),
+            "pattern_A_flag": bool_col(df, "pattern_A_flag"),
+            "pattern_B_flag": bool_col(df, "pattern_B_flag"),
+            "p1_p2_flag": text_col(df, "calibrated_priority").isin(["P1_high", "P2_review"]),
+            "gate_evidence_flag": result["gate_evidence_flag"],
+        },
+        index=df.index,
+    )
+    return (
+        tmp.groupby(["variant", "original_final_alert_label", "simulated_final_alert_label_s3c2"], dropna=False)
+        .agg(
+            rows=("variant", "size"),
+            pattern_A_rows=("pattern_A_flag", "sum"),
+            pattern_B_rows=("pattern_B_flag", "sum"),
+            p1_p2_rows=("p1_p2_flag", "sum"),
+            gate_evidence_rows=("gate_evidence_flag", "sum"),
+        )
+        .reset_index()
+    )
+
+
+def simulate_priority(original_priority: str, simulated_high: float, simulated_needs: float) -> str:
+    priority = str(original_priority or "unavailable")
+    high = float(simulated_high or 0.0)
+    needs = float(simulated_needs or 0.0)
+    if priority == "P1_high" and high <= 0:
+        return "P2_review" if needs > 0 else "P3_background"
+    if priority == "P2_review" and high <= 0 and needs <= 0:
+        return "P3_background"
+    return priority
+
+
+def build_incident_priority_outputs(
+    df: pd.DataFrame,
+    result: pd.DataFrame,
+    variant_name: str,
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    base_cols = {"incident_id", "calibrated_priority"}
+    if not base_cols.issubset(df.columns):
+        empty = pd.DataFrame(
+            [
+                {
+                    "variant": variant_name,
+                    "original_priority": "unavailable",
+                    "simulated_priority_s3c2": "unavailable",
+                    "ticket_count": 0,
+                    "member_count_before": 0,
+                    "member_count_after": 0,
+                    "high_count_before": 0,
+                    "high_count_after": 0,
+                    "needs_count_before": 0,
+                    "needs_count_after": 0,
+                    "affected_prefix_count_sum": 0,
+                    "affected_prefix_count_max": 0,
+                }
+            ]
+        )
+        return empty, {"variant": variant_name, "incident_priority_available": False}
+
+    incident_id = text_col(df, "incident_id")
+    member_mask = incident_id.ne("") & incident_id.ne("nan")
+    member = df.loc[member_mask].copy()
+    if member.empty:
+        empty = pd.DataFrame(
+            [
+                {
+                    "variant": variant_name,
+                    "original_priority": "unavailable",
+                    "simulated_priority_s3c2": "unavailable",
+                    "ticket_count": 0,
+                    "member_count_before": 0,
+                    "member_count_after": 0,
+                    "high_count_before": 0,
+                    "high_count_after": 0,
+                    "needs_count_before": 0,
+                    "needs_count_after": 0,
+                    "affected_prefix_count_sum": 0,
+                    "affected_prefix_count_max": 0,
+                }
+            ]
+        )
+        return empty, {"variant": variant_name, "incident_priority_available": False}
+
+    before = text_col(member, "original_final_alert_label_s3c2", "needs_review")
+    after = text_col(result.loc[member.index], "simulated_final_alert_label_s3c2", "needs_review")
+    tmp = pd.DataFrame(
+        {
+            "incident_id": text_col(member, "incident_id"),
+            "original_priority": text_col(member, "calibrated_priority", "unavailable"),
+            "member_count_ticket": num_col(member, "member_count"),
+            "high_count_ticket": num_col(member, "high_count"),
+            "needs_count_ticket": num_col(member, "needs_count"),
+            "affected_prefix_count": num_col(member, "affected_prefix_count"),
+            "before_high": before.eq("high_priority_alert").astype("int64"),
+            "before_needs": before.eq("needs_review").astype("int64"),
+            "after_high": after.eq("high_priority_alert").astype("int64"),
+            "after_needs": after.eq("needs_review").astype("int64"),
+            "after_low": after.eq("low_priority_or_background").astype("int64"),
+            "high_to_needs": (before.eq("high_priority_alert") & after.eq("needs_review")).astype("int64"),
+            "high_to_low": (before.eq("high_priority_alert") & after.eq("low_priority_or_background")).astype("int64"),
+            "needs_to_low": (before.eq("needs_review") & after.eq("low_priority_or_background")).astype("int64"),
+            "label_changed": before.ne(after).astype("int64"),
+        }
+    )
+    incident = (
+        tmp.groupby("incident_id", dropna=False)
+        .agg(
+            original_priority=("original_priority", "first"),
+            member_count_ticket=("member_count_ticket", "first"),
+            high_count_ticket=("high_count_ticket", "first"),
+            needs_count_ticket=("needs_count_ticket", "first"),
+            affected_prefix_count=("affected_prefix_count", "first"),
+            before_high=("before_high", "sum"),
+            before_needs=("before_needs", "sum"),
+            after_high=("after_high", "sum"),
+            after_needs=("after_needs", "sum"),
+            after_low=("after_low", "sum"),
+            high_to_needs=("high_to_needs", "sum"),
+            high_to_low=("high_to_low", "sum"),
+            needs_to_low=("needs_to_low", "sum"),
+            label_changed=("label_changed", "sum"),
+        )
+        .reset_index()
+    )
+    original_high = incident["high_count_ticket"].where(incident["high_count_ticket"] > 0, incident["before_high"])
+    original_needs = incident["needs_count_ticket"].where(incident["needs_count_ticket"] > 0, incident["before_needs"])
+    original_member = incident["member_count_ticket"].where(
+        incident["member_count_ticket"] > 0,
+        original_high + original_needs,
+    )
+    incident["original_high_count_s3c2"] = original_high
+    incident["original_needs_count_s3c2"] = original_needs
+    incident["original_member_count_s3c2"] = original_member
+    incident["simulated_high_count_s3c2"] = (original_high + incident["after_high"] - incident["before_high"]).clip(lower=0)
+    incident["simulated_needs_count_s3c2"] = (original_needs + incident["after_needs"] - incident["before_needs"]).clip(lower=0)
+    incident["simulated_member_count_s3c2"] = (
+        original_member - incident["high_to_low"] - incident["needs_to_low"]
+    ).clip(lower=0)
+    incident["simulated_priority_s3c2"] = [
+        simulate_priority(priority, high, needs)
+        for priority, high, needs in zip(
+            incident["original_priority"],
+            incident["simulated_high_count_s3c2"],
+            incident["simulated_needs_count_s3c2"],
+        )
+    ]
+    incident["variant"] = variant_name
+
+    delta = (
+        incident.groupby(["variant", "original_priority", "simulated_priority_s3c2"], dropna=False)
+        .agg(
+            ticket_count=("incident_id", "nunique"),
+            member_count_before=("original_member_count_s3c2", "sum"),
+            member_count_after=("simulated_member_count_s3c2", "sum"),
+            high_count_before=("original_high_count_s3c2", "sum"),
+            high_count_after=("simulated_high_count_s3c2", "sum"),
+            needs_count_before=("original_needs_count_s3c2", "sum"),
+            needs_count_after=("simulated_needs_count_s3c2", "sum"),
+            affected_prefix_count_sum=("affected_prefix_count", "sum"),
+            affected_prefix_count_max=("affected_prefix_count", "max"),
+            label_changed_member_rows=("label_changed", "sum"),
+        )
+        .reset_index()
+    )
+
+    before_p1 = incident["original_priority"].eq("P1_high")
+    before_p2 = incident["original_priority"].eq("P2_review")
+    before_p1p2 = before_p1 | before_p2
+    after_p1 = incident["simulated_priority_s3c2"].eq("P1_high")
+    after_p2 = incident["simulated_priority_s3c2"].eq("P2_review")
+    after_p1p2 = after_p1 | after_p2
+    p1_to_p2 = before_p1 & after_p2
+
+    burden = {
+        "variant": variant_name,
+        "incident_priority_available": True,
+        "p1_ticket_before": int(before_p1.sum()),
+        "p1_ticket_after": int(after_p1.sum()),
+        "p2_ticket_before": int(before_p2.sum()),
+        "p2_ticket_after": int(after_p2.sum()),
+        "p1_p2_ticket_before": int(before_p1p2.sum()),
+        "p1_p2_ticket_after": int(after_p1p2.sum()),
+        "p1_p2_ticket_delta": int(after_p1p2.sum() - before_p1p2.sum()),
+        "p1_to_p2_ticket_count": int(p1_to_p2.sum()),
+        "p1_p2_member_before": float(incident.loc[before_p1p2, "original_member_count_s3c2"].sum()),
+        "p1_p2_member_after": float(incident.loc[after_p1p2, "simulated_member_count_s3c2"].sum()),
+        "p1_p2_high_before": float(incident.loc[before_p1p2, "original_high_count_s3c2"].sum()),
+        "p1_p2_high_after": float(incident.loc[after_p1p2, "simulated_high_count_s3c2"].sum()),
+        "p1_p2_needs_before": float(incident.loc[before_p1p2, "original_needs_count_s3c2"].sum()),
+        "p1_p2_needs_after": float(incident.loc[after_p1p2, "simulated_needs_count_s3c2"].sum()),
+        "p1_to_p2_member_count": float(incident.loc[p1_to_p2, "original_member_count_s3c2"].sum()),
+    }
+    burden["p1_p2_member_delta"] = burden["p1_p2_member_after"] - burden["p1_p2_member_before"]
+    burden["p1_p2_high_delta"] = burden["p1_p2_high_after"] - burden["p1_p2_high_before"]
+    burden["p1_p2_needs_delta"] = burden["p1_p2_needs_after"] - burden["p1_p2_needs_before"]
+    return delta, burden
+
+
+def build_review_subtype_distribution(df: pd.DataFrame, result: pd.DataFrame, variant_name: str) -> pd.DataFrame:
+    after = text_col(result, "simulated_final_alert_label_s3c2", "needs_review")
+    before = text_col(df, "original_final_alert_label_s3c2", "needs_review")
+    review = after.eq("needs_review")
+    reason = text_col(df, "candidate_reasons") + "|" + text_col(df, "dominant_reason_signature")
+    subtype = pd.Series("unknown_review", index=df.index, dtype="object")
+    route_leak = text_col(df, "family").eq("route_leak_like") | reason.str.contains("route_leak", case=False, regex=False)
+    background_fanout = num_col(df, "affected_prefix_count") >= 100.0
+    low_visibility = bool_col(df, "pattern_A_flag") | bool_col(df, "single_collector_flag") | bool_col(df, "low_visibility_flag") | bool_col(df, "short_lived_flag")
+    pattern_b = bool_col(df, "pattern_B_flag")
+    high_to_needs = before.eq("high_priority_alert") & after.eq("needs_review")
+    subtype.loc[low_visibility] = "low_visibility_review"
+    subtype.loc[background_fanout] = "background_fanout_review"
+    subtype.loc[route_leak] = "route_leak_like_review"
+    subtype.loc[pattern_b] = "pattern_B_verification_review"
+    subtype.loc[high_to_needs] = "gate_evidence_missing_review"
+    tmp = pd.DataFrame(
+        {
+            "variant": variant_name,
+            "review_subtype": subtype[review],
+            "original_final_alert_label": before[review],
+            "pattern_A_flag": bool_col(df, "pattern_A_flag")[review],
+            "pattern_B_flag": bool_col(df, "pattern_B_flag")[review],
+            "p1_p2_flag": text_col(df, "calibrated_priority").isin(["P1_high", "P2_review"])[review],
+            "gate_evidence_flag": result["gate_evidence_flag"][review],
+        }
+    )
+    if tmp.empty:
+        return pd.DataFrame(
+            columns=[
+                "variant",
+                "review_subtype",
+                "original_final_alert_label",
+                "rows",
+                "pattern_A_rows",
+                "pattern_B_rows",
+                "p1_p2_rows",
+                "gate_evidence_rows",
+            ]
+        )
+    return (
+        tmp.groupby(["variant", "review_subtype", "original_final_alert_label"], dropna=False)
+        .agg(
+            rows=("variant", "size"),
+            pattern_A_rows=("pattern_A_flag", "sum"),
+            pattern_B_rows=("pattern_B_flag", "sum"),
+            p1_p2_rows=("p1_p2_flag", "sum"),
+            gate_evidence_rows=("gate_evidence_flag", "sum"),
+        )
+        .reset_index()
+    )
+
+
 def known_variant_rows(
     df: pd.DataFrame,
     result: pd.DataFrame,
@@ -392,6 +652,10 @@ def choose_recommended_variant(comparison: pd.DataFrame, s3c1b_info: dict[str, A
     candidates = comparison[(comparison["allow_recommend"]) & (comparison["pattern_B_label_changed_rows"] == 0)].copy()
     if "known_event_available" in candidates.columns and candidates["known_event_available"].fillna(False).any():
         candidates = candidates[candidates["known_event_regression_count"].fillna(0) <= 0]
+    if "p1_p2_ticket_delta" in candidates.columns:
+        candidates = candidates[pd.to_numeric(candidates["p1_p2_ticket_delta"], errors="coerce").fillna(0) <= 0]
+    if "p1_p2_member_delta" in candidates.columns:
+        candidates = candidates[pd.to_numeric(candidates["p1_p2_member_delta"], errors="coerce").fillna(0) <= 0]
     if candidates.empty:
         row = comparison[comparison["variant"] == "variant_plausibility_gate_soft"].iloc[0].to_dict()
         return {
@@ -417,7 +681,8 @@ def choose_recommended_variant(comparison: pd.DataFrame, s3c1b_info: dict[str, A
         row = subset.iloc[0]
         if int(row["pattern_A_gate_evidence_rows"]) + int(row["pattern_A_label_changed_rows"]) <= 0:
             continue
-        if float(row["high_change_rate"]) <= 0.35:
+        needs_growth_rate = pct(max(float(row.get("needs_delta", 0.0)), 0.0), float(row.get("needs_before", 0.0)))
+        if float(row["high_change_rate"]) <= 0.35 and needs_growth_rate <= 0.35:
             return {
                 "recommended_variant": name,
                 "status": "scaffold_recommendation",
@@ -462,8 +727,11 @@ def build_top_adjusted_cases(df: pd.DataFrame, result: pd.DataFrame, variant_nam
         return out
     out["s3c2_gate_variant"] = variant_name
     out["adjusted_final_alert_label_s3c2"] = result.loc[out.index, "adjusted_final_alert_label_s3c2"]
+    out["simulated_final_alert_label_s3c2"] = result.loc[out.index, "simulated_final_alert_label_s3c2"]
     out["adjusted_incident_priority_s3c2"] = result.loc[out.index, "adjusted_incident_priority_s3c2"]
+    out["simulated_incident_priority_s3c2"] = result.loc[out.index, "simulated_incident_priority_s3c2"]
     out["adjusted_gate_reason_s3c2"] = result.loc[out.index, "adjusted_gate_reason_s3c2"]
+    out["simulated_gate_reason_s3c2"] = result.loc[out.index, "simulated_gate_reason_s3c2"]
     out["gate_extra_evidence_required"] = result.loc[out.index, "gate_extra_evidence_required"]
     out["gate_extra_evidence_met"] = result.loc[out.index, "gate_extra_evidence_met"]
     return out
@@ -488,50 +756,52 @@ def write_report(path: Path, summary: dict[str, Any], comparison: pd.DataFrame, 
         "## Summary",
         "",
         f"- loaded_rows: `{summary['loaded_rows']}`",
-        f"- S3-C1b full available: `{summary['s3c1b_info'].get('available') and summary['s3c1b_info'].get('full_run')}`",
+        f"- S3-C1b full available for this run: `{summary['s3c1b_info'].get('available') and summary['s3c1b_info'].get('full_run') and summary['s3c1b_info'].get('run_id_matches_current')}`",
         f"- recommended_variant: `{rec_name}`",
         f"- recommended gate_evidence_rows: `{int(rec['gate_evidence_rows'])}`",
         f"- recommended final_label_changed_rows: `{int(rec['final_label_changed_rows'])}`",
         f"- recommended pattern_A_gate_evidence_rows: `{int(rec['pattern_A_gate_evidence_rows'])}`",
         f"- recommended pattern_B_label_changed_rows: `{int(rec['pattern_B_label_changed_rows'])}`",
+        f"- recommended P1/P2 ticket delta: `{rec.get('p1_p2_ticket_delta')}`",
+        f"- recommended P1->P2 transfer tickets: `{rec.get('p1_to_p2_ticket_count')}`",
         "",
         "## Required Answers",
         "",
-        "### 1. Did S3-C2 use plausibility as gate evidence instead of direct score replacement?",
+        "### 1. Is S3-C2 only high -> needs transfer?",
         "",
-        "Yes. The script recomputes/loads path plausibility, then simulates gate evidence fields and adjusted labels. It does not alter `risk_score` or `risk_bucket`.",
+        f"Recommended `high_delta={int(rec['high_delta'])}` and `needs_delta={int(rec['needs_delta'])}`. The event transition table must be used to separate high->needs from any other movement. All fields are simulated and do not overwrite mainline outputs.",
         "",
-        "### 2. Which variant controls pattern_A most stably?",
+        "### 2. Does needs_review inflate?",
         "",
-        f"`{rec_name}` is the scaffold recommendation. {recommendation['reason']}",
+        f"Recommended needs before/after is `{int(rec['needs_before'])}` -> `{int(rec['adjusted_needs_rows'])}`. A variant should not be recommended if it only hides high by expanding review without reducing incident burden.",
         "",
-        "### 3. Is pattern_B protected?",
+        "### 3. Is P1 only transferred to P2?",
+        "",
+        f"Recommended `p1_to_p2_ticket_count={rec.get('p1_to_p2_ticket_count')}`. P1->P2 is reported separately and is not counted as true workload reduction.",
+        "",
+        "### 4. Does total P1+P2 burden go down?",
+        "",
+        f"Recommended P1/P2 tickets before/after are `{rec.get('p1_p2_ticket_before')}` -> `{rec.get('p1_p2_ticket_after')}` and members before/after are `{rec.get('p1_p2_member_before')}` -> `{rec.get('p1_p2_member_after')}`.",
+        "",
+        "### 5. Which pattern_A rows are controlled?",
+        "",
+        f"`{rec_name}` has `pattern_A_gate_evidence_rows={int(rec['pattern_A_gate_evidence_rows'])}` and `pattern_A_label_changed_rows={int(rec['pattern_A_label_changed_rows'])}`. The detailed pattern table separates low/medium/high plausibility.",
+        "",
+        "### 6. Is pattern_B protected?",
         "",
         f"Yes for the recommendation: `pattern_B_label_changed_rows={int(rec['pattern_B_label_changed_rows'])}`. Pattern_B is routed to verification-only handling where configured.",
         "",
-        "### 4. Are high/needs/low changes milder than S3-C1 default?",
+        "### 7. Known-event regression risk",
         "",
-        f"The default S3-C2 baseline has `high={int(default['adjusted_high_rows'])}`, while the recommendation has `high_delta={int(rec['high_delta'])}`. This is a gate simulation, not a score migration.",
+        f"known_event_available=`{bool(rec.get('known_event_available'))}`; matched rows=`{rec.get('known_event_matched_rows')}`; regression count=`{rec.get('known_event_regression_count')}`. If matched rows are zero, this does not prove safety.",
         "",
-        "### 5. Is P1/P2 impact controllable?",
+        "### 8. Is the recommended variant suitable for S3-D verification?",
         "",
-        f"P1/P2 joined rows are `{int(rec['P1_P2_joined_rows'])}` and affected rows are `{int(rec['P1_P2_affected_rows'])}`. If incident join is unavailable, this remains zero and is reported as a limitation.",
-        "",
-        "### 6. Known-event regression",
-        "",
-        f"known_event_available=`{bool(rec.get('known_event_available'))}`; matched rows=`{rec.get('known_event_matched_rows')}`; regression count=`{rec.get('known_event_regression_count')}`. Zero matches should not be overinterpreted.",
-        "",
-        "### 7. Is this only scaffold smoke?",
-        "",
-        f"Yes when `full_run={summary['full_run']}` and `s3c1b_full_available={summary['s3c1b_info'].get('available') and summary['s3c1b_info'].get('full_run')}`. The current local path is intended as S1A smoke.",
-        "",
-        "### 8. How to connect S3-C1b full later?",
-        "",
-        "After S3-C1b fixed-run full returns, rerun S3-C2 with `--run-id s2a_expanded_v01_pilot_6h_april16 --s3c1b-output-dir outputs/s3c1b_penalty_calibration_v01`. If S3-C1b recommends gate-only, keep S3-C2 score-free.",
+        f"`{rec_name}` is suitable as a verification queue input if fixed S2 full does not inflate P1+P2 burden and keeps pattern_B protected.",
         "",
         "### 9. Next step",
         "",
-        "Wait for S3-C1b full, then rerun S3-C2 on fixed S2. If full remains queued, a light S3-D verification schema can be designed without claiming detection results.",
+        "If fixed S2 S3-C2 is stable, enter S3-D verification schema or S3-C3 route-leak triplet legality. If it mostly transfers labels without reducing burden, continue S3-C2 calibration.",
     ]
     if summary.get("warnings"):
         lines.extend(["", "## Warnings", ""])
@@ -546,11 +816,20 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     df = add_gate_evidence_fields(df)
     warnings = list(meta["warnings"])
     s3c1b_info = read_s3c1b_recommendation(Path(args.s3c1b_output_dir), warnings)
+    s3c1b_info["run_id_matches_current"] = bool(s3c1b_info.get("run_id") == args.run_id)
+    if s3c1b_info.get("available") and not s3c1b_info["run_id_matches_current"]:
+        warnings.append(
+            f"S3-C1b output run_id {s3c1b_info.get('run_id')} does not match current run_id {args.run_id}; using it only as a scaffold hint."
+        )
     known_base, known_info = match_known_events(df, Path(args.known_event_file), warnings)
 
     comparison_rows = []
     pattern_rows = []
     p1p2_rows = []
+    event_delta_frames = []
+    incident_delta_frames = []
+    burden_rows = []
+    review_subtype_frames = []
     known_frames = []
     variant_results: dict[str, pd.DataFrame] = {}
 
@@ -558,17 +837,39 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         result = apply_variant(df, variant)
         variant_results[variant["variant"]] = result
         known_rows, known_metrics = known_variant_rows(df, result, variant["variant"], known_base, known_info)
+        incident_delta, burden = build_incident_priority_outputs(df, result, variant["variant"])
         known_frames.append(known_rows)
-        comparison_rows.append(variant_metrics(df, result, variant, known_metrics))
+        metrics = variant_metrics(df, result, variant, known_metrics)
+        metrics.update(
+            {
+                "p1_p2_ticket_before": burden.get("p1_p2_ticket_before"),
+                "p1_p2_ticket_after": burden.get("p1_p2_ticket_after"),
+                "p1_p2_ticket_delta": burden.get("p1_p2_ticket_delta"),
+                "p1_p2_member_before": burden.get("p1_p2_member_before"),
+                "p1_p2_member_after": burden.get("p1_p2_member_after"),
+                "p1_p2_member_delta": burden.get("p1_p2_member_delta"),
+                "p1_to_p2_ticket_count": burden.get("p1_to_p2_ticket_count"),
+                "p1_to_p2_member_count": burden.get("p1_to_p2_member_count"),
+            }
+        )
+        comparison_rows.append(metrics)
         pattern_rows.append(pattern_impact(df, result, variant["variant"], "pattern_A_flag", "pattern_A_single_collector_short_unseen_path"))
         pattern_rows.append(pattern_impact(df, result, variant["variant"], "pattern_B_flag", "pattern_B_abnormal_length_single_collector_unseen_path"))
         p1p2_rows.append(p1_p2_impact(df, result, variant["variant"]))
+        event_delta_frames.append(build_event_label_delta(df, result, variant["variant"]))
+        incident_delta_frames.append(incident_delta)
+        burden_rows.append(burden)
+        review_subtype_frames.append(build_review_subtype_distribution(df, result, variant["variant"]))
 
     comparison = pd.DataFrame(comparison_rows)
     pattern_df = pd.DataFrame(pattern_rows)
     pattern_a = pattern_df[pattern_df["pattern_name"].str.startswith("pattern_A")].copy()
     pattern_b = pattern_df[pattern_df["pattern_name"].str.startswith("pattern_B")].copy()
     p1p2_df = pd.DataFrame(p1p2_rows)
+    event_label_delta = pd.concat(event_delta_frames, ignore_index=True) if event_delta_frames else pd.DataFrame()
+    incident_priority_delta = pd.concat(incident_delta_frames, ignore_index=True) if incident_delta_frames else pd.DataFrame()
+    p1_p2_burden = pd.DataFrame(burden_rows)
+    review_subtype_distribution = pd.concat(review_subtype_frames, ignore_index=True) if review_subtype_frames else pd.DataFrame()
     known_check = pd.concat(known_frames, ignore_index=True) if known_frames else pd.DataFrame()
     recommendation = choose_recommended_variant(comparison, s3c1b_info)
     recommended_result = variant_results[recommendation["recommended_variant"]]
@@ -591,9 +892,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     }
 
     comparison.to_csv(output_dir / "s3c2_variant_comparison.csv", index=False)
+    event_label_delta.to_csv(output_dir / "s3c2_event_label_delta.csv", index=False)
+    incident_priority_delta.to_csv(output_dir / "s3c2_incident_priority_delta.csv", index=False)
+    p1_p2_burden.to_csv(output_dir / "s3c2_p1_p2_total_burden.csv", index=False)
     pattern_a.to_csv(output_dir / "s3c2_pattern_A_impact.csv", index=False)
     pattern_b.to_csv(output_dir / "s3c2_pattern_B_protection.csv", index=False)
     p1p2_df.to_csv(output_dir / "s3c2_p1_p2_impact.csv", index=False)
+    review_subtype_distribution.to_csv(output_dir / "s3c2_review_subtype_distribution.csv", index=False)
     known_check.to_csv(output_dir / "s3c2_known_event_regression_check.csv", index=False)
     top_cases.to_csv(output_dir / "s3c2_top_adjusted_cases.csv", index=False)
     (output_dir / "s3c2_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2, default=json_default), encoding="utf-8")

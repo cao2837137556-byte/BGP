@@ -1,6 +1,6 @@
 # S3-C2 Gate Evidence Ablation
 
-Last updated: 2026-05-10
+Last updated: 2026-05-12
 
 ## 1. Scope
 
@@ -16,6 +16,9 @@ Boundary:
 - Do not treat P1/P2 as confirmed anomalies.
 - Do not treat P3/low as confirmed normal.
 - Do not treat S3-C1b 60min smoke as a fixed S2 full conclusion.
+- Treat all changed labels/priorities as simulated S3-C2 fields.
+- P1->P2 transfer is not workload reduction; always report P1+P2 total burden.
+- If known-event matched rows are zero, do not claim there is no regression risk.
 
 The current stage is scaffold + local smoke only. It should not be reported as the formal fixed S2 6h S3-C2 experiment until S3-C1b full returns and S3-C2 is rerun on `s2a_expanded_v01_pilot_6h_april16`.
 
@@ -47,8 +50,12 @@ Formal fixed-run output directory, not produced yet:
 Outputs:
 - `s3c2_summary.json`
 - `s3c2_variant_comparison.csv`
+- `s3c2_event_label_delta.csv`
+- `s3c2_incident_priority_delta.csv`
+- `s3c2_p1_p2_total_burden.csv`
 - `s3c2_pattern_A_impact.csv`
 - `s3c2_pattern_B_protection.csv`
+- `s3c2_review_subtype_distribution.csv`
 - `s3c2_p1_p2_impact.csv`
 - `s3c2_known_event_regression_check.csv`
 - `s3c2_top_adjusted_cases.csv`
@@ -135,6 +142,27 @@ python scripts\run_s3c2_gate_evidence_ablation.py ^
 ```
 
 Do not rerun S3-C1b. The next S2-side action is S3-C2 fixed-run gate evidence ablation.
+
+HPC entry:
+- `scripts/hpc/s3c2_gate_evidence_ablation.slurm`
+
+Smoke on fixed S2:
+
+```bash
+MODE=smoke \
+OUTPUT_DIR=outputs/s3c2_gate_evidence_ablation_smoke_s2 \
+BUNDLE_NAME=s3c2_gate_evidence_ablation_smoke_bundle \
+sbatch -c 4 --mem=64G -t 01:00:00 scripts/hpc/s3c2_gate_evidence_ablation.slurm
+```
+
+Full on fixed S2:
+
+```bash
+MODE=full \
+OUTPUT_DIR=outputs/s3c2_gate_evidence_ablation_v01 \
+BUNDLE_NAME=s3c2_gate_evidence_ablation_bundle \
+sbatch -c 16 --mem=256G -t 08:00:00 scripts/hpc/s3c2_gate_evidence_ablation.slurm
+```
 
 ## 7. Current Judgment
 
