@@ -1,6 +1,6 @@
 # S3-C2 Gate Evidence Ablation
 
-Last updated: 2026-05-12
+Last updated: 2026-05-13
 
 ## 1. Scope
 
@@ -20,7 +20,7 @@ Boundary:
 - P1->P2 transfer is not workload reduction; always report P1+P2 total burden.
 - If known-event matched rows are zero, do not claim there is no regression risk.
 
-The current stage is scaffold + local smoke only. It should not be reported as the formal fixed S2 6h S3-C2 experiment until S3-C1b full returns and S3-C2 is rerun on `s2a_expanded_v01_pilot_6h_april16`.
+Fixed S2 full has completed on `s2a_expanded_v01_pilot_6h_april16`. It should be reported as an evidence-routing result, not as workload reduction: the recommended variant adds gate evidence but does not change final labels or incident priorities.
 
 ## 2. Motivation
 
@@ -44,7 +44,7 @@ New script:
 Smoke output directory:
 - `outputs/s3c2_gate_evidence_ablation_smoke_s1a/`
 
-Formal fixed-run output directory, not produced yet:
+Formal fixed-run output directory:
 - `outputs/s3c2_gate_evidence_ablation_v01/`
 
 Outputs:
@@ -118,55 +118,72 @@ Interpretation:
 - Smoke does not prove S3-C2 fixed-run effectiveness.
 - In this smoke, S3-C2 mainly opens a gate evidence channel rather than moving labels.
 
-## 6. Fixed S2 Rerun Plan
+## 6. Fixed S2 Full Results
 
-S3-C1b full has completed and has been pulled back:
+S3-C1b full completed and was used as input:
 
 ```text
 outputs/s3c1b_penalty_calibration_v01/
 ```
 
-It recommends `strategy_medium_gate_only` on fixed S2 full:
+S3-C1b recommends `strategy_medium_gate_only` on fixed S2 full:
 - recommended bucket_changed_rows `5183`
 - recommended pattern_A_gate_evidence_rows `6870696`
 - recommended pattern_B adjusted/bucket changed rows `0`
 
-Then rerun S3-C2 on fixed S2:
+S3-C2 fixed S2 full output:
+- `outputs/s3c2_gate_evidence_ablation_v01/`
 
-```powershell
-python scripts\run_s3c2_gate_evidence_ablation.py ^
-  --run-id s2a_expanded_v01_pilot_6h_april16 ^
-  --output-dir outputs\s3c2_gate_evidence_ablation_v01 ^
-  --s3c1b-output-dir outputs\s3c1b_penalty_calibration_v01 ^
-  --full-run
-```
+Run summary:
+- `run_id=s2a_expanded_v01_pilot_6h_april16`
+- `input_rows=10236431`
+- `loaded_rows=10236431`
+- `status=completed`
+- `warnings=[]`
+- `recommended_variant=variant_medium_gate_only`
+- S3-C1b full recommendation was available and matched the current run.
 
-Do not rerun S3-C1b. The next S2-side action is S3-C2 fixed-run gate evidence ablation.
+Recommended `variant_medium_gate_only`:
+- final labels unchanged: high `639548 -> 639548`, needs `4839755 -> 4839755`, low `4757128 -> 4757128`
+- `final_label_changed_rows=0`
+- `gate_evidence_rows=6885990`
+- `extra_evidence_required_rows=15294`
+- `extra_evidence_missing_rows=2077`
+- `pattern_A_rows=7440623`
+- `pattern_A_gate_evidence_rows=6885990`
+- `pattern_A_control_rate=0.9254587955874125`
+- `pattern_A_label_changed_rows=0`
+- `pattern_B_rows=659862`
+- `pattern_B_gate_evidence_rows=0`
+- `pattern_B_label_changed_rows=0`
+- P1/P2 joined rows `4426436`
+- P1/P2 affected rows `3510753`
+- touched P1/P2 incidents `32469` (`20242` P1, `12227` P2)
+- P1/P2 ticket burden unchanged: `55083 -> 55083`
+- P1/P2 member burden unchanged: `4426436.0 -> 4426436.0`
+- P1->P2 transfer tickets `0`
 
-HPC entry:
-- `scripts/hpc/s3c2_gate_evidence_ablation.slurm`
+Pattern detail:
+- pattern_A baseline labels: high `553974`, needs `4326074`, low `2560575`
+- pattern_A plausibility: low `19504`, medium `7420471`, high `648`
+- pattern_B baseline labels: high `598021`, needs `61841`, low `0`
+- pattern_B plausibility: low `4789`, medium `655073`, high `0`
 
-Smoke on fixed S2:
+Review subtype evidence under the recommended variant:
+- `background_fanout_review`: `1360331` needs rows, `1130010` gate evidence rows
+- `low_visibility_review`: `3410106` needs rows, `3196041` gate evidence rows
+- `pattern_B_verification_review`: `61841` needs rows, `0` gate evidence rows in the recommended variant
+- `route_leak_like_review`: `3952` needs rows, `0` gate evidence rows
 
-```bash
-MODE=smoke \
-OUTPUT_DIR=outputs/s3c2_gate_evidence_ablation_smoke_s2 \
-BUNDLE_NAME=s3c2_gate_evidence_ablation_smoke_bundle \
-sbatch -c 4 --mem=64G -t 01:00:00 scripts/hpc/s3c2_gate_evidence_ablation.slurm
-```
-
-Full on fixed S2:
-
-```bash
-MODE=full \
-OUTPUT_DIR=outputs/s3c2_gate_evidence_ablation_v01 \
-BUNDLE_NAME=s3c2_gate_evidence_ablation_bundle \
-sbatch -c 16 --mem=256G -t 08:00:00 scripts/hpc/s3c2_gate_evidence_ablation.slurm
-```
+Known-event regression:
+- inventory readable: `data/known_events/known_event_candidates_v05.json`
+- known events: `7`
+- matched events/rows: `0 / 0`
+- This does not prove there is no regression risk.
 
 ## 7. Current Judgment
 
-S3-C2 scaffold is ready and smoke-tested. It keeps the layered story intact:
+S3-C2 fixed S2 full is completed and keeps the layered story intact:
 
 ```text
 candidate stays broad
@@ -175,7 +192,15 @@ gate consumes plausibility as evidence
 incident priority / verification decide analyst workload
 ```
 
+Judgment:
+- S3-C2 is not just high -> needs transfer: there is no final label movement.
+- It does not inflate `needs_review`.
+- It does not move P1 into P2 and does not reduce P1+P2 burden by itself.
+- It successfully marks the dominant pattern_A as gate evidence while protecting pattern_B from plausibility-only downgrade.
+- The result should feed S3-D verification queue construction or S3-C3 route-leak triplet legality, not be treated as a standalone priority reduction.
+
 Next action:
-- rerun S3-C2 fixed S2 using `outputs/s3c1b_penalty_calibration_v01/`,
-- keep S3-C2 as offline gate evidence ablation,
-- do not overwrite score/gate/final/incidents.
+- keep S3-C2 as offline gate evidence output,
+- do not overwrite score/gate/final/incidents,
+- use `gate_evidence_rows` and pattern_A/pattern_B flags to design incident-level verification in S3-D,
+- consider S3-C3 route-leak triplet legality as a separate route-leak-specific line.

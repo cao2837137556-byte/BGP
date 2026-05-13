@@ -446,7 +446,6 @@
     - `s3c2_review_subtype_distribution.csv`
     - 所有 label/priority 变化均按 simulated 字段输出。
     - P1->P2 transfer 单独统计，不算 workload reduction。
-  - 当前只做 scaffold + S1A smoke；不得把它当 fixed S2 正式结论。
   - 本地 `s1a_expanded_v02_pilot_60m_april16` 20 万行 smoke 通过：
     - loaded_rows `200000`
     - recommended_variant `variant_medium_gate_only`
@@ -455,7 +454,24 @@
     - pattern_A_gate_evidence_rows `122956`
     - pattern_B_label_changed_rows `0`
     - S3-C1b full output 缺失与 S1A incident membership 缺失均只 warning。
-  - 当前判断：S3-C2 fixed S2 smoke/full 入口 ready；S3-C1b full 已回来，下一步在超算上跑 S3-C2 fixed S2。当前本地缺完整 S2 score/final parquet，优先在超算执行或先拉回大 parquet。
+  - fixed S2 full 已完成并拉回：
+    - input/loaded rows `10236431 / 10236431`
+    - status `completed`，warnings `0`
+    - recommended_variant `variant_medium_gate_only`
+    - final labels 不变：high `639548 -> 639548`，needs `4839755 -> 4839755`，low `4757128 -> 4757128`
+    - final_label_changed_rows `0`
+    - gate_evidence_rows `6885990`
+    - pattern_A_rows `7440623`
+    - pattern_A_gate_evidence_rows `6885990`
+    - pattern_A_control_rate `0.9254587955874125`
+    - pattern_B_rows `659862`
+    - pattern_B_label_changed_rows `0`
+    - recommended variant 下 pattern_B_gate_evidence_rows `0`
+    - P1/P2 tickets `55083 -> 55083`，members `4426436 -> 4426436`
+    - P1->P2 transfer tickets `0`
+    - P1/P2 affected rows `3510753`，touched incidents `32469`
+    - known-event inventory 可读但 matched rows `0`，不能据此声称无 regression 风险。
+  - 当前判断：S3-C2 fixed S2 证明 gate evidence 通道稳定，可大规模标记 pattern_A 并保护 pattern_B；但它不改变 final/P1/P2，因此不能作为 workload reduction 结果。下一步应进入 S3-D incident-level verification queue/schema，或并行做 S3-C3 route-leak triplet legality。
 
 ## 8. 下一步默认动作
 
@@ -471,12 +487,13 @@
 8. S3-A2 已完成；不要重复运行，除非调整 calibration thresholds/rules。
 9. S3-B 已完成；不要重复做泛化噪声审计，除非 S3-C 后检测逻辑发生变化。
 10. S3-C1b fixed S2 full 已完成；不要重复提交 S3-C1b。
-11. S3-C2 scaffold 已完成本地 smoke，fixed S2 Slurm 入口已 ready；下一步接入 `outputs/s3c1b_penalty_calibration_v01/` 推荐策略，在超算 fixed S2 上跑 S3-C2 gate evidence ablation。
-12. S3-C3 route-leak triplet legality 应作为 route-leak-like 专项线，不用于解决 forged-origin-like 主体噪声。
-13. S3-D 再做 incident-level verification，形成 high-confidence set，反向校准 score/gate/priority。
-14. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
-15. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
-16. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
+11. S3-C2 fixed S2 full 已完成；不要把它解读为 P1/P2 workload reduction，它是 gate evidence / verification input。
+12. 下一步默认进入 S3-D incident-level verification queue/schema，使用 S3-C2 gate evidence、pattern_A/pattern_B、review subtype 做选样与解释。
+13. S3-C3 route-leak triplet legality 可并行作为 route-leak-like 专项线，不用于解决 forged-origin-like 主体噪声。
+14. S3-D 形成 high-confidence set 后，再反向校准 score/gate/priority。
+15. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
+16. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
+17. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
 ## 9. 使用规则
 
