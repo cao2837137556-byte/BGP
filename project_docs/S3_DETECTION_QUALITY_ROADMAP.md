@@ -207,15 +207,51 @@ Fixed S2 full：
 | NO_EXPORT / communities | augment / verification |
 | learning-based scoring | later, after verified set |
 
-### S3-D Verified High-Confidence Set
+### S3-D Incident-Level Verification Queue
 
-在 incident 层做 verification，而不是逐行 event verification。
+已完成 v01 queue/schema。S3-D 在 incident 层做 verification queue 准备，而不是逐行 event verification，也不是 external verification 完成。
 
-目标：
+新增：
+
+- `scripts/run_s3d_verification_queue_schema.py`
+- `project_docs/S3D_VERIFICATION_QUEUE_SCHEMA.md`
+- `project_docs/REALTIME_UPGRADE_ROADMAP.md`
+
+固定 run：
+
+```text
+s2a_expanded_v01_pilot_6h_april16
+```
+
+结果：
+- total incidents `217165`
+- calibrated P1/P2/P3 `41885 / 13198 / 162082`
+- `high_confidence_candidate=1216`
+- `gate_evidence_weak_case=7192`
+- `patternB_path_abnormal_verification=49852`
+- `background_like_review=1190`
+- `route_leak_like_review=364`
+- `low_priority_background=157351`
+- P1/P2 in `gate_evidence_weak_case`：`7192`
+- P1/P2 in `high_confidence_candidate`：`1216`
+- pattern_A touched incidents：`174046`
+- pattern_B verification incidents：`49852`
+
+证据口径：
+- 本地缺完整 S2 scored/gated/final/events/candidates parquet。
+- S3-D 使用 `incident_membership.reason_signature` 计算 incident-member pattern evidence。
+- `weak_label_candidate` 仅为未来学习层候选字段，不是真实标签。
+
+当前目标：
 
 - 构造 high-confidence suspicious incident set
 - 明确哪些 high/P1 是强信号，哪些只是稳定背景
 - 用 verified set 反向校准 score/gate/priority
+
+下一步：
+- S3-D2 external evidence attachment
+- S3-C3 route-leak triplet legality
+- S4 learning-ready high-confidence set after verification
 
 ## 5. Non-Goals
 
