@@ -142,8 +142,21 @@ The main payoff is triage structure:
 ## 7. Next Steps
 
 Recommended next actions:
-- S3-C3 route-leak triplet legality for `route_leak_like_review` and selected `patternB_path_abnormal_verification`.
 - S3-D2 external evidence attachment for top `high_confidence_candidate` and representative `gate_evidence_weak_case`.
+- S3-C3 route-leak triplet legality for `route_leak_like_review` and selected `patternB_path_abnormal_verification`.
 - S4 learning-ready high-confidence set only after external verification exists.
 
 Do not use S3-D queue labels as training truth before S3-D2/S4 verification.
+
+## 8. S3-D2 Update
+
+S3-D2 has completed first-pass evidence attachment:
+- output: `outputs/s3d2_external_evidence_attachment_v01/`
+- total incidents: `217165`
+- RPKI status: `unavailable=217165` because no historical 2024 cache was supplied
+- AS relationship evidence: `weak_stale_snapshot=217165` because the available CAIDA snapshot is `20170701`
+- known-event time-aligned matches: `0`
+- known-event out-of-window overlaps: `5167`
+- evidence buckets: weak `201329`, medium `15836`, strong `0`
+
+This confirms the S3-D queue schema can accept evidence fields, but it does not complete external validation.

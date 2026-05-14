@@ -253,6 +253,45 @@ s2a_expanded_v01_pilot_6h_april16
 - S3-C3 route-leak triplet legality
 - S4 learning-ready high-confidence set after verification
 
+### S3-D2 External Evidence Attachment
+
+已完成 v01 evidence attachment。S3-D2 给 S3-D verification queue 挂载第一批证据字段，但不完成真假判定。
+
+新增：
+
+- `scripts/run_s3d2_external_evidence_attachment.py`
+- `project_docs/S3D2_EXTERNAL_EVIDENCE_ATTACHMENT.md`
+
+固定 run：
+
+```text
+s2a_expanded_v01_pilot_6h_april16
+```
+
+结果：
+- total incidents `217165`
+- evidence buckets：weak `201329`，medium `15836`，strong `0`
+- RPKI status：`unavailable=217165`
+- path relation evidence：`weak_stale_snapshot=217165`
+- time-aligned known-event matches：`0`
+- out-of-window known-event overlaps：`5167`
+- high_confidence_candidate with strong evidence：`0`
+- gate_weak_case with strong evidence：`0`
+- gate_weak_case evidence insufficient：`7182`
+- patternB with path evidence entry：`49852`
+- route_leak relation pending：`364`
+- background_like evidence supported：`1189`
+
+证据口径：
+- 未提供 `2024-04-16` historical RPKI cache，因此 RPKI 不进入强证据。
+- `20170701.as-rel2.txt` 对 2024 run 是 stale snapshot，只能作为 diagnostic path relation evidence。
+- known-event inventory 与当前 2024 fixed run 没有 time-aligned match；out-of-window overlap 不能解释为命中。
+
+当前判断：
+- S3-D2 成功打通 evidence attachment schema。
+- 当前主要结论是外部证据缺口明确，不是 external verification 完成。
+- 下一步应补 2024-aligned RPKI/IRR/AS relationship cache 后复跑，或做 S3-C3 route-leak triplet legality。
+
 ## 5. Non-Goals
 
 - 不直接进入 24h event-level 主评估。

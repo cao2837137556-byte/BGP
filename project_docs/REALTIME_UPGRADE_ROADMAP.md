@@ -111,3 +111,25 @@ Realtime upgrade should reuse, not replace:
 - verification queue schema
 
 The intended migration is from batch pipeline to streaming/sliding-window pipeline, while preserving the same layered decision story.
+
+## 8. Evidence Cache Extension
+
+S3-D2 remains batch mode. It attaches RPKI, AS relationship, history/collector, and known-event evidence to the offline incident queue.
+
+Future realtime mode should not rewrite this evidence logic. It should convert the evidence sources into incremental caches:
+- RPKI / ROA cache keyed by prefix-origin and valid time
+- AS relationship / triplet cache keyed by AS pair/triplet and snapshot time
+- history support cache keyed by prefix-origin-path
+- collector visibility cache keyed by incident/window
+- verification queue cache keyed by rolling incident id
+
+Near-real-time evidence attachment would then become:
+
+```text
+streaming updates
+  -> sliding incident queue
+  -> incremental evidence cache lookup
+  -> refreshed verification queue
+```
+
+Current stage still does not add live collectors, dashboards, or online alerting.
