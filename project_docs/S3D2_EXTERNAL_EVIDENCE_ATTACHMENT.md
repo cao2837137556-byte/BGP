@@ -168,7 +168,31 @@ S3-D2 prepares the schema and provenance for later verification. It does not com
 ## 7. Next Steps
 
 Recommended next actions:
+- Use S3-D2B to align evidence sources and generate concrete prefix-origin/path lookup targets.
 - Add time-aligned 2024 RPKI/ROA or IRR cache and rerun S3-D2.
 - Add a 2024-near CAIDA AS relationship snapshot and rerun path relation evidence.
 - Run S3-C3 route-leak triplet legality for `route_leak_like_review` and selected `patternB_path_abnormal_verification`.
 - Run S3-D3 only after stronger external evidence is available.
+
+## 8. S3-D2B Evidence Alignment Follow-Up
+
+S3-D2B has now been added as the alignment layer between S3-D2 and any future stronger evidence rerun.
+
+New assets:
+- `scripts/run_s3d2b_evidence_alignment.py`
+- `project_docs/S3D2B_EVIDENCE_ALIGNMENT.md`
+- `outputs/s3d2b_evidence_alignment_v01/`
+
+Full-run alignment result:
+- incidents inspected: `217165`
+- valid prefix-origin lookup targets: `40665`
+- path relation targets: `168889`
+- RPKI aligned cache available: `false`
+- AS relationship aligned snapshot available: `false`
+- known-event time-aligned overlaps: `0`
+- known-event out-of-window asset overlaps: `6`
+- S3-D2 aligned rerun ready: `false`
+
+The concrete rerun requirements are recorded in:
+- `outputs/s3d2b_evidence_alignment_v01/s3d2b_required_cache_schema.json`
+- `outputs/s3d2b_evidence_alignment_v01/s3d2b_rerun_manifest.json`

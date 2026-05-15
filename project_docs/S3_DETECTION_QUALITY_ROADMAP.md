@@ -292,6 +292,39 @@ s2a_expanded_v01_pilot_6h_april16
 - 当前主要结论是外部证据缺口明确，不是 external verification 完成。
 - 下一步应补 2024-aligned RPKI/IRR/AS relationship cache 后复跑，或做 S3-C3 route-leak triplet legality。
 
+### S3-D2B Evidence Alignment
+
+Completed v01 evidence alignment layer.
+
+Added:
+- `scripts/run_s3d2b_evidence_alignment.py`
+- `project_docs/S3D2B_EVIDENCE_ALIGNMENT.md`
+- `outputs/s3d2b_evidence_alignment_v01/`
+
+Fixed run:
+```text
+s2a_expanded_v01_pilot_6h_april16
+```
+
+Result:
+- inspected incidents `217165`
+- valid prefix-origin lookup targets `40665`
+- path relation targets `168889`
+- local evidence sources `5`
+- `as_relationship:stale=1`
+- `known_event_inventory:undated=4`
+- RPKI aligned cache available `false`
+- AS relationship aligned snapshot available `false`
+- known-event time-aligned overlaps `0`
+- known-event out-of-window asset overlaps `6`
+- S3-D2 aligned rerun ready `false`
+
+Interpretation:
+- S3-D2B does not validate incidents.
+- It converts the evidence gap into cache requirements, lookup targets, and an S3-D2 rerun manifest.
+- The next useful external-evidence step requires a `2024-04-16` historical RPKI/ROA cache and a 2024-near AS relationship snapshot.
+- If those caches are not available, proceed to S3-C3 route-leak triplet legality rather than claiming stronger external evidence.
+
 ## 5. Non-Goals
 
 - 不直接进入 24h event-level 主评估。

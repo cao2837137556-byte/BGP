@@ -521,6 +521,26 @@
     - 可用 CAIDA AS-rel 文件是 `20170701.as-rel2.txt`，对 2024 run 只作 diagnostic，不作 strong evidence。
     - known-event inventory 与 2024 run 无 time-aligned match；out-of-window overlap 不等于命中。
   - 当前判断：S3-D2 成功打通 evidence attachment schema，但暴露了外部证据缺口。下一步应补 2024 RPKI/IRR/AS-rel cache 后复跑，或先做 S3-C3 route-leak triplet legality。
+- S3-D2B evidence alignment 已完成：
+  - 新增 `scripts/run_s3d2b_evidence_alignment.py`
+  - 新增 `project_docs/S3D2B_EVIDENCE_ALIGNMENT.md`
+  - 作用：把 S3-D2 暴露出的证据缺口转成可执行的 cache request、prefix-origin lookup targets、path relation targets 与 S3-D2 rerun manifest；不下载大规模外部数据，不做在线批量请求，不改主链输出。
+  - fixed S2 full 结果：
+    - inspected incidents `217165`
+    - valid prefix-origin lookup targets `40665`
+    - path relation targets `168889`
+    - local evidence sources found `5`
+    - source alignment：`as_relationship:stale=1`，`known_event_inventory:undated=4`
+    - RPKI aligned cache available `false`
+    - AS relationship aligned snapshot available `false`
+    - known-event time-aligned overlaps `0`
+    - known-event out-of-window asset overlaps `6`
+    - S3-D2 aligned rerun ready `false`
+  - 关键约束：
+    - 不能用 current online RPKI 状态替代 2024 historical RPKI evidence。
+    - `20170701.as-rel2.txt` 比 run start 早 `2481` 天，仍只能作为 stale diagnostic。
+    - known-event out-of-window asset overlap 只说明库存里有历史相似资产，不说明当前 2024 事件命中。
+  - 当前判断：证据对齐已经从“缺什么不清楚”推进到“缺什么、查什么、如何复跑”明确。下一步要么取得 `2024-04-16` RPKI/ROA cache 与 2024-near AS-rel 后复跑 S3-D2，要么先做 S3-C3 route-leak triplet legality。
 
 ## 8. 下一步默认动作
 
@@ -539,12 +559,13 @@
 11. S3-C2 fixed S2 full 已完成；不要把它解读为 P1/P2 workload reduction，它是 gate evidence / verification input。
 12. S3-D verification queue/schema 已完成；不要把 queue 当真实标签，不要声称 external verification 完成。
 13. S3-D2 external evidence attachment 已完成；不要把 `verification_status_candidate` 当真假标签。
-14. 下一步默认补 2024-aligned RPKI/IRR/AS relationship cache 后复跑 S3-D2，或先做 S3-C3 route-leak triplet legality。
-15. S3-C3 route-leak triplet legality 可并行作为 route-leak-like 专项线，不用于解决 forged-origin-like 主体噪声。
-16. S3-D3/S4 形成 high-confidence set 后，再反向校准 score/gate/priority。
-17. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
-18. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
-19. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
+14. S3-D2B evidence alignment 已完成；不要把对齐清单当作外部验证结果，它只是 cache request / lookup target / rerun manifest。
+15. 下一步默认补 `2024-04-16` RPKI/ROA cache 与 2024-near AS relationship snapshot 后复跑 S3-D2，或先做 S3-C3 route-leak triplet legality。
+16. S3-C3 route-leak triplet legality 可并行作为 route-leak-like 专项线，不用于解决 forged-origin-like 主体噪声。
+17. S3-D3/S4 形成 high-confidence set 后，再反向校准 score/gate/priority。
+18. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
+19. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
+20. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
 ## 9. 使用规则
 

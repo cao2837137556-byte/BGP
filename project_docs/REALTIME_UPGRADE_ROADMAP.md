@@ -133,3 +133,20 @@ streaming updates
 ```
 
 Current stage still does not add live collectors, dashboards, or online alerting.
+
+## 9. Evidence Alignment Before Realtime
+
+S3-D2B adds a batch evidence-alignment layer:
+- inventory local evidence sources,
+- verify snapshot dates against the run window,
+- emit prefix-origin lookup targets for RPKI/IRR,
+- emit path relation targets for AS relationship caches,
+- emit a rerun manifest for S3-D2.
+
+This remains offline batch work. It is useful for future realtime design because it defines the cache contract that a streaming system would need:
+- time-keyed RPKI/ROA cache,
+- time-keyed AS relationship cache,
+- optional IRR route-object cache,
+- explicit provenance for each evidence lookup.
+
+Realtime upgrade should only happen after this cache contract is stable. It should not solve evidence provenance by querying current online state for historical incidents.
