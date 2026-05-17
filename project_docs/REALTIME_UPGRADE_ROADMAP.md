@@ -1,6 +1,6 @@
 # Realtime Upgrade Roadmap
 
-Last updated: 2026-05-13
+Last updated: 2026-05-17
 
 ## 1. Current System Position
 
@@ -17,7 +17,7 @@ Current mode:
 - calibrated priority
 - verification queue
 
-Current priority is detection quality, incident aggregation, and verification readiness. It is not a production realtime alerting system.
+Current priority after Phase R is verifier readiness: candidate trigger, incident aggregation, evidence cache, evidence state machine, legality-first verifier, and abstention-aware verdict queue. It is not a production realtime alerting system.
 
 ## 2. Why Realtime Matters Later
 
@@ -56,12 +56,13 @@ Near-real-time mode:
 
 ```text
 RIS Live or BGPStream update stream
+  -> monitor-based candidate trigger
   -> sliding-window event builder
   -> incremental baseline cache
-  -> incremental candidate generation
-  -> incremental score / gate
+  -> incremental candidate generation as trigger
   -> rolling incident queue
-  -> verification queue refresh
+  -> incremental evidence cache lookup
+  -> verifier verdict queue refresh
 ```
 
 Online mode:
@@ -83,6 +84,18 @@ Do not implement realtime in the current stage:
 - no rewrite of score/gate/incident logic
 
 Realtime is a later S5 / engineering-extension direction. S3/S4 should first stabilize verification and high-confidence evidence.
+
+After Phase R, realtime does not mean "run detector score faster". It means:
+
+```text
+streaming monitor trigger
+  -> rolling incident builder
+  -> incremental evidence cache
+  -> verifier state machine
+  -> verdict / abstain / provenance queue
+```
+
+Current stage still does not implement realtime.
 
 ## 6. Future Metrics
 

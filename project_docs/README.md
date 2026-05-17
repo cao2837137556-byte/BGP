@@ -5,6 +5,17 @@
 - `HANDOFF.md`：项目交接与当前状态总览
 - `EXPERIMENT_MAINLINE.md`：实验主线总表
 
+当前战略状态：
+
+- Phase R 已启动。
+- 项目主线从 forged-origin weak-signal detector 重定位为 adversarially robust multi-evidence BGP incident verification and triage。
+- S3-A 到 S3-D2B 是 Phase R 的 historical groundwork，不是失败线。
+- 新增 Phase R 入口文档：
+  - `PHASE_R_PROBLEM_REFRAMING.md`
+  - `VERIFIER_REDESIGN_ROADMAP.md`
+  - `LEARNING_LAYER_POSITIONING.md`
+  - `PAPER_PROBLEM_STATEMENT.md`
+
 维护规则：
 
 - 不再继续新增“按日期拆开的 handoff 文件”作为默认入口。
@@ -16,4 +27,7 @@
 
 1. `project_docs/HANDOFF.md`
 2. `project_docs/EXPERIMENT_MAINLINE.md`
-3. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`
+3. `project_docs/PHASE_R_PROBLEM_REFRAMING.md`
+4. `project_docs/VERIFIER_REDESIGN_ROADMAP.md`
+5. `project_docs/LEARNING_LAYER_POSITIONING.md`
+6. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`

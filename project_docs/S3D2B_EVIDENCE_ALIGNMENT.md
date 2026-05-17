@@ -2,6 +2,10 @@
 
 Last updated: 2026-05-15
 
+Phase R update, 2026-05-17:
+
+S3-D2B is now evidence-cache readiness groundwork for the verifier-centric roadmap. It does not prove or disprove incidents. Missing aligned RPKI / AS relationship evidence means the verifier must abstain or mark evidence unavailable; it does not mean the system failed.
+
 ## 1. Scope
 
 S3-D2B turns the S3-D2 evidence gap into concrete cache requests and lookup targets.
@@ -109,6 +113,10 @@ The positive outcome is operational: the project now has concrete lookup targets
 
 ## 7. Next Step
 
+There are two valid next paths.
+
+Path 1: evidence cache completion.
+
 Acquire or build the two required caches in `s3d2b_rerun_manifest.json`, then rerun S3-D2 with:
 
 ```powershell
@@ -123,3 +131,12 @@ python scripts\run_s3d2_external_evidence_attachment.py ^
 ```
 
 If those caches remain unavailable, the better next experiment is S3-C3 route-leak triplet legality, because it can improve path semantics without claiming external validation.
+
+Path 2: Phase R verifier redesign.
+
+Use the S3-D2B outputs as evidence-readiness inputs for:
+- Phase R-1 verifier state machine design,
+- Phase R-2 legality-first verifier,
+- Phase R-3 poisoning/evasion benchmark.
+
+This path does not require pretending that missing external caches are available. It keeps missing/stale evidence explicit and lets the verifier output `abstain`, `evidence_insufficient`, or `external_evidence_unavailable`.

@@ -1,7 +1,16 @@
 ﻿# BGP Platform Handoff
 
-最后更新：2026-04-30
+最后更新：2026-05-17
 定位：项目唯一长期维护的交接总览文件。
+
+## Current Strategic State
+
+- Phase R has started.
+- The previous "BGP forged-origin weak-signal detector" positioning is superseded by "adversarially robust multi-evidence BGP incident verification and triage".
+- No new experiments should be launched before Phase R documents are finalized and the verifier redesign entry point is clear.
+- Current S3-D2B results are preserved as evidence-alignment groundwork, not final verification.
+- Next implementation phase should start with verifier state machine and legality-first verifier, not another detector.
+- Legacy `high/needs/low` and `P1/P2/P3` remain useful signals, but they are not truth labels or final verdicts.
 
 ## 1. 固定工作边界
 
@@ -12,7 +21,9 @@
 
 ## 2. 项目一句话定义
 
-这是一个面向 BGP weak-signal forged-origin / partial observability 场景的分层检测系统，目标不是做单阈值“全抓高危”，而是通过分层证据链把事件稳定分流到 `high_priority_alert`、`needs_review`、`low_priority_or_background` 三层，并保持可解释、可定位、可追责。
+Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证与分诊系统。
+
+旧的 forged-origin weak-signal layered detector 仍作为历史 groundwork 保留：它提供 candidate trigger、incident aggregation、noise audit、gate evidence、verification queue 和 evidence attachment 的基础资产。但最终论文问题不再是“再做一个公共监控器上的 detector”，而是在 public monitor 可被操纵、ground truth 不完备、外部证据不完备的条件下，如何输出带 confidence、provenance 和 abstain 的 evidence-supported verification verdict。
 
 ## 3. 固定主链
 
@@ -541,6 +552,14 @@
     - `20170701.as-rel2.txt` 比 run start 早 `2481` 天，仍只能作为 stale diagnostic。
     - known-event out-of-window asset overlap 只说明库存里有历史相似资产，不说明当前 2024 事件命中。
   - 当前判断：证据对齐已经从“缺什么不清楚”推进到“缺什么、查什么、如何复跑”明确。下一步要么取得 `2024-04-16` RPKI/ROA cache 与 2024-near AS-rel 后复跑 S3-D2，要么先做 S3-C3 route-leak triplet legality。
+- Phase R problem reframing & verifier redesign 已启动：
+  - 新增 `project_docs/PHASE_R_PROBLEM_REFRAMING.md`
+  - 新增 `project_docs/VERIFIER_REDESIGN_ROADMAP.md`
+  - 新增 `project_docs/LEARNING_LAYER_POSITIONING.md`
+  - 新增 `project_docs/PAPER_PROBLEM_STATEMENT.md`
+  - 核心重定位：public monitor output 降级为 candidate trigger；detector score / high-needs-low / P1-P2-P3 降级为 evidence / legacy priority；最终目标变为 multi-evidence verifier 输出 verdict、confidence、provenance、abstain。
+  - 旧 S3-A~S3-D2B 不被解释为失败，而是 Phase R verifier-centric roadmap 的 historical groundwork。
+  - 下一步默认从 Phase R-1 verifier state machine design 和 Phase R-2 legality-first verifier 开始，不再继续做纯 detector score 优化。
 
 ## 8. 下一步默认动作
 
@@ -560,12 +579,13 @@
 12. S3-D verification queue/schema 已完成；不要把 queue 当真实标签，不要声称 external verification 完成。
 13. S3-D2 external evidence attachment 已完成；不要把 `verification_status_candidate` 当真假标签。
 14. S3-D2B evidence alignment 已完成；不要把对齐清单当作外部验证结果，它只是 cache request / lookup target / rerun manifest。
-15. 下一步默认补 `2024-04-16` RPKI/ROA cache 与 2024-near AS relationship snapshot 后复跑 S3-D2，或先做 S3-C3 route-leak triplet legality。
-16. S3-C3 route-leak triplet legality 可并行作为 route-leak-like 专项线，不用于解决 forged-origin-like 主体噪声。
-17. S3-D3/S4 形成 high-confidence set 后，再反向校准 score/gate/priority。
-18. 24h expanded 应作为 `S2-D 24h with incidents`，不要回到纯 event-level 评估。
-19. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
-20. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
+15. Phase R 已启动；旧 detector-centric 线性推进进入 strategic pause。
+16. 下一步默认不是继续优化 raw detector score，而是 Phase R-1 verifier state machine design 与 Phase R-2 legality-first verifier。
+17. 若外部 cache 可得，可并行补 `2024-04-16` RPKI/ROA cache 与 2024-near AS relationship snapshot 后复跑 S3-D2；若不可得，先做 legality-first verifier。
+18. S3-D3/S4 形成 high-confidence set 后，再考虑 incident-level learning ranker / evidence calibrator。
+19. 24h expanded 应作为 `S2-D 24h with incidents/verifier`，不要回到纯 event-level 评估。
+20. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
+21. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
 ## 9. 使用规则
 

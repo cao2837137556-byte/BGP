@@ -1,5 +1,39 @@
 # S3 Detection Quality Roadmap
 
+Phase R note, 2026-05-17:
+
+This document is now a legacy detection-quality roadmap. It remains useful for tracing how S3 exposed monitor-noise structure, path plausibility evidence, gate evidence, and evidence-readiness gaps. It is superseded by the Phase R verifier-centric roadmap:
+
+- `project_docs/PHASE_R_PROBLEM_REFRAMING.md`
+- `project_docs/VERIFIER_REDESIGN_ROADMAP.md`
+- `project_docs/LEARNING_LAYER_POSITIONING.md`
+
+After Phase R, detection quality is no longer measured by raw detector score, event-level high volume, or P1/P2 count alone. The new target is verified incident quality, robustness under monitor poisoning/evasion, evidence provenance, abstention behavior, and human review burden.
+
+## Superseded By Phase R Verifier-Centric Roadmap
+
+The previous S3 line should be read as groundwork:
+
+- S3-A/S3-A2 built incident aggregation and calibrated priority.
+- S3-B diagnosed public-monitor and low-visibility noise.
+- S3-C converted path plausibility into gate/verifier evidence.
+- S3-D built a verification queue.
+- S3-D2/S3-D2B attached evidence and exposed evidence-cache readiness gaps.
+
+Going forward:
+
+```text
+legacy detector score
+  -> candidate trigger / monitor evidence
+  -> incident builder
+  -> evidence state machine
+  -> legality-first verifier
+  -> poisoning/evasion robustness benchmark
+  -> evidence-supported verdict / abstain / provenance
+```
+
+Do not launch another detector-centric experiment before the Phase R verifier state machine is finalized.
+
 最后更新：2026-05-06
 
 ## 1. Current Judgment

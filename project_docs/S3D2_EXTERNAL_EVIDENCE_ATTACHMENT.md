@@ -2,6 +2,10 @@
 
 Last updated: 2026-05-14
 
+Phase R update, 2026-05-17:
+
+S3-D2 is now verifier evidence-layer groundwork. Its result is not a final verification result. The absence of aligned RPKI / AS relationship evidence is not a system failure; it is an evidence-readiness finding that motivates Phase R verifier redesign.
+
 ## 1. Scope
 
 S3-D2 attaches first-pass external/provenance evidence fields to the S3-D incident-level verification queue.
@@ -169,10 +173,10 @@ S3-D2 prepares the schema and provenance for later verification. It does not com
 
 Recommended next actions:
 - Use S3-D2B to align evidence sources and generate concrete prefix-origin/path lookup targets.
-- Add time-aligned 2024 RPKI/ROA or IRR cache and rerun S3-D2.
-- Add a 2024-near CAIDA AS relationship snapshot and rerun path relation evidence.
-- Run S3-C3 route-leak triplet legality for `route_leak_like_review` and selected `patternB_path_abnormal_verification`.
-- Run S3-D3 only after stronger external evidence is available.
+- Evidence cache completion: add time-aligned 2024 RPKI/ROA or IRR cache, add a 2024-near CAIDA AS relationship snapshot, and rerun S3-D2.
+- Phase R verifier redesign: use S3-D2 fields as inputs to the evidence state machine and legality-first verifier.
+- Run S3-C3/R-2 route-leak triplet legality for `route_leak_like_review` and selected `patternB_path_abnormal_verification`.
+- Run S3-D3/S4 only after stronger evidence and Phase R verdict semantics are defined.
 
 ## 8. S3-D2B Evidence Alignment Follow-Up
 

@@ -1,0 +1,124 @@
+# Learning Layer Positioning
+
+Last updated: 2026-05-17
+
+## 1. Core Judgment
+
+The learning layer is not removed. It is moved later.
+
+Before reliable verification labels exist, do not train an attack/benign classifier. The learning layer should become an incident-level ranker and evidence calibrator, not the primary detector or final judge.
+
+## 2. Why Not Train Now
+
+Do not train an attack/benign classifier from current outputs because:
+- `P1 / P2 / P3` are not truth labels.
+- `high_priority_alert / needs_review / low_priority_or_background` are not truth labels.
+- `P3 / low / background` is not confirmed normal.
+- RPKI valid or invalid is not direct ground truth.
+- Monitor-centric historical patterns can be poisoned by crafted announcements.
+- Training now would learn legacy rule bias and public-monitor bias.
+- Unavailable evidence must not be converted into normal/benign labels.
+
+## 3. New Role Of Learning Layer
+
+Learning layer input:
+- incident evidence table
+- evidence state
+- provenance
+- monitor evidence
+- RPKI / IRR / ASPA / path-legality evidence
+- temporal and collector features
+- poisoning susceptibility features
+- verifier verdict candidates
+
+Learning layer output:
+- `verification_priority_score`
+- `evidence_confidence_calibration`
+- top-K ranking
+- abstention recommendation
+- conflict likelihood
+- human review priority
+
+The model ranks and calibrates. It does not override verifier safety rules.
+
+## 4. When To Train
+
+Train only after these conditions are met:
+- verified or evidence-supported incident set exists
+- supported suspicious / background-like-but-unconfirmed / conflict / insufficient strata are defined
+- poisoning and evasion scenarios exist
+- held-out windows exist
+- evidence provenance is attached
+- unavailable evidence is not treated as normal
+
+Minimum trainable unit:
+
+```text
+incident-level evidence record
+  -> verifier verdict candidate
+  -> optional human/operator review outcome
+```
+
+Not trainable as truth:
+
+```text
+legacy detector score
+legacy high/needs/low label
+legacy P1/P2/P3 priority
+```
+
+## 5. Possible Models
+
+Candidate models, not current implementation targets:
+- logistic regression / calibrated linear ranker
+- gradient boosting ranker
+- learning-to-rank
+- graph representation over AS/path evidence
+- semi-supervised anomaly ranking
+- conformal prediction / abstention-aware calibration
+
+Start simple. The first learning model should be interpretable enough to debug evidence leakage and label bias.
+
+## 6. Safety Rule
+
+The learning layer cannot override verifier hard safety rules:
+- RPKI invalid is not confirmed attack.
+- RPKI valid is not confirmed benign.
+- stale evidence is not strong evidence.
+- evidence conflict must not be hidden.
+- unavailable evidence can trigger abstain.
+- monitor-only evidence cannot produce `strongly_supported_suspicious`.
+- background-like does not mean confirmed normal.
+
+## 7. Relationship To S3 Outputs
+
+S3 outputs become features, not labels:
+
+| S3 field | Learning-layer role |
+| --- | --- |
+| detector risk score | monitor-derived evidence feature |
+| final high/needs/low | legacy detector output feature |
+| P1/P2/P3 | legacy triage priority feature |
+| S3-C plausibility | evidence feature |
+| S3-D queue | verifier workflow feature |
+| S3-D2 evidence status | evidence state feature |
+| S3-D2B alignment readiness | evidence provenance / coverage feature |
+
+## 8. First Safe Learning Target
+
+The first safe learning task is:
+
+```text
+incident-level review prioritization under verifier constraints
+```
+
+It should answer:
+- Which incidents deserve top-K human review first?
+- Which evidence conflicts need operator attention?
+- Which cases should abstain until external evidence is attached?
+- Which background-like cases are low priority but not confirmed normal?
+
+It should not answer:
+- Is this attack or benign?
+- Can this low-priority incident be used as a negative label?
+- Can the model ignore missing evidence?
