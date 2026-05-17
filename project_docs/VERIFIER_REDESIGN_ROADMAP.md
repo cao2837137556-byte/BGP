@@ -238,3 +238,45 @@ R-2 should implement a legality-first verifier against the R-1 schema:
 - implement route-leak/path-legality checks first,
 - preserve `abstain`, `evidence_conflict`, and `external_evidence_unavailable` as first-class outcomes,
 - keep monitor-only detector output as a candidate trigger rather than a final judge.
+
+## 10. R-2A Legality-First Verifier Scaffold
+
+R-2A is the first implementation slice of R-2.
+
+Scope:
+
+- generate an incident-level verifier table from legacy S3-D incidents;
+- attach R-1 evidence states for monitor, RPKI, path legality, IRR, and known-event evidence;
+- output R-1 verdict candidates, confidence caps, abstain/conflict reasons, learning eligibility, and provenance;
+- run scaffold + sample smoke only;
+- do not overwrite legacy score/gate/final/incidents;
+- do not train a learning model;
+- do not run poisoning/evasion benchmark.
+
+Implementation entry:
+
+- `scripts/run_r2a_legality_first_verifier_scaffold.py`
+- `project_docs/R2A_LEGALITY_FIRST_VERIFIER_SCAFFOLD.md`
+
+Smoke result:
+
+- output directory: `outputs/r2a_legality_first_verifier_smoke_v01/`
+- processed incidents: `50000`
+- `strongly_supported_suspicious=0`
+- `evidence_supported_suspicious=0`
+- `stale_evidence_only=43335`
+- `external_evidence_unavailable=3762`
+- `background_like_but_unconfirmed=1485`
+- `evidence_insufficient=1418`
+- RPKI unavailable for all processed smoke incidents
+- 2017 CAIDA AS-rel is treated as `stale_diagnostic`, not strong evidence
+
+Interpretation:
+
+R-2A proves that legacy incidents can be converted into verifier-table form without changing old outputs. It does not prove attacks or benignness. The dominant stale/unavailable verdicts are a useful signal: evidence readiness is now explicit rather than hidden inside detector score.
+
+Next:
+
+- R-2B legality-first verifier refinement;
+- evidence cache completion for aligned 2024 RPKI/ROA and 2024-near AS relationship data;
+- R-3 poisoning/evasion benchmark only after legality behavior is stable.

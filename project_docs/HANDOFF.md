@@ -14,6 +14,8 @@
 - Phase R-1 verifier state machine design is completed as documentation only.
 - Current focus is verifier semantics, evidence states, verdict space, confidence caps, and hard safety rules; not detector implementation.
 - Next implementation should be R-2 legality-first verifier only after R-1 design is accepted.
+- Phase R-2A legality-first verifier scaffold is now the active implementation step.
+- R-2A smoke has completed on 50k fixed S2 incidents; it produced a verifier table without modifying legacy high/needs/low, P1/P2/P3, or S3 outputs.
 
 ## 1. 固定工作边界
 
@@ -571,6 +573,15 @@ Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证�
   - verdicts：`strongly_supported_suspicious`、`evidence_supported_suspicious`、`evidence_conflict`、`evidence_insufficient`、`external_evidence_unavailable`、`background_like_but_unconfirmed`、`stale_evidence_only`、`abstain`。
   - 核心约束：RPKI invalid 不是 confirmed attack；RPKI valid 不是 confirmed benign；monitor-only 不得产生 strongly supported verdict；stale/unavailable/conflicting evidence 必须显式保留；P3/low/background 不是 confirmed normal；learning layer 不能覆盖 verifier hard rules。
   - 本阶段未写实验代码，未运行实验，未修改任何主链产物。
+- Phase R-2A legality-first verifier scaffold 已完成 50k smoke：
+  - 新增 `scripts/run_r2a_legality_first_verifier_scaffold.py`
+  - 新增 `project_docs/R2A_LEGALITY_FIRST_VERIFIER_SCAFFOLD.md`
+  - smoke 输出目录：`outputs/r2a_legality_first_verifier_smoke_v01/`
+  - 作用：把 S3-D legacy incident queue 转成 legality/evidence-aware verifier table，输出 R-1 evidence states、verdict、confidence cap、abstain/conflict reason、learning eligibility 与 provenance JSON。
+  - smoke 口径：fixed run `s2a_expanded_v01_pilot_6h_april16`，`sample_rows=50000`，只读 S3-D/S3-D2/incident artifacts，不覆盖任何旧产物。
+  - smoke 结果：processed `50000` incidents；`strongly_supported_suspicious=0`；`evidence_supported_suspicious=0`；`stale_evidence_only=43335`；`external_evidence_unavailable=3762`；`background_like_but_unconfirmed=1485`；`evidence_insufficient=1418`。
+  - evidence 状态：RPKI `unavailable=50000`；path legality `stale_diagnostic=44632`、`not_applicable=5368`；stale evidence rows `44807`；unavailable evidence rows `50000`。
+  - 关键解释：R-2A scaffold 成功生成 verifier table，但没有完成真实攻击判定；缺少 aligned 2024 RPKI/ASPA/AS-rel/IRR cache 时，输出 stale/unavailable/insufficient 是正确行为。
 
 ## 8. 下一步默认动作
 
@@ -591,12 +602,13 @@ Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证�
 13. S3-D2 external evidence attachment 已完成；不要把 `verification_status_candidate` 当真假标签。
 14. S3-D2B evidence alignment 已完成；不要把对齐清单当作外部验证结果，它只是 cache request / lookup target / rerun manifest。
 15. Phase R 已启动；旧 detector-centric 线性推进进入 strategic pause。
-16. Phase R-1 verifier state machine design 已完成；下一步默认不是继续优化 raw detector score，而是 R-2 legality-first verifier implementation/design handoff。
-17. 若外部 cache 可得，可并行补 `2024-04-16` RPKI/ROA cache 与 2024-near AS relationship snapshot 后复跑 S3-D2；若不可得，先做 legality-first verifier。
-18. S3-D3/S4 形成 high-confidence set 后，再考虑 incident-level learning ranker / evidence calibrator。
-19. 24h expanded 应作为 `S2-D 24h with incidents/verifier`，不要回到纯 event-level 评估。
-20. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
-21. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
+16. Phase R-1 verifier state machine design 已完成。
+17. Phase R-2A legality-first verifier scaffold 50k smoke 已完成；不要把 R-2A verdict 当真实攻击判定，也不要把 smoke 输出当 full run。
+18. 下一步默认不是继续优化 raw detector score，而是 R-2B legality-first verifier refinement，或先补 `2024-04-16` RPKI/ROA cache 与 2024-near AS relationship snapshot。
+19. S3-D3/S4 形成 high-confidence set 后，再考虑 incident-level learning ranker / evidence calibrator。
+20. 24h expanded 应作为 `S2-D 24h with incidents/verifier`，不要回到纯 event-level 评估。
+21. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
+22. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
 ## 9. 使用规则
 
