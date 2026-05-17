@@ -19,6 +19,10 @@
   - `R1_VERIFIER_STATE_MACHINE.md`
   - `R1_EVIDENCE_TYPES_AND_VERDICTS.md`
 
+## Current Phase Guardrail
+
+Current phase: Phase R. R-1 verifier state machine design has been completed and accepted. The next implementation/design step is R-2 legality-first verifier v0. Do not continue the legacy S3 detector-quality line unless explicitly requested. S3-A to S3-D2B are historical groundwork for the verifier-centric redesign, not the active optimization target. Legacy high/needs/low and P1/P2/P3 outputs are not ground truth. The learning layer is postponed and will only be used as an incident-level ranker/calibrator after verifier-supported targets exist. No new detector-score experiments should be launched before R-2 design/implementation is explicitly started.
+
 维护规则：
 
 - 不再继续新增“按日期拆开的 handoff 文件”作为默认入口。
