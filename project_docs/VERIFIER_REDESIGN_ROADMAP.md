@@ -45,12 +45,14 @@ Every evidence type must carry `strength`, `provenance`, `aligned / stale / unav
 Evidence states:
 - `aligned_strong`: time-aligned, provenance complete, low manipulability, can support a strong verdict with other evidence.
 - `aligned_medium`: time-aligned and useful, but insufficient alone.
+- `aligned_weak`: time-aligned but indirect, biased, or insufficient for strong support.
 - `stale_diagnostic`: old or non-time-aligned evidence; useful for explanation, not strong judgment.
 - `unavailable`: evidence source absent.
 - `conflicting`: evidence sources disagree materially.
 - `monitor_only`: only public-monitor evidence is present.
 - `poisoning_susceptible`: evidence is derived from monitor history or crafted-announcement-sensitive patterns.
 - `external_confirmed_pending`: candidate requires operator/report/data-plane confirmation.
+- `not_applicable`: evidence type is not meaningful for the incident or lookup key.
 
 State transition principle:
 
@@ -157,3 +159,82 @@ Phase R-4: Multi-evidence Evaluation
 - compare baselines
 - produce top-K case studies
 - report coverage, stale evidence, unavailable evidence, and review burden
+
+## 9. R-1 State Machine Decisions
+
+R-1 freezes the design vocabulary that R-2 should implement against. The detailed registries are:
+
+- `project_docs/R1_VERIFIER_STATE_MACHINE.md`
+- `project_docs/R1_EVIDENCE_TYPES_AND_VERDICTS.md`
+
+### Evidence State List
+
+The verifier uses per-evidence states:
+
+- `aligned_strong`
+- `aligned_medium`
+- `aligned_weak`
+- `stale_diagnostic`
+- `unavailable`
+- `conflicting`
+- `monitor_only`
+- `poisoning_susceptible`
+- `external_confirmed_pending`
+- `not_applicable`
+
+`poisoning_susceptible` is also a confidence modifier for monitor-history-derived evidence.
+
+### Verdict List
+
+R-1 verdict candidates:
+
+- `strongly_supported_suspicious`
+- `evidence_supported_suspicious`
+- `evidence_conflict`
+- `evidence_insufficient`
+- `external_evidence_unavailable`
+- `background_like_but_unconfirmed`
+- `stale_evidence_only`
+- `abstain`
+
+These are verification verdict candidates, not confirmed ground-truth labels.
+
+### Confidence Cap Principle
+
+Verifier confidence measures evidence support quality, not attack risk. The default caps are:
+
+- monitor-only evidence: max `0.45`
+- stale evidence only: max `0.40`
+- evidence insufficient: max `0.50`
+- evidence conflict: max `0.55`, and verdict cannot be suspicious
+- aligned medium multi-evidence: max `0.75`
+- aligned strong plus consistency: max `0.90`
+
+### Hard Safety Rules
+
+R-1 fixes these non-negotiable rules:
+
+- RPKI invalid is not confirmed attack.
+- RPKI valid is not confirmed benign.
+- Public monitor-only evidence cannot produce `strongly_supported_suspicious`.
+- Stale evidence cannot produce a strong verdict.
+- Unavailable evidence cannot imply benign.
+- P3 / low / background is not confirmed normal.
+- Learning layer cannot override verifier safety rules.
+- Evidence conflict must remain visible.
+- Poisoning-susceptible evidence must lower confidence or require extra support.
+- Abstain is an allowed and expected verifier outcome.
+
+### Learning Layer Relationship
+
+The learning layer is downstream of the verifier. It may rank incidents, calibrate evidence confidence, recommend abstention, and prioritize human review. It must not replace the verifier, hide conflicts, or turn legacy detector outputs into attack/benign labels.
+
+### Next Phase
+
+R-2 should implement a legality-first verifier against the R-1 schema:
+
+- consume legacy S3 queues as verifier input,
+- attach evidence state and provenance,
+- implement route-leak/path-legality checks first,
+- preserve `abstain`, `evidence_conflict`, and `external_evidence_unavailable` as first-class outcomes,
+- keep monitor-only detector output as a candidate trigger rather than a final judge.

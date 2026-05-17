@@ -15,6 +15,9 @@
   - `VERIFIER_REDESIGN_ROADMAP.md`
   - `LEARNING_LAYER_POSITIONING.md`
   - `PAPER_PROBLEM_STATEMENT.md`
+- Phase R-1 设计文档：
+  - `R1_VERIFIER_STATE_MACHINE.md`
+  - `R1_EVIDENCE_TYPES_AND_VERDICTS.md`
 
 维护规则：
 
@@ -29,5 +32,7 @@
 2. `project_docs/EXPERIMENT_MAINLINE.md`
 3. `project_docs/PHASE_R_PROBLEM_REFRAMING.md`
 4. `project_docs/VERIFIER_REDESIGN_ROADMAP.md`
-5. `project_docs/LEARNING_LAYER_POSITIONING.md`
-6. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`
+5. `project_docs/R1_VERIFIER_STATE_MACHINE.md`
+6. `project_docs/R1_EVIDENCE_TYPES_AND_VERDICTS.md`
+7. `project_docs/LEARNING_LAYER_POSITIONING.md`
+8. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`

@@ -11,6 +11,9 @@
 - Current S3-D2B results are preserved as evidence-alignment groundwork, not final verification.
 - Next implementation phase should start with verifier state machine and legality-first verifier, not another detector.
 - Legacy `high/needs/low` and `P1/P2/P3` remain useful signals, but they are not truth labels or final verdicts.
+- Phase R-1 verifier state machine design is completed as documentation only.
+- Current focus is verifier semantics, evidence states, verdict space, confidence caps, and hard safety rules; not detector implementation.
+- Next implementation should be R-2 legality-first verifier only after R-1 design is accepted.
 
 ## 1. 固定工作边界
 
@@ -560,6 +563,14 @@ Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证�
   - 核心重定位：public monitor output 降级为 candidate trigger；detector score / high-needs-low / P1-P2-P3 降级为 evidence / legacy priority；最终目标变为 multi-evidence verifier 输出 verdict、confidence、provenance、abstain。
   - 旧 S3-A~S3-D2B 不被解释为失败，而是 Phase R verifier-centric roadmap 的 historical groundwork。
   - 下一步默认从 Phase R-1 verifier state machine design 和 Phase R-2 legality-first verifier 开始，不再继续做纯 detector score 优化。
+- Phase R-1 verifier state machine design 已完成：
+  - 新增 `project_docs/R1_VERIFIER_STATE_MACHINE.md`
+  - 新增 `project_docs/R1_EVIDENCE_TYPES_AND_VERDICTS.md`
+  - 作用：冻结 verifier evidence states、verdict space、confidence caps、hard safety rules、learning-layer boundary 与 S3 legacy output 映射。
+  - evidence states：`aligned_strong`、`aligned_medium`、`aligned_weak`、`stale_diagnostic`、`unavailable`、`conflicting`、`monitor_only`、`poisoning_susceptible`、`external_confirmed_pending`、`not_applicable`。
+  - verdicts：`strongly_supported_suspicious`、`evidence_supported_suspicious`、`evidence_conflict`、`evidence_insufficient`、`external_evidence_unavailable`、`background_like_but_unconfirmed`、`stale_evidence_only`、`abstain`。
+  - 核心约束：RPKI invalid 不是 confirmed attack；RPKI valid 不是 confirmed benign；monitor-only 不得产生 strongly supported verdict；stale/unavailable/conflicting evidence 必须显式保留；P3/low/background 不是 confirmed normal；learning layer 不能覆盖 verifier hard rules。
+  - 本阶段未写实验代码，未运行实验，未修改任何主链产物。
 
 ## 8. 下一步默认动作
 
@@ -580,7 +591,7 @@ Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证�
 13. S3-D2 external evidence attachment 已完成；不要把 `verification_status_candidate` 当真假标签。
 14. S3-D2B evidence alignment 已完成；不要把对齐清单当作外部验证结果，它只是 cache request / lookup target / rerun manifest。
 15. Phase R 已启动；旧 detector-centric 线性推进进入 strategic pause。
-16. 下一步默认不是继续优化 raw detector score，而是 Phase R-1 verifier state machine design 与 Phase R-2 legality-first verifier。
+16. Phase R-1 verifier state machine design 已完成；下一步默认不是继续优化 raw detector score，而是 R-2 legality-first verifier implementation/design handoff。
 17. 若外部 cache 可得，可并行补 `2024-04-16` RPKI/ROA cache 与 2024-near AS relationship snapshot 后复跑 S3-D2；若不可得，先做 legality-first verifier。
 18. S3-D3/S4 形成 high-confidence set 后，再考虑 incident-level learning ranker / evidence calibrator。
 19. 24h expanded 应作为 `S2-D 24h with incidents/verifier`，不要回到纯 event-level 评估。
