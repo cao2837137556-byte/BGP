@@ -277,6 +277,57 @@ R-2A proves that legacy incidents can be converted into verifier-table form with
 
 Next:
 
-- R-2B legality-first verifier refinement;
-- evidence cache completion for aligned 2024 RPKI/ROA and 2024-near AS relationship data;
+- R-2B-0 evidence readiness audit;
+- P0b evidence cache completion for aligned 2024 RPKI/ROA and 2024-near AS relationship data;
+- R-2B/R-2C legality-first verifier refinement with aligned evidence;
 - R-3 poisoning/evasion benchmark only after legality behavior is stable.
+
+## 11. R-2B-0 Evidence Readiness Audit
+
+R-2B-0 is the bridge between the R-2A scaffold and real aligned evidence use.
+
+Scope:
+
+- audit whether fixed S2 incidents have stable lookup keys for external evidence;
+- generate prefix-origin targets for RPKI/VRP and IRR lookup;
+- generate path/triplet targets for AS relationship, ASPA, BGP Roles/OTC, and route-leak legality work;
+- inventory local evidence caches;
+- produce a readiness matrix and minimal cache acquisition plan;
+- do not download large external datasets;
+- do not change verifier verdicts or legacy detector outputs.
+
+Implementation entry:
+
+- `scripts/run_r2b0_evidence_readiness_audit.py`
+- `project_docs/R2B0_EVIDENCE_READINESS_AUDIT.md`
+
+Full audit result:
+
+- output directory: `outputs/r2b0_evidence_readiness_audit_v01/`
+- processed incidents: `217165`
+- prefix-origin complete: `217162`
+- time-window complete: `217165`
+- path-key complete: `216922`
+- triplet-key complete: `205067`
+- RPKI/VRP cache: `missing`
+- IRR cache: `missing`
+- ASPA cache: `missing`
+- PeeringDB cache: `missing`
+- known-event inventory: `present_unverified_schema`
+- AS relationship cache: `ready_stale`, because only the 2017 CAIDA file is present
+
+Interpretation:
+
+The fixed S2 incident schema is ready enough for external evidence lookup. The main blocker is not incident field repair; it is aligned evidence cache materialization.
+
+Next path:
+
+```text
+R-2B-0 readiness audit
+  -> P0b historical VRP/RPKI cache materialization for 2024-04-16
+  -> R-2B/R-2C verifier smoke with aligned RPKI evidence
+  -> route-leak/path-legality refinement after origin evidence is aligned
+  -> R-3 poisoning/evasion benchmark
+```
+
+R-2B-0 does not make attack/benign claims. It keeps missing cache as `missing`, stale AS relationship evidence as diagnostic only, and public monitor context as trigger/context evidence.
