@@ -22,10 +22,12 @@
   - `R2A_LEGALITY_FIRST_VERIFIER_SCAFFOLD.md`
 - Phase R-2B-0 readiness audit 文档：
   - `R2B0_EVIDENCE_READINESS_AUDIT.md`
+- Phase R-2B-P0b historical VRP cache 文档：
+  - `R2B_P0B_HISTORICAL_VRP_CACHE.md`
 
 ## Current Phase Guardrail
 
-Current phase: Phase R-2B-0. R-1 verifier state machine design has been completed and accepted. R-2A legality-first verifier scaffold completed a 50k smoke run, and R-2B-0 evidence readiness audit completed a full incident-level audit on `217165` fixed S2 incidents without modifying legacy outputs. The next implementation step is P0b historical VRP/RPKI cache materialization for `2024-04-16`, followed by an R-2B/R-2C verifier smoke with aligned evidence. Do not continue the legacy S3 detector-quality line unless explicitly requested. S3-A to S3-D2B are historical groundwork for the verifier-centric redesign, not the active optimization target. Legacy high/needs/low and P1/P2/P3 outputs are not ground truth. R-2A verifier verdicts and R-2B-0 readiness states are also not ground truth. The learning layer is postponed and will only be used as an incident-level ranker/calibrator after verifier-supported targets exist. No new detector-score experiments should be launched before aligned evidence-cache work or R-2B/R-2C verifier implementation is explicitly started.
+Current phase: Phase R-2B-P0b completed. R-1 verifier state machine design has been completed and accepted. R-2A legality-first verifier scaffold completed a 50k smoke run, R-2B-0 evidence readiness audit completed a full incident-level audit on `217165` fixed S2 incidents, and R-2B-P0b materialized aligned historical VRP/RPKI evidence for `2024-04-16`. The next implementation step is R-2B verifier smoke with aligned VRP evidence, followed by R-2C legality/path refinement. Do not continue the legacy S3 detector-quality line unless explicitly requested. S3-A to S3-D2B are historical groundwork for the verifier-centric redesign, not the active optimization target. Legacy high/needs/low and P1/P2/P3 outputs are not ground truth. R-2A verifier verdicts, R-2B-0 readiness states, and R-2B-P0b RPKI lookup statuses are also not ground truth. RPKI valid is not benign, RPKI invalid is not confirmed attack, and RPKI unknown is not normal. The learning layer is postponed and will only be used as an incident-level ranker/calibrator after verifier-supported targets exist. No new detector-score experiments should be launched before R-2B/R-2C verifier implementation is explicitly started.
 
 维护规则：
 
@@ -44,5 +46,6 @@ Current phase: Phase R-2B-0. R-1 verifier state machine design has been complete
 6. `project_docs/R1_EVIDENCE_TYPES_AND_VERDICTS.md`
 7. `project_docs/R2A_LEGALITY_FIRST_VERIFIER_SCAFFOLD.md`
 8. `project_docs/R2B0_EVIDENCE_READINESS_AUDIT.md`
-9. `project_docs/LEARNING_LAYER_POSITIONING.md`
-10. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`
+9. `project_docs/R2B_P0B_HISTORICAL_VRP_CACHE.md`
+10. `project_docs/LEARNING_LAYER_POSITIONING.md`
+11. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`

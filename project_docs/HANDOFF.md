@@ -1,6 +1,6 @@
 ﻿# BGP Platform Handoff
 
-最后更新：2026-05-17
+最后更新：2026-05-19
 定位：项目唯一长期维护的交接总览文件。
 
 ## Current Strategic State
@@ -17,7 +17,8 @@
 - Phase R-2A legality-first verifier scaffold has completed on 50k fixed S2 incidents; it produced a verifier table without modifying legacy high/needs/low, P1/P2/P3, or S3 outputs.
 - Phase R-2B-0 evidence readiness audit has completed on all `217165` fixed S2 incidents.
 - R-2B-0 found that incident lookup keys are largely ready (`217162` prefix-origin complete, `216922` path-key complete), while aligned external caches are not ready: RPKI/VRP missing, IRR missing, ASPA missing, PeeringDB missing, and only stale 2017 CAIDA AS-rel is available.
-- Next default step is P0b historical VRP/RPKI cache materialization for `2024-04-16`, then R-2B/R-2C verifier smoke with aligned evidence; do not return to legacy detector-score tuning unless explicitly requested.
+- Phase R-2B-P0b historical VRP/RPKI cache materialization has completed for `2024-04-16`: `530187` aligned VRP records, `217162` lookup-eligible prefix-origin targets, RPKI status `valid=122280`, `invalid_asn=397`, `invalid_length=283`, `unknown=94202`, `unavailable=0`, and no hard safety violations.
+- Next default step is R-2B verifier smoke with aligned VRP evidence, then R-2C legality/path refinement; do not return to legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
 
@@ -592,6 +593,14 @@ Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证�
   - 结果：processed `217165` incidents；prefix-origin complete `217162`；time window complete `217165`；path-key complete `216922`；triplet-key complete `205067`。
   - cache readiness：RPKI/VRP `missing`，IRR `missing`，ASPA `missing`，PeeringDB `missing`，known-event `present_unverified_schema`，AS relationship `ready_stale` because only `20170701.as-rel2.txt` exists。
   - 关键解释：incident lookup keys 基本已经足够，当前主阻塞是 aligned external cache；下一步优先 P0b historical VRP/RPKI cache materialization，而不是修旧 detector score。
+- Phase R-2B-P0b historical VRP/RPKI cache materialization 已完成：
+  - 新增 `scripts/run_r2b_p0b_materialize_vrp_cache.py`
+  - 新增 `project_docs/R2B_P0B_HISTORICAL_VRP_CACHE.md`
+  - full 输出目录：`outputs/r2b_p0b_vrp_materialization_v01/`
+  - 本地 evidence cache：`data/evidence/rpki/vrp_2024-04-16.parquet`、`data/evidence/rpki/vrp_2024-04-16.csv`、`data/evidence/rpki/vrp_2024-04-16.metadata.json`
+  - source：RIPE NCC RPKI repository archive，5 个 TAL (`afrinic`、`apnic`、`arin`、`lacnic`、`ripencc`) 的 `2024/04/16/roas.csv.xz`。
+  - 结果：VRP cache records `530187`；lookup eligible targets `217162`；RPKI status `valid=122280`、`invalid_asn=397`、`invalid_length=283`、`unknown=94202`、`unavailable=0`。
+  - 关键解释：RPKI unavailable blocker 已解除，但 RPKI status 仍只是 origin authorization evidence；`valid` 不是 benign，`invalid` 不是 confirmed attack，`unknown` 不是 normal。本轮没有生成或修改 verifier verdict。
 
 ## 8. 下一步默认动作
 
@@ -614,12 +623,13 @@ Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证�
 15. Phase R 已启动；旧 detector-centric 线性推进进入 strategic pause。
 16. Phase R-1 verifier state machine design 已完成。
 17. Phase R-2A legality-first verifier scaffold 50k smoke 已完成；不要把 R-2A verdict 当真实攻击判定，也不要把 smoke 输出当 full run。
-18. R-2B-0 evidence readiness audit 已完成：fixed S2 `217165` incidents 中 `217162` 有 prefix-origin complete key，`217165` 有 time window，`216922` 有 complete path key，`205067` 有 complete triplet key；本地 RPKI/VRP、IRR、ASPA、PeeringDB cache 缺失，known-event inventory 仅 `present_unverified_schema`，2017 CAIDA AS-rel 只能是 `stale_diagnostic`。
-19. 下一步默认不是继续优化 raw detector score，而是 P0b materialize `2024-04-16` historical VRP/RPKI cache；之后再做 R-2B/R-2C verifier smoke/refinement。
-20. S3-D3/S4 形成 high-confidence set 后，再考虑 incident-level learning ranker / evidence calibrator。
-21. 24h expanded 应作为 `S2-D 24h with incidents/verifier`，不要回到纯 event-level 评估。
-22. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
-23. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
+18. R-2B-0 evidence readiness audit 已完成：fixed S2 `217165` incidents 中 `217162` 有 prefix-origin complete key，`217165` 有 time window，`216922` 有 complete path key，`205067` 有 complete triplet key；本地 RPKI/VRP、IRR、ASPA、PeeringDB cache 当时缺失，known-event inventory 仅 `present_unverified_schema`，2017 CAIDA AS-rel 只能是 `stale_diagnostic`。
+19. R-2B-P0b historical VRP/RPKI cache materialization 已完成：`2024-04-16` aligned VRP `530187` 条；`217162` prefix-origin targets 完成离线 RPKI lookup；status 为 `valid=122280`、`invalid_asn=397`、`invalid_length=283`、`unknown=94202`、`unavailable=0`；没有 hard safety violation，没有修改 verifier verdict。
+20. 下一步默认不是继续优化 raw detector score，而是用 aligned VRP evidence 做 R-2B verifier smoke，再进入 R-2C legality/path refinement。
+21. S3-D3/S4 形成 high-confidence set 后，再考虑 incident-level learning ranker / evidence calibrator。
+22. 24h expanded 应作为 `S2-D 24h with incidents/verifier`，不要回到纯 event-level 评估。
+23. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
+24. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
 ## 9. 使用规则
 

@@ -1,6 +1,6 @@
 # Verifier Redesign Roadmap
 
-Last updated: 2026-05-17
+Last updated: 2026-05-19
 
 ## 1. Architecture
 
@@ -331,3 +331,58 @@ R-2B-0 readiness audit
 ```
 
 R-2B-0 does not make attack/benign claims. It keeps missing cache as `missing`, stale AS relationship evidence as diagnostic only, and public monitor context as trigger/context evidence.
+
+## 12. R-2B-P0b Historical VRP/RPKI Cache Materialization
+
+R-2B-P0b resolves the first aligned external-evidence blocker found by R-2B-0.
+
+Scope:
+
+- materialize a `2024-04-16` historical VRP/RPKI cache for fixed S2;
+- normalize ROA payloads into a reproducible local VRP schema with provenance;
+- run offline origin validation lookup over R-2B-0 prefix-origin targets;
+- output RPKI lookup coverage and status distributions;
+- do not generate verifier verdicts;
+- do not change legacy detector outputs, R-2A outputs, or R-2B-0 outputs.
+
+Implementation entry:
+
+- `scripts/run_r2b_p0b_materialize_vrp_cache.py`
+- `project_docs/R2B_P0B_HISTORICAL_VRP_CACHE.md`
+
+Evidence source:
+
+- RIPE NCC RPKI repository archive, 5 TAL files for `2024/04/16/roas.csv.xz`:
+  `afrinic.tal`, `apnic.tal`, `arin.tal`, `lacnic.tal`, and `ripencc.tal`.
+
+Full materialization result:
+
+- output directory: `outputs/r2b_p0b_vrp_materialization_v01/`
+- local evidence cache: `data/evidence/rpki/vrp_2024-04-16.parquet`
+- metadata: `data/evidence/rpki/vrp_2024-04-16.metadata.json`
+- normalized VRP records: `530187`
+- lookup-eligible prefix-origin targets: `217162`
+- RPKI status distribution:
+  - `valid=122280`
+  - `invalid_asn=397`
+  - `invalid_length=283`
+  - `unknown=94202`
+  - `unavailable=0`
+- evidence state distribution:
+  - `aligned_medium=122960`
+  - `aligned_weak=94202`
+- safety violations: `0`
+
+Interpretation:
+
+Aligned origin-authorization evidence is now available for R-2B/R-2C verifier smoke. This does not complete incident verification: RPKI validates origin authorization only, not full AS-path legality. `valid` is not benign, `invalid` is not confirmed attack, and `unknown` is not normal.
+
+Next path:
+
+```text
+R-2B-P0b aligned VRP/RPKI cache
+  -> R-2B verifier smoke with aligned VRP evidence
+  -> R-2C legality/path refinement
+  -> 2024-near AS relationship / ASPA / IRR evidence completion
+  -> R-3 poisoning/evasion benchmark
+```

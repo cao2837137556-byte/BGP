@@ -1,0 +1,140 @@
+{
+  "aligned_to_run_date": true,
+  "downloads": [
+    {
+      "bytes": 192136,
+      "elapsed_sec": 6.268760919570923,
+      "headers": {
+        "Accept-Ranges": "bytes",
+        "Access-Control-Allow-Origin": "*",
+        "Connection": "close",
+        "Content-Length": "192136",
+        "Content-Type": "application/octet-stream",
+        "Date": "Tue, 19 May 2026 08:09:58 GMT",
+        "ETag": "\"661df890-2ee88\"",
+        "Last-Modified": "Tue, 16 Apr 2024 04:03:28 GMT",
+        "Server": "nginx"
+      },
+      "path": "outputs\\r2b_p0b_vrp_materialization_v01\\source_downloads\\afrinic.tal\\roas.csv.xz",
+      "sha256": "19d40e21d65a2cb9830a26da319e6e77ef6cdefb7194e9c384240271c1b77ad6",
+      "status": 200,
+      "tal": "afrinic.tal",
+      "url": "https://ftp.ripe.net/rpki/afrinic.tal/2024/04/16/roas.csv.xz"
+    },
+    {
+      "bytes": 1371708,
+      "elapsed_sec": 1.9058234691619873,
+      "headers": {
+        "Accept-Ranges": "bytes",
+        "Access-Control-Allow-Origin": "*",
+        "Connection": "close",
+        "Content-Length": "1371708",
+        "Content-Type": "application/octet-stream",
+        "Date": "Tue, 19 May 2026 08:09:59 GMT",
+        "ETag": "\"661df8f8-14ee3c\"",
+        "Last-Modified": "Tue, 16 Apr 2024 04:05:12 GMT",
+        "Server": "nginx"
+      },
+      "path": "outputs\\r2b_p0b_vrp_materialization_v01\\source_downloads\\apnic.tal\\roas.csv.xz",
+      "sha256": "af7e5e2dca09b75be872cfd04ab81fee7cf644582f44f6883452d855c60bbce5",
+      "status": 200,
+      "tal": "apnic.tal",
+      "url": "https://ftp.ripe.net/rpki/apnic.tal/2024/04/16/roas.csv.xz"
+    },
+    {
+      "bytes": 2602976,
+      "elapsed_sec": 2.077211618423462,
+      "headers": {
+        "Accept-Ranges": "bytes",
+        "Access-Control-Allow-Origin": "*",
+        "Connection": "close",
+        "Content-Length": "2602976",
+        "Content-Type": "application/octet-stream",
+        "Date": "Tue, 19 May 2026 08:10:06 GMT",
+        "ETag": "\"661df9ea-27b7e0\"",
+        "Last-Modified": "Tue, 16 Apr 2024 04:09:14 GMT",
+        "Server": "nginx"
+      },
+      "path": "outputs\\r2b_p0b_vrp_materialization_v01\\source_downloads\\arin.tal\\roas.csv.xz",
+      "sha256": "2213942630eb485353008344749b6390fc78d3b30d890b576ac16bbb6205275e",
+      "status": 200,
+      "tal": "arin.tal",
+      "url": "https://ftp.ripe.net/rpki/arin.tal/2024/04/16/roas.csv.xz"
+    },
+    {
+      "bytes": 507256,
+      "elapsed_sec": 1.6106963157653809,
+      "headers": {
+        "Accept-Ranges": "bytes",
+        "Access-Control-Allow-Origin": "*",
+        "Connection": "close",
+        "Content-Length": "507256",
+        "Content-Type": "application/octet-stream",
+        "Date": "Tue, 19 May 2026 08:10:13 GMT",
+        "ETag": "\"661dfade-7bd78\"",
+        "Last-Modified": "Tue, 16 Apr 2024 04:13:18 GMT",
+        "Server": "nginx"
+      },
+      "path": "outputs\\r2b_p0b_vrp_materialization_v01\\source_downloads\\lacnic.tal\\roas.csv.xz",
+      "sha256": "45475523efcb3fa14e0ca9ac93d701c11273cf54247142259e75801545d7159b",
+      "status": 200,
+      "tal": "lacnic.tal",
+      "url": "https://ftp.ripe.net/rpki/lacnic.tal/2024/04/16/roas.csv.xz"
+    },
+    {
+      "bytes": 3169784,
+      "elapsed_sec": 2.1240320205688477,
+      "headers": {
+        "Accept-Ranges": "bytes",
+        "Access-Control-Allow-Origin": "*",
+        "Connection": "close",
+        "Content-Length": "3169784",
+        "Content-Type": "application/octet-stream",
+        "Date": "Tue, 19 May 2026 08:10:16 GMT",
+        "ETag": "\"661dfdc2-305df8\"",
+        "Last-Modified": "Tue, 16 Apr 2024 04:25:38 GMT",
+        "Server": "nginx"
+      },
+      "path": "outputs\\r2b_p0b_vrp_materialization_v01\\source_downloads\\ripencc.tal\\roas.csv.xz",
+      "sha256": "f68d29de72556e22e9dfd2ffde24ebd3f525634a8d04f13d97c217080361a5a7",
+      "status": 200,
+      "tal": "ripencc.tal",
+      "url": "https://ftp.ripe.net/rpki/ripencc.tal/2024/04/16/roas.csv.xz"
+    }
+  ],
+  "failures": [],
+  "outputs": {
+    "csv": "data\\evidence\\rpki\\vrp_2024-04-16.csv",
+    "metadata": "data\\evidence\\rpki\\vrp_2024-04-16.metadata.json",
+    "parquet": "data\\evidence\\rpki\\vrp_2024-04-16.parquet"
+  },
+  "readme_url": "https://ftp.ripe.net/rpki/README.txt",
+  "record_count": 530187,
+  "run_date": "2024-04-16",
+  "schema": [
+    "vrp_id",
+    "prefix",
+    "prefix_len",
+    "max_length",
+    "asn",
+    "ta",
+    "source",
+    "source_url",
+    "snapshot_ts",
+    "snapshot_date",
+    "downloaded_at",
+    "aligned_to_run_date",
+    "alignment_delta_hours",
+    "raw_record_hash",
+    "provenance_json"
+  ],
+  "snapshot_date": "2024-04-16",
+  "source_base": "https://ftp.ripe.net/rpki",
+  "source_discovery": "existing aligned file found before download",
+  "source_doc": "https://github.com/RIPE-NCC/internet-dataset-descriptions/blob/main/rpki-repo-archive.md",
+  "source_mode": "existing_normalized_vrp_file",
+  "source_path": "data\\evidence\\rpki\\vrp_2024-04-16.parquet",
+  "source_sha256": "01aabe2e2ac629903dc3c0b26a74d640c29697e547e494ecd62d0a6e0020c7bc",
+  "tal_count": 5,
+  "usable_for_r2b_verdict": true
+}

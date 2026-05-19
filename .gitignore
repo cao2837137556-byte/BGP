@@ -10,6 +10,9 @@ data/runs/
 data/parquet/
 data/mrt_cache/
 data/caida/
+data/evidence/**/*.csv
+data/evidence/**/*.parquet
+data/evidence/**/*.xz
 data/markers/
 data/markers_*/
 outputs/
