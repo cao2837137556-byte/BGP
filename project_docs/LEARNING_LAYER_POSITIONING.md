@@ -1,12 +1,14 @@
 # Learning Layer Positioning
 
-Last updated: 2026-05-17
+Last updated: 2026-05-20
 
 ## 1. Core Judgment
 
 The learning layer is not removed. It is moved later.
 
 Before reliable verification labels exist, do not train an attack/benign classifier. The learning layer should become an incident-level ranker and evidence calibrator, not the primary detector or final judge.
+
+For the current CCF-A target line, the learning layer must become a component-aware semantic ranker/calibrator. It should learn incident internal structure and verifier-supported weak signals; it must not downgrade the project into a detector-score classifier.
 
 ## 2. Why Not Train Now
 
@@ -25,6 +27,8 @@ Learning layer input:
 - incident evidence table
 - evidence state
 - provenance
+- component purity / mixture class
+- dominant pair evidence and member-level evidence distribution
 - monitor evidence
 - RPKI / IRR / ASPA / path-legality evidence
 - temporal and collector features
@@ -35,6 +39,7 @@ Learning layer output:
 - `verification_priority_score`
 - `evidence_confidence_calibration`
 - top-K ranking
+- component split / merge recommendation
 - abstention recommendation
 - conflict likelihood
 - human review priority
@@ -117,8 +122,30 @@ It should answer:
 - Which evidence conflicts need operator attention?
 - Which cases should abstain until external evidence is attached?
 - Which background-like cases are low priority but not confirmed normal?
+- Which component-mixed incidents should be split before any incident-level verdict?
+- Which verifier-supported components carry semantic evidence worth preserving under poisoning?
 
 It should not answer:
 - Is this attack or benign?
 - Can this low-priority incident be used as a negative label?
 - Can the model ignore missing evidence?
+
+## 9. CCF-A Component-Aware Learning Target
+
+For the CCF-A target line, learning is positioned as:
+
+```text
+component-aware semantic ranker / evidence calibrator
+```
+
+It should consume R-2B/R-2C style verifier tables, including:
+
+- dominant prefix-origin evidence;
+- member/component evidence distribution;
+- `component_purity_class`;
+- `should_split_incident_flag`;
+- `evidence_conflict` and `abstain` outcomes;
+- path legality / route-leak evidence when R-2C is complete;
+- poisoning susceptibility features when R-3 is complete.
+
+It should optimize human review ordering and evidence calibration under verifier hard rules. It must not emit final attack/benign labels, hide mixed evidence, or override abstention.

@@ -1,6 +1,6 @@
 # Paper Problem Statement
 
-Last updated: 2026-05-17
+Last updated: 2026-05-20
 
 This is a planning note for Phase R. It is not the paper text.
 
@@ -44,6 +44,29 @@ Chinese:
 
 3. Evaluation contribution:
    Build a poisoning / evasion / legality / human-burden evaluation matrix comparing monitor-only, RPKI-only, legality-only, and multi-evidence verification under incomplete evidence.
+
+## 4A. CCF-A Contribution Version
+
+Current main target: CCF-A / top-tier networking or security venue. SCI Q2 is a fallback only.
+
+Contribution 1: Problem and benchmark
+
+- Formalize poisoning-robust BGP incident triage under partial observability.
+- Build a monitor poisoning / evasion benchmark for public-monitor-based BGP evidence.
+
+Contribution 2: Evidence-constrained verifier
+
+- Validate evidence at member/component level, not only at incident dominant-pair level.
+- Audit component purity and mixture before issuing incident-level verdicts.
+- Output abstention-aware verdicts with provenance and confidence caps.
+
+Contribution 3: Component-aware semantic learning ranker
+
+- Learn incident internal structure after verifier-supported targets exist.
+- Calibrate evidence-supported weak signals without replacing verifier hard rules.
+- Reduce Top-K human review burden under poisoning and missing/conflicting evidence.
+
+The CCF-A claim is not "we built another detector." The claim is that the system turns poisonable monitor alerts into evidence-constrained, component-aware, abstention-capable incident triage.
 
 ## 5. Minimum Experiment Matrix
 

@@ -1,6 +1,6 @@
 # Verifier Redesign Roadmap
 
-Last updated: 2026-05-19
+Last updated: 2026-05-20
 
 ## 1. Architecture
 
@@ -386,3 +386,65 @@ R-2B-P0b aligned VRP/RPKI cache
   -> 2024-near AS relationship / ASPA / IRR evidence completion
   -> R-3 poisoning/evasion benchmark
 ```
+
+## 13. R-2B VRP-Aware Verifier Smoke and CCF-A Path
+
+R-2B is the first evidence-backed verifier smoke after aligned RPKI/VRP cache materialization.
+
+Scope:
+
+- join aligned VRP lookup back to S3-D incidents;
+- preserve both dominant prefix-origin status and member/component status distribution;
+- add incident purity / component mixture audit;
+- emit conservative R-1 verdict candidates;
+- keep mixed incidents visible through `evidence_conflict`, `abstain`, and `evidence_insufficient`;
+- maintain the CCF-A target line and avoid falling back to a simple rule-based anomaly detector.
+
+Implementation entry:
+
+- `scripts/run_r2b_vrp_aware_verifier_smoke.py`
+- `project_docs/R2B_VRP_AWARE_VERIFIER_SMOKE.md`
+- `project_docs/CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`
+
+Full fixed S2 result:
+
+- processed incidents: `217165`
+- dominant pair RPKI status:
+  - `valid=122280`
+  - `unknown=94202`
+  - `invalid_asn=397`
+  - `invalid_length=283`
+  - `unavailable=3`
+- component purity:
+  - `pure_dominant=114237`
+  - `insufficient_component_signal=94666`
+  - `highly_mixed_should_split=4689`
+  - `mostly_dominant=3023`
+  - `mixed_but_core_suspicious=479`
+  - `mixed_conflicting=71`
+- verifier verdicts:
+  - `background_like_but_unconfirmed=156971`
+  - `evidence_insufficient=55366`
+  - `abstain=4684`
+  - `evidence_conflict=86`
+  - `evidence_supported_suspicious=55`
+  - `external_evidence_unavailable=3`
+  - `strongly_supported_suspicious=0`
+- hard safety violations: `0`
+
+Interpretation:
+
+R-2B shows that aligned RPKI evidence can reduce external-unavailable behavior and create evidence-supported candidates while preserving abstention and conflict boundaries. It also shows why incident-level purity matters: thousands of incidents require component split or mixed-evidence handling before any stronger claim is safe.
+
+CCF-A route:
+
+```text
+R-2B: VRP-aware verifier smoke + incident purity audit
+  -> R-2C: path evidence branch / route-leak legality refinement
+  -> R-3: monitor poisoning / evasion benchmark
+  -> L1: component-aware semantic learner
+  -> L2: evidence-constrained ranker / calibrator
+  -> R-4: multi-evidence robustness evaluation
+```
+
+The current main target is CCF-A / top-tier networking or security venue. SCI Q2 remains a fallback only. The project should be judged against poisoning robustness, evidence constraints, component awareness, and human-burden reduction under partial observability.
