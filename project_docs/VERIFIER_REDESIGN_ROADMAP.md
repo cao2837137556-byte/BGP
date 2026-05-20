@@ -508,3 +508,59 @@ R-2B: VRP-aware verifier smoke + incident purity audit
 ```
 
 This keeps the project from becoming an offline-only verifier demo. R-2C should preserve the same operational constraints: no per-incident remote lookup in the online path, explicit stale/unavailable fallback, and Top-K review rather than full manual inspection.
+
+## 15. R-2C-0 Path Evidence Readiness Audit
+
+R-2C-0 is the gate before implementing path evidence, route-leak legality, or path-manipulation verification.
+
+Scope:
+
+- audit whether fixed S2 incidents have usable path, AS-pair, and AS-triplet lookup keys;
+- generate AS-pair, triplet, and full-path lookup targets;
+- inventory local path evidence caches;
+- distinguish stale diagnostics from aligned evidence;
+- produce the minimal R-2C path evidence plan;
+- do not download new evidence;
+- do not modify R-2B verifier verdicts;
+- do not run route-leak verification.
+
+Implementation entry:
+
+- `scripts/run_r2c0_path_evidence_readiness_audit.py`
+- `project_docs/R2C0_PATH_EVIDENCE_READINESS_AUDIT.md`
+
+Full fixed S2 result:
+
+- incidents checked: `217165`;
+- complete path-key incidents: `217162` (`0.999986`);
+- triplet-capable incidents: `217162` (`0.999986`);
+- AS-pair targets: `216922`;
+- triplet targets: `205067`;
+- full-path targets: `217162`;
+- legacy 2017 CAIDA AS relationship: `ready_stale` / stale diagnostic only;
+- 2024-near AS relationship cache: `missing`;
+- ASPA cache: `missing`;
+- BGP Roles / OTC cache: `missing`;
+- PeeringDB cache: `missing`;
+- known-event path context: `present_unverified_schema`.
+
+R-2C-0 shows that lookup keys are not the blocker. The blocker is aligned path evidence. The direct route-leak verifier should not be launched until path evidence is either aligned or deliberately scoped as stale/diagnostic.
+
+Updated route:
+
+```text
+R-2C-0 path evidence readiness audit
+  -> R-2C-P0b 2024-near AS relationship cache materialization
+  -> ASPA / BGP Roles / OTC feasibility checks
+  -> R-2C route-leak/path-legality verifier smoke
+  -> R-3 poisoning/evasion benchmark
+  -> L1 component-aware semantic learner design
+```
+
+Hard boundaries for R-2C:
+
+- stale AS relationship evidence cannot be strong evidence;
+- valley-free or relationship conflicts are not confirmed route leaks;
+- missing path evidence is not benign;
+- public monitor path context is not independent truth;
+- PeeringDB is diagnostic/context only.

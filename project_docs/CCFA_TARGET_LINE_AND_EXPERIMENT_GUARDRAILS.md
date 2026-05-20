@@ -97,6 +97,8 @@ R-2B-OPS adds deployment constraints that are part of the CCF-A target line:
 
 These guardrails must carry into R-2C path evidence, R-3 poisoning/evasion benchmark, and L1/L2 learning design.
 
+Path evidence is a required condition for the multi-attack-family verifier. RPKI/VRP origin evidence alone cannot support route-leak, path-manipulation, valley-free, ASPA, or BGP Roles / OTC claims. R-2C work must therefore attach aligned or explicitly stale path evidence before route-leak verifier claims are made. Stale AS relationship snapshots are diagnostic only, PeeringDB is context only, and missing path evidence is not benign.
+
 ## 8. Fallback Policy
 
 If the poisoning benchmark or learning ranker is weak, the project can fall back to a strong SCI version.
