@@ -448,3 +448,63 @@ R-2B: VRP-aware verifier smoke + incident purity audit
 ```
 
 The current main target is CCF-A / top-tier networking or security venue. SCI Q2 remains a fallback only. The project should be judged against poisoning robustness, evidence constraints, component awareness, and human-burden reduction under partial observability.
+
+## 14. R-2B-OPS Operational Burden and Real-Time Cache Guardrail
+
+R-2B-OPS is the deployment-facing guardrail after the first VRP-aware verifier smoke.
+
+Scope:
+
+- project fixed S2 six-hour verifier queues into daily workload proxies;
+- define which queues can be reviewed directly, which require Top-K, which require sampling, and which should wait for more evidence;
+- simulate deterministic Top-K review budgets without training a model;
+- define the real-time evidence cache architecture;
+- define freshness and fallback behavior for stale, missing, and conflicting evidence;
+- draft SLO measurement hooks for future near-real-time deployment;
+- do not download new evidence;
+- do not modify R-2B verifier verdicts;
+- do not train L1/L2.
+
+Implementation entry:
+
+- `scripts/run_r2b_ops_realtime_burden_audit.py`
+- `project_docs/R2B_OPS_REALTIME_BURDEN_AUDIT.md`
+
+Full fixed S2 result:
+
+- input incidents: `217165`;
+- projected daily evidence-supported suspicious: `220`;
+- projected daily conflict queue: `344`;
+- projected daily abstain: `18736`;
+- projected daily evidence-insufficient: `221464`;
+- projected daily background-like but unconfirmed: `627884`;
+- projected daily mixed should-split queue: `18756`;
+- Top-50 supported density: `1.0`;
+- Top-100 supported density: `0.53`;
+- Top-500 supported density: `0.11`;
+- verifier verdict modified: `false`;
+- new external evidence downloaded: `false`.
+
+R-2B-OPS establishes a required deployment constraint for R-2C and R-3: online verification must use local evidence-cache lookups only. External evidence download and normalization belong to asynchronous updaters with versioned caches, index build, atomic cache switch, and provenance/freshness metadata.
+
+Freshness and fallback policy:
+
+- stale RPKI/VRP can lower evidence state but must not imply benignness;
+- stale AS relationship evidence is diagnostic only;
+- IRR/PeeringDB/known-event evidence must keep provenance and conflict visible;
+- data-plane evidence is asynchronous enrichment, not an online-path blocker;
+- public monitor context remains trigger/context evidence, not final truth.
+
+Updated CCF-A route:
+
+```text
+R-2B: VRP-aware verifier smoke + incident purity audit
+  -> R-2B-OPS: operational burden + real-time evidence-cache guardrail
+  -> R-2C: path evidence branch / route-leak legality refinement
+  -> R-3: monitor poisoning / evasion benchmark
+  -> L1: component-aware semantic learner design
+  -> L2: evidence-constrained ranker / calibrator
+  -> R-4: multi-evidence robustness evaluation
+```
+
+This keeps the project from becoming an offline-only verifier demo. R-2C should preserve the same operational constraints: no per-incident remote lookup in the online path, explicit stale/unavailable fallback, and Top-K review rather than full manual inspection.

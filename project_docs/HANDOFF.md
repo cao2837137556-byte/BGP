@@ -24,6 +24,7 @@
 - R-2B-0 found that incident lookup keys are largely ready (`217162` prefix-origin complete, `216922` path-key complete), while aligned external caches are not ready: RPKI/VRP missing, IRR missing, ASPA missing, PeeringDB missing, and only stale 2017 CAIDA AS-rel is available.
 - Phase R-2B-P0b historical VRP/RPKI cache materialization has completed for `2024-04-16`: `530187` aligned VRP records, `217162` lookup-eligible prefix-origin targets, RPKI status `valid=122280`, `invalid_asn=397`, `invalid_length=283`, `unknown=94202`, `unavailable=0`, and no hard safety violations.
 - Phase R-2B VRP-aware verifier smoke has completed on all `217165` fixed S2 incidents with member/component RPKI audit: `evidence_supported_suspicious=55`, `evidence_conflict=86`, `abstain=4684`, `background_like_but_unconfirmed=156971`, `evidence_insufficient=55366`, `external_evidence_unavailable=3`, `strongly_supported_suspicious=0`, hard safety violations `0`.
+- Phase R-2B-OPS operational burden and real-time evidence cache audit has completed: projected daily `evidence_supported_suspicious=220`, `evidence_conflict=344`, `abstain=18736`, `evidence_insufficient=221464`, `background_like_but_unconfirmed=627884`; Top-50 supported density `1.0`, Top-100 `0.53`, Top-500 `0.11`; online path must use local evidence-cache lookup only, not remote per-incident downloads.
 - Next default step is R-2C legality/path refinement, with R-3 poisoning benchmark design and L1 component-aware learner design as follow-on; do not return to legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
@@ -619,6 +620,14 @@ Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证�
   - verdict：`background_like_but_unconfirmed=156971`、`evidence_insufficient=55366`、`abstain=4684`、`evidence_conflict=86`、`evidence_supported_suspicious=55`、`external_evidence_unavailable=3`、`strongly_supported_suspicious=0`。
   - hard safety violations `0`；legacy P1/P2 `55083`，evidence/conflict/abstain candidate review count `4825`，unsupported alert reduction proxy `0.912405`。
   - 关键解释：R-2B 是 first evidence-backed verifier smoke，不是真假判定；混杂 incident 显式进入 conflict/abstain/insufficient，不被粗暴整体判 suspicious 或 background。
+- Phase R-2B-OPS operational burden and realtime cache audit 已完成：
+  - 新增 `scripts/run_r2b_ops_realtime_burden_audit.py`
+  - 新增 `project_docs/R2B_OPS_REALTIME_BURDEN_AUDIT.md`
+  - full 输出目录：`outputs/r2b_ops_realtime_burden_audit_v01/`
+  - 口径：固定 run `s2a_expanded_v01_pilot_6h_april16`，只读 R-2B verifier table 和 VRP metadata；不下载新证据、不修改 verifier verdict、不训练 learning layer、不做 R-2C/R-3。
+  - 日级线性外推：`evidence_supported_suspicious=220`、`evidence_conflict=344`、`abstain=18736`、`evidence_insufficient=221464`、`background_like_but_unconfirmed=627884`、`mixed_should_split=18756`、`mixed_but_core_suspicious=1916`。
+  - Top-K smoke：Top-50 evidence-supported density `1.0`，Top-100 `0.53`，Top-500 `0.11`；相对 legacy P1/P2 burden reduction proxy 分别为 `0.9991`、`0.9982`、`0.9909`。
+  - 关键解释：真实部署中 online path 不做远程 evidence 下载，只查本地 versioned cache；cache stale/unavailable 不阻塞 monitor trigger，但会降级为 stale/insufficient/unavailable/abstain/conflict。
 
 ## 8. 下一步默认动作
 
@@ -644,12 +653,13 @@ Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证�
 18. R-2B-0 evidence readiness audit 已完成：fixed S2 `217165` incidents 中 `217162` 有 prefix-origin complete key，`217165` 有 time window，`216922` 有 complete path key，`205067` 有 complete triplet key；本地 RPKI/VRP、IRR、ASPA、PeeringDB cache 当时缺失，known-event inventory 仅 `present_unverified_schema`，2017 CAIDA AS-rel 只能是 `stale_diagnostic`。
 19. R-2B-P0b historical VRP/RPKI cache materialization 已完成：`2024-04-16` aligned VRP `530187` 条；`217162` prefix-origin targets 完成离线 RPKI lookup；status 为 `valid=122280`、`invalid_asn=397`、`invalid_length=283`、`unknown=94202`、`unavailable=0`；没有 hard safety violation，没有修改 verifier verdict。
 20. R-2B VRP-aware verifier smoke 已完成：固定 S2 `217165` incidents 上输出 component-aware verifier table；`evidence_supported_suspicious=55`、`evidence_conflict=86`、`abstain=4684`、`strongly_supported_suspicious=0`、hard safety violations `0`；should-split incidents `4689`。
-21. 当前 CCF-A target line 已冻结：主目标为 CCF-A/top-tier networking or security venue，SCI Q2 仅 fallback；最终系统不是普通 BGP anomaly detector，而是 poisoning-robust, evidence-constrained, component-aware semantic triage。
-22. 下一步默认不是继续优化 raw detector score，而是进入 R-2C legality/path refinement，并同步设计 R-3 poisoning benchmark 与 L1 component-aware semantic learner。
-23. S3-D3/S4 形成 high-confidence set 后，再考虑正式训练 incident-level learning ranker / evidence calibrator。
-24. 24h expanded 应作为 `S2-D 24h with incidents/verifier`，不要回到纯 event-level 评估。
-25. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
-26. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
+21. R-2B-OPS operational burden and realtime cache audit 已完成：Top-K review 是控制人工负担的默认口径；online path 不允许每个 incident 远程查证据，必须走本地 evidence cache；abstain/insufficient/background-like 不全量交给人工。
+22. 当前 CCF-A target line 已冻结：主目标为 CCF-A/top-tier networking or security venue，SCI Q2 仅 fallback；最终系统不是普通 BGP anomaly detector，而是 poisoning-robust, evidence-constrained, component-aware semantic triage。
+23. 下一步默认不是继续优化 raw detector score，而是进入 R-2C legality/path refinement，并同步设计 R-3 poisoning benchmark 与 L1 component-aware semantic learner。
+24. S3-D3/S4 形成 high-confidence set 后，再考虑正式训练 incident-level learning ranker / evidence calibrator。
+25. 24h expanded 应作为 `S2-D 24h with incidents/verifier`，不要回到纯 event-level 评估。
+26. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
+27. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
 ## 9. 使用规则
 

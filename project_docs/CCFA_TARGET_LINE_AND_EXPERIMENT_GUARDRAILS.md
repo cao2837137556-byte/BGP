@@ -84,7 +84,20 @@ Paper stage: CCF-A claim consolidation
 
 R-2B is the first evidence-backed verifier smoke on this path. Its value is not only RPKI lookup coverage; it is the component-aware constraint that prevents mixed incidents from being forced into suspicious or background verdicts.
 
-## 7. Fallback Policy
+## 7. Operational Deployment Guardrails
+
+R-2B-OPS adds deployment constraints that are part of the CCF-A target line:
+
+- Daily human review must be bounded by Top-K queues, conflict caps, split-candidate review, and sampling. Full manual inspection of all legacy P1/P2, abstain, insufficient, or background-like incidents is not acceptable.
+- The online path must use local evidence-cache lookups only. It must not wait for per-incident remote RPKI, IRR, AS relationship, PeeringDB, or data-plane downloads.
+- External evidence should be maintained by asynchronous background updaters that normalize sources into versioned local caches, build indexes, switch caches atomically, and preserve provenance/freshness metadata.
+- Cache stale/unavailable states do not block monitor-triggered candidate generation. They lower evidence state and can produce `stale_diagnostic`, `evidence_insufficient`, `external_evidence_unavailable`, `abstain`, or `evidence_conflict`.
+- `abstain`, `evidence_insufficient`, and `background_like_but_unconfirmed` are not failures and are not direct human-work queues. They require Top-K, enrichment, waiting, or sampling policy.
+- Human review is a Top-K evidence-supported triage process, not full manual inspection.
+
+These guardrails must carry into R-2C path evidence, R-3 poisoning/evasion benchmark, and L1/L2 learning design.
+
+## 8. Fallback Policy
 
 If the poisoning benchmark or learning ranker is weak, the project can fall back to a strong SCI version.
 
