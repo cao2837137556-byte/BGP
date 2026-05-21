@@ -101,6 +101,17 @@ Path evidence is a required condition for the multi-attack-family verifier. RPKI
 
 CAIDA AS relationship evidence remains inferred evidence even when snapshot-aligned. It may support path-relation diagnostics and route-leak candidates, but it is not route-leak truth. AS-rel violation is not confirmed route leak, AS-rel path legality is not benign, and CAIDA raw orientation must not be silently re-coded into stronger claims without an explicit verifier rule.
 
+R-2C-P1 is the first incident-level path relation smoke on this CCF-A path. It attaches the `2024-04-01` CAIDA AS relationship cache back to AS-pair, triplet, and full-path incident evidence, producing route-leak-like and path-manipulation-like diagnostic candidates without changing R-2B verifier verdicts. This is the right shape for the target line: path evidence becomes explicit, component-aware verifier input, not hidden detector score or claimed route-leak truth.
+
+R-2C-P2 may build a route-leak/path-legality verifier smoke from these diagnostics, but it must still preserve these guardrails:
+
+- possible valley-free diagnostics are not confirmed route leaks;
+- AS-rel matched is not benign;
+- AS-rel unmatched is not suspicious;
+- ASPA / BGP Roles / OTC feasibility should be considered before any stronger path-legality claim;
+- NO_EXPORT / communities remain a separate R-2D-0 availability audit;
+- AS Hegemony remains downstream impact-aware ranking evidence for L1/L2, not part of R-2C-P1.
+
 ## 8. Fallback Policy
 
 If the poisoning benchmark or learning ranker is weak, the project can fall back to a strong SCI version.

@@ -618,3 +618,73 @@ Safety boundaries:
 - AS-rel path legality is not benign;
 - CAIDA `-1` orientation must be interpreted with CAIDA documentation before valley-free logic;
 - future snapshots are not allowed for formal verifier evidence.
+
+## 17. R-2C-P1 Path Relation Lookup Smoke
+
+R-2C-P1 attaches the R-2C-P0b AS relationship cache back to incident-level path evidence.
+
+Scope:
+
+- expand AS-pair targets and join them against the `2024-04-01` CAIDA AS-rel cache;
+- convert triplets into two adjacent relation lookups;
+- generate full-path relation sequences;
+- aggregate path evidence back to incident level;
+- combine origin-side R-2B evidence with path-side diagnostic evidence;
+- generate a deterministic Top-K path-review smoke;
+- do not generate route-leak verdicts;
+- do not modify R-2B verifier verdicts;
+- do not train learning models;
+- do not run NO_EXPORT/community, AS Hegemony, ASPA, or BGP Roles / OTC branches.
+
+Implementation entry:
+
+- `scripts/run_r2c_p1_path_relation_lookup_smoke.py`
+- `project_docs/R2C_P1_PATH_RELATION_LOOKUP_SMOKE.md`
+
+Fixed S2 result:
+
+- expanded AS-pair rows: `421989`;
+- matched AS-pair rows: `399839`;
+- unmatched AS-pair rows: `22150`;
+- row-level AS-pair match rate: `0.947510`;
+- relation types: `p2c_or_c2p_raw=270770`, `p2p=129069`, `unknown=22150`;
+- triplet rows: `205067`;
+- possible valley/peer-transit diagnostic rows: `34192`;
+- full-path rows: `217162`;
+- mean full-path unknown pair rate: `0.054964`;
+- incident path evidence rows: `217165`;
+- path evidence states: `aligned_medium=161992`, `diagnostic_only=34192`, `evidence_insufficient=18084`, `unavailable=2897`;
+- route-leak-like diagnostic candidates: `34555`;
+- path-manipulation-like diagnostic candidates: `44189`;
+- route-leak verdict generated: `false`;
+- R-2B verifier verdict modified: `false`.
+
+Combined origin + path distribution:
+
+- `origin_valid_path_suspicious=108583`;
+- `origin_unknown_path_suspicious=86980`;
+- `background_like_combined=14603`;
+- `insufficient_combined_evidence=6337`;
+- `path_supported_only=521`;
+- `origin_path_conflict=86`;
+- `origin_and_path_supported=46`;
+- `origin_supported_only=9`.
+
+Updated route:
+
+```text
+R-2C-P1 path relation lookup smoke
+  -> R-2C-P2 route-leak/path-legality verifier smoke
+  -> ASPA / BGP Roles / OTC feasibility checks
+  -> R-2D-0 communities / NO_EXPORT field availability audit
+  -> R-3 poisoning/evasion benchmark
+  -> L1 component-aware semantic learner design
+```
+
+Safety boundaries:
+
+- AS-rel matched is not path benign;
+- AS-rel unmatched is not path suspicious;
+- possible valley-free diagnostics are not confirmed route leaks;
+- AS relationship evidence is inferred and must keep provenance visible;
+- R-2C-P2 may consume R-2C-P1 diagnostic candidates, but it must still preserve abstain/conflict behavior and hard safety rules.
