@@ -564,3 +564,57 @@ Hard boundaries for R-2C:
 - missing path evidence is not benign;
 - public monitor path context is not independent truth;
 - PeeringDB is diagnostic/context only.
+
+## 16. R-2C-P0b 2024-near AS Relationship Cache
+
+R-2C-P0b materializes the first aligned path evidence cache after R-2C-0.
+
+Scope:
+
+- download or reuse CAIDA AS Relationships serial-2 snapshot `2024-04-01`;
+- normalize AS relationship records into a bidirectional local lookup cache;
+- preserve CAIDA raw orientation rather than forcing valley-free semantics;
+- run AS-pair lookup smoke over R-2C-0 targets;
+- do not generate route-leak verdicts;
+- do not modify R-2B verifier verdicts;
+- do not train learning models.
+
+Implementation entry:
+
+- `scripts/run_r2c_p0b_materialize_asrel_cache.py`
+- `project_docs/R2C_P0B_2024_ASREL_CACHE.md`
+
+Full fixed S2 result:
+
+- source: `https://data.caida.org/datasets/as-relationships/serial-2/20240401.as-rel2.txt.bz2`;
+- snapshot date: `2024-04-01`;
+- run date: `2024-04-16`;
+- alignment delta: `15` days;
+- future snapshot: `false`;
+- raw AS-rel records: `571330`;
+- directed lookup records: `1142660`;
+- parse warnings: `0`;
+- AS-pair target rows: `216922`;
+- unique AS-pairs: `61997`;
+- matched unique AS-pairs: `56971`;
+- unmatched unique AS-pairs: `5026`;
+- unique AS-pair match rate: `0.918932`;
+- relation distribution: `p2c_or_c2p_raw=33144`, `p2p=23827`, `unknown=5026`.
+
+Updated route:
+
+```text
+R-2C-P0b 2024-near CAIDA AS-rel cache
+  -> R-2C-P1 path relation lookup smoke / path-legality smoke
+  -> ASPA / BGP Roles / OTC feasibility checks
+  -> R-2C-P2 route-leak legality smoke
+  -> R-3 poisoning/evasion benchmark
+```
+
+Safety boundaries:
+
+- AS relationship evidence is inferred evidence, not route-leak truth;
+- AS-rel violation is not confirmed route leak;
+- AS-rel path legality is not benign;
+- CAIDA `-1` orientation must be interpreted with CAIDA documentation before valley-free logic;
+- future snapshots are not allowed for formal verifier evidence.

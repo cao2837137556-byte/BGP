@@ -1,0 +1,47 @@
+{
+  "aligned_to_run_date": true,
+  "alignment_delta_days": 15,
+  "comment_line_count": 180,
+  "dataset_name": "CAIDA AS Relationships serial-2",
+  "dataset_type": "AS Relationships serial-2",
+  "downloaded_at": "2026-05-21T04:37:27.211422+00:00",
+  "hard_safety_notes": [
+    "inferred AS relationships are not ground truth",
+    "AS-rel violation is not confirmed route leak",
+    "AS-rel path legality is not benign",
+    "stale or future snapshots cannot be used as strong evidence",
+    "use AS-rel only as path evidence with provenance"
+  ],
+  "input_file": "data\\caida\\as-relationships\\serial-2\\20240401.as-rel2.txt.bz2",
+  "is_future_snapshot": false,
+  "no_commit_large_outputs": true,
+  "output_csv": "data\\evidence\\as_relationships\\as_rel_2024-04-01.csv",
+  "output_parquet": "data\\evidence\\as_relationships\\as_rel_2024-04-01.parquet",
+  "parse_warning_count": 0,
+  "provider": "CAIDA",
+  "raw_record_count": 571330,
+  "record_count": 1142660,
+  "run_date": "2024-04-16",
+  "snapshot_date": "2024-04-01",
+  "source_status": {
+    "download_attempts": [
+      {
+        "bytes": 1787109,
+        "content_type": "application/x-bzip2",
+        "elapsed_sec": 8.200182676315308,
+        "path": "data\\caida\\as-relationships\\serial-2\\20240401.as-rel2.txt.bz2",
+        "sha256": "3aa7109b61255edd8cb2b17a67af545cd3f9a90a789b96d700a4787b2603222d",
+        "status": 200,
+        "url": "https://data.caida.org/datasets/as-relationships/serial-2/20240401.as-rel2.txt.bz2"
+      }
+    ],
+    "input_file": "data\\caida\\as-relationships\\serial-2\\20240401.as-rel2.txt.bz2",
+    "manual_required": false,
+    "normalized_exists": false,
+    "source_url": "https://data.caida.org/datasets/as-relationships/serial-2/20240401.as-rel2.txt.bz2",
+    "status": "downloaded"
+  },
+  "source_url": "https://data.caida.org/datasets/as-relationships/serial-2/20240401.as-rel2.txt.bz2",
+  "usable_evidence_strength": "aligned_medium",
+  "usable_for_r2c": true
+}

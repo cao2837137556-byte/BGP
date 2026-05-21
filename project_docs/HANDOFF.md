@@ -26,7 +26,8 @@
 - Phase R-2B VRP-aware verifier smoke has completed on all `217165` fixed S2 incidents with member/component RPKI audit: `evidence_supported_suspicious=55`, `evidence_conflict=86`, `abstain=4684`, `background_like_but_unconfirmed=156971`, `evidence_insufficient=55366`, `external_evidence_unavailable=3`, `strongly_supported_suspicious=0`, hard safety violations `0`.
 - Phase R-2B-OPS operational burden and real-time evidence cache audit has completed: projected daily `evidence_supported_suspicious=220`, `evidence_conflict=344`, `abstain=18736`, `evidence_insufficient=221464`, `background_like_but_unconfirmed=627884`; Top-50 supported density `1.0`, Top-100 `0.53`, Top-500 `0.11`; online path must use local evidence-cache lookup only, not remote per-incident downloads.
 - Phase R-2C-0 path evidence readiness audit has completed: `217165` incidents checked; complete path-key incidents `217162` (`0.999986`); AS-pair targets `216922`; triplet targets `205067`; full-path targets `217162`; 2017 CAIDA AS-rel is `ready_stale` only; 2024-near AS-rel, ASPA, BGP Roles/OTC, and PeeringDB caches are missing.
-- Next default step is R-2C legality/path refinement, with R-3 poisoning benchmark design and L1 component-aware learner design as follow-on; do not return to legacy detector-score tuning unless explicitly requested.
+- Phase R-2C-P0b 2024-near CAIDA AS relationship cache materialization has completed: source `https://data.caida.org/datasets/as-relationships/serial-2/20240401.as-rel2.txt.bz2`; snapshot `2024-04-01`, run date `2024-04-16`, delta `15` days; raw AS-rel records `571330`, directed lookup records `1142660`; AS-pair unique match rate `0.918932`; no route-leak verdict generated and no verifier verdict modified.
+- Next default step is R-2C-P1 path relation lookup smoke / path-legality smoke, with R-3 poisoning benchmark design and L1 component-aware learner design as follow-on; do not return to legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
 
@@ -637,6 +638,15 @@ Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证�
   - 结果：checked `217165` incidents；complete path-key `217162` (`0.999986`)；triplet-capable `217162` (`0.999986`)；AS-pair targets `216922`；triplet targets `205067`；full-path targets `217162`。
   - cache readiness：2017 CAIDA AS-rel `ready_stale`/`stale_diagnostic only`；2024-near AS-rel `missing`；ASPA `missing`；BGP Roles/OTC `missing`；PeeringDB `missing`；known-event path context `present_unverified_schema`。
   - 关键解释：path lookup keys 基本不阻塞，阻塞点是 aligned path evidence cache；下一步应做 R-2C-P0b 2024-near AS relationship cache materialization，而不是直接写 route-leak verifier。
+- Phase R-2C-P0b 2024-near CAIDA AS relationship cache materialization 已完成：
+  - 新增 `scripts/run_r2c_p0b_materialize_asrel_cache.py`
+  - 新增 `project_docs/R2C_P0B_2024_ASREL_CACHE.md`
+  - full 输出目录：`outputs/r2c_p0b_asrel_materialization_v01/`
+  - 本地 evidence cache：`data/evidence/as_relationships/as_rel_2024-04-01.parquet`、`data/evidence/as_relationships/as_rel_2024-04-01.csv`、`data/evidence/as_relationships/as_rel_2024-04-01.metadata.json`
+  - source：CAIDA AS Relationships serial-2 `https://data.caida.org/datasets/as-relationships/serial-2/20240401.as-rel2.txt.bz2`；raw file `data/caida/as-relationships/serial-2/20240401.as-rel2.txt.bz2`
+  - 结果：snapshot `2024-04-01`，run date `2024-04-16`，alignment delta `15` days，future snapshot `false`，usable for R-2C `true`，raw AS-rel records `571330`，directed lookup records `1142660`，parse warnings `0`。
+  - AS-pair lookup smoke：target rows `216922`，unique pairs `61997`，matched unique pairs `56971`，unmatched `5026`，match rate `0.918932`；rel type distribution `p2c_or_c2p_raw=33144`、`p2p=23827`、`unknown=5026`。
+  - 关键解释：AS relationship 是 inferred evidence，不是 route-leak truth；本轮没有生成 route-leak verdict，没有修改 R-2B verifier verdict，learning 仍不能训练。
 
 ## 8. 下一步默认动作
 
@@ -664,12 +674,13 @@ Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证�
 20. R-2B VRP-aware verifier smoke 已完成：固定 S2 `217165` incidents 上输出 component-aware verifier table；`evidence_supported_suspicious=55`、`evidence_conflict=86`、`abstain=4684`、`strongly_supported_suspicious=0`、hard safety violations `0`；should-split incidents `4689`。
 21. R-2B-OPS operational burden and realtime cache audit 已完成：Top-K review 是控制人工负担的默认口径；online path 不允许每个 incident 远程查证据，必须走本地 evidence cache；abstain/insufficient/background-like 不全量交给人工。
 22. R-2C-0 path evidence readiness audit 已完成：path/triplet lookup keys 基本 ready，但 2024-near AS-rel/ASPA/Roles evidence cache 缺失；2017 CAIDA AS-rel 只能 stale diagnostic。
-23. 当前 CCF-A target line 已冻结：主目标为 CCF-A/top-tier networking or security venue，SCI Q2 仅 fallback；最终系统不是普通 BGP anomaly detector，而是 poisoning-robust, evidence-constrained, component-aware semantic triage。
-24. 下一步默认不是继续优化 raw detector score，而是进入 R-2C-P0b 2024-near AS relationship cache materialization，并同步设计 R-3 poisoning benchmark 与 L1 component-aware semantic learner。
-25. S3-D3/S4 形成 high-confidence set 后，再考虑正式训练 incident-level learning ranker / evidence calibrator。
-26. 24h expanded 应作为 `S2-D 24h with incidents/verifier`，不要回到纯 event-level 评估。
-27. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
-28. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
+23. R-2C-P0b 2024-near CAIDA AS relationship cache materialization 已完成：`2024-04-01` snapshot 可用，AS-pair lookup smoke match rate `0.918932`；AS-rel 仍只是 inferred path evidence，不是 route-leak truth。
+24. 当前 CCF-A target line 已冻结：主目标为 CCF-A/top-tier networking or security venue，SCI Q2 仅 fallback；最终系统不是普通 BGP anomaly detector，而是 poisoning-robust, evidence-constrained, component-aware semantic triage。
+25. 下一步默认不是继续优化 raw detector score，而是进入 R-2C-P1 path relation lookup smoke / path-legality smoke，并同步设计 R-3 poisoning benchmark 与 L1 component-aware semantic learner。
+26. S3-D3/S4 形成 high-confidence set 后，再考虑正式训练 incident-level learning ranker / evidence calibrator。
+27. 24h expanded 应作为 `S2-D 24h with incidents/verifier`，不要回到纯 event-level 评估。
+28. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。
+29. 不回头为历史事件口径反复折腾；历史阶段默认视为已收口资产。
 
 ## 9. 使用规则
 

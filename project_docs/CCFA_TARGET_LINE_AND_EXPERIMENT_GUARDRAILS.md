@@ -99,6 +99,8 @@ These guardrails must carry into R-2C path evidence, R-3 poisoning/evasion bench
 
 Path evidence is a required condition for the multi-attack-family verifier. RPKI/VRP origin evidence alone cannot support route-leak, path-manipulation, valley-free, ASPA, or BGP Roles / OTC claims. R-2C work must therefore attach aligned or explicitly stale path evidence before route-leak verifier claims are made. Stale AS relationship snapshots are diagnostic only, PeeringDB is context only, and missing path evidence is not benign.
 
+CAIDA AS relationship evidence remains inferred evidence even when snapshot-aligned. It may support path-relation diagnostics and route-leak candidates, but it is not route-leak truth. AS-rel violation is not confirmed route leak, AS-rel path legality is not benign, and CAIDA raw orientation must not be silently re-coded into stronger claims without an explicit verifier rule.
+
 ## 8. Fallback Policy
 
 If the poisoning benchmark or learning ranker is weak, the project can fall back to a strong SCI version.
