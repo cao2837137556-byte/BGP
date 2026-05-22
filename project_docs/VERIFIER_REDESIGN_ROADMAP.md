@@ -743,3 +743,54 @@ Safety boundaries:
 - AS-rel-only evidence cannot trigger a strong verdict;
 - `background_like_but_unconfirmed` remains unconfirmed and cannot be used as a negative label;
 - learning may consume these fields later for ranking/calibration design, but formal training remains blocked until verifier-supported targets and robustness scenarios exist.
+
+## 19. R-LOCK-1 Architecture Minimality Lock
+
+R-LOCK-1 freezes the paper-facing architecture into three stages plus a human-facing Top-K queue. This prevents the system from being described as a pile of legacy detector layers, evidence scripts, verifier rules, and future learning pieces.
+
+Locked architecture:
+
+```text
+Stage 1: Monitor-triggered Incident Construction
+  -> Stage 2: Evidence-constrained Verification
+  -> Stage 3: Component-aware Learning Triage
+  -> Top-K Review Queue
+```
+
+Interpretation:
+
+- Stage 1 compresses the old seven-layer pipeline into incident construction, key extraction, and monitor-side weak/context signals.
+- Stage 2 is the verifier. It attaches evidence, preserves conflict/insufficient/abstain states, and refuses attack/benign overclaims.
+- Stage 3 is the learning ranker/calibrator. It sits after the verifier and before Top-K, learns review priority and component/evidence consistency, and cannot override verifier hard rules.
+- Top-K is the human-facing review budget, not the learning layer itself.
+
+Implementation and planning documents:
+
+- `project_docs/ARCHITECTURE_MINIMALITY_AND_ABLATION_PLAN.md`
+- `project_docs/SYSTEM_OUTPUT_SCHEMA_SIMPLIFIED.md`
+
+R-LOCK-1 also defines the ablation defense for reviewer criticism:
+
+- A0 full system;
+- A1 remove Stage 2 verifier and use old seven-layer output only;
+- A2 remove RPKI/VRP origin evidence;
+- A3 remove AS-rel path evidence;
+- A4 remove component purity;
+- A5 remove abstention/conflict and force every case into supported/background;
+- A6 remove learning ranker and use deterministic score only;
+- A7 remove Top-K budget and show full manual burden;
+- A8 compare monitor-only and verifier-constrained systems under poisoning;
+- A9 evaluate stealth evidence with and without future communities/NO_EXPORT branch if fields exist.
+
+Locked route after R-LOCK-1:
+
+```text
+Architecture Lock
+  -> R-2D-0 communities / NO_EXPORT field availability audit
+  -> R-3 poisoning / evasion benchmark design
+  -> L1 component-aware semantic learner design
+  -> architecture ablation implementation
+  -> R-2D community-aware stealth evidence branch if fields exist
+```
+
+This route is now the default. Further legacy detector-score optimization is out of scope unless it is needed to repair Stage 1 lookup keys or to define a poisoning baseline.

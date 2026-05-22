@@ -1,6 +1,6 @@
 # Learning Layer Positioning
 
-Last updated: 2026-05-20
+Last updated: 2026-05-22
 
 ## 1. Core Judgment
 
@@ -45,6 +45,29 @@ Learning layer output:
 - human review priority
 
 The model ranks and calibrates. It does not override verifier safety rules.
+
+## 3A. Placement Between Verifier And Top-K
+
+R-LOCK-1 fixes the learning-layer position:
+
+```text
+Stage 2 verifier
+  -> Stage 3 component-aware learning ranker / calibrator
+  -> Top-K Review Queue
+```
+
+The learning layer is before Top-K, not after Top-K. It is the mechanism that orders and calibrates verifier-supported, conflict, insufficient, abstain, and background-like incident/component records under a review budget.
+
+It is not allowed to:
+
+- override verifier hard rules;
+- turn `background_like_but_unconfirmed` into a negative label;
+- hide `evidence_conflict` or `abstain`;
+- convert unavailable evidence into benignness;
+- replace the Top-K review queue with an unbounded manual workload;
+- become a primary attack/benign detector trained from `high/needs/low` or `P1/P2/P3`.
+
+Top-K is the human-facing queue produced after ranking. It is not the learning model itself.
 
 ## 4. When To Train
 

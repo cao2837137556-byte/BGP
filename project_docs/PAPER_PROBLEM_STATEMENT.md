@@ -1,6 +1,6 @@
 # Paper Problem Statement
 
-Last updated: 2026-05-20
+Last updated: 2026-05-22
 
 This is a planning note for Phase R. It is not the paper text.
 
@@ -67,6 +67,31 @@ Contribution 3: Component-aware semantic learning ranker
 - Reduce Top-K human review burden under poisoning and missing/conflicting evidence.
 
 The CCF-A claim is not "we built another detector." The claim is that the system turns poisonable monitor alerts into evidence-constrained, component-aware, abstention-capable incident triage.
+
+## 4B. Three-stage Final System Version
+
+The paper-facing architecture after R-LOCK-1 is:
+
+```text
+Stage 1: Monitor-triggered Incident Construction
+  -> Stage 2: Evidence-constrained Verification
+  -> Stage 3: Component-aware Learning Triage
+  -> Top-K Review Queue
+```
+
+Stage 1 compresses the legacy seven-layer pipeline. It constructs incidents/components, extracts prefix-origin-path-time-collector keys, and preserves monitor-derived weak signals. It does not decide attack or benign.
+
+Stage 2 attaches versioned evidence and emits abstention-aware verifier outputs: `evidence_supported_suspicious`, `evidence_conflict`, `evidence_insufficient`, `external_evidence_unavailable`, `background_like_but_unconfirmed`, and `abstain`. RPKI invalid is not confirmed attack, AS-rel violation is not confirmed route leak, and background-like is not confirmed benign.
+
+Stage 3 is a component-aware semantic learning ranker/calibrator. It is downstream of the verifier and upstream of Top-K. It learns review priority, evidence consistency, component split priority, and calibration under hard verifier constraints. It does not override verifier verdict rules or emit confirmed attack/benign labels.
+
+Top-K is the human-facing review budget. It is the output queue after ranking, not the learning layer itself.
+
+This version is the cleanest contribution framing:
+
+1. Stage 1 gives scalable candidate incident construction from public monitors.
+2. Stage 2 gives evidence-constrained safety under incomplete and conflicting evidence.
+3. Stage 3 gives budgeted, component-aware semantic triage rather than full manual inspection.
 
 ## 5. Minimum Experiment Matrix
 

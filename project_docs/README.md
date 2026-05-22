@@ -36,12 +36,15 @@
   - `R2C_P1_PATH_RELATION_LOOKUP_SMOKE.md`
 - Phase R-2C-P2 path-legality verifier smoke 文档：
   - `R2C_P2_PATH_LEGALITY_VERIFIER_SMOKE.md`
+- Phase R architecture lock 文档：
+  - `ARCHITECTURE_MINIMALITY_AND_ABLATION_PLAN.md`
+  - `SYSTEM_OUTPUT_SCHEMA_SIMPLIFIED.md`
 - CCF-A target-line guardrail：
   - `CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`
 
 ## Current Phase Guardrail
 
-Current phase: Phase R-2C-P2 completed. R-1 verifier state machine design has been completed and accepted. R-2A legality-first verifier scaffold completed a 50k smoke run, R-2B-0 evidence readiness audit completed a full incident-level audit on `217165` fixed S2 incidents, R-2B-P0b materialized aligned historical VRP/RPKI evidence for `2024-04-16`, R-2B connected that evidence back into a component-aware verifier smoke, R-2B-OPS audited operational burden plus real-time evidence-cache guardrails, R-2C-0 audited path evidence readiness, R-2C-P0b materialized a `2024-04-01` CAIDA AS Relationships cache, R-2C-P1 attached that cache back to AS-pair/triplet/full-path incident evidence, and R-2C-P2 converted path diagnostics into an R-1-compatible path-legality verifier smoke without confirmed route-leak labels or R-2B verdict changes. The next implementation steps are R-2D-0 communities / NO_EXPORT field availability audit, L1 component-aware semantic learner design, and R-3 poisoning/evasion benchmark early design. Do not continue the legacy S3 detector-quality line unless explicitly requested. S3-A to S3-D2B are historical groundwork for the verifier-centric redesign, not the active optimization target. Legacy high/needs/low and P1/P2/P3 outputs are not ground truth. R-2A verifier verdicts, R-2B-0 readiness states, R-2B-P0b RPKI lookup statuses, R-2B VRP-aware verdicts, R-2B-OPS workload projections, R-2C-0 path-readiness states, R-2C-P0b AS-rel lookup states, R-2C-P1 path diagnostic classes, and R-2C-P2 path-legality smoke verdicts are also not ground truth. RPKI valid is not benign, RPKI invalid is not confirmed attack, RPKI unknown is not normal, stale AS-rel is not strong evidence, AS-rel violation is not confirmed route leak, AS-rel path legality is not benign, AS-rel-only support is not enough for strong verdicts, possible valley-free diagnostics are not confirmed route leaks, and missing path evidence is not benign. Current target line is CCF-A / top-tier networking or security venue; SCI Q2 is fallback only. The learning layer is postponed and will only be used as an incident-level component-aware ranker/calibrator after verifier-supported targets and robustness scenarios exist. No new detector-score experiments should be launched before R-2D/R-3/L1 verifier and robustness work is explicitly started.
+Current phase: Phase R-LOCK-1 completed. R-LOCK-1 locks the paper-facing system as a minimal three-stage architecture: Stage 1 Monitor-triggered Incident Construction, Stage 2 Evidence-constrained Verification, and Stage 3 Component-aware Learning Triage before the Top-K Review Queue. The old seven-layer pipeline is retained only as Stage 1 incident construction and weak-signal context, not as a final detector. R-2B/R-2C evidence work remains preserved as the Stage 2 origin/path evidence groundwork. The next implementation steps are R-2D-0 communities / NO_EXPORT field availability audit, R-3 poisoning/evasion benchmark design, and L1 component-aware semantic learner design. Do not continue the legacy S3 detector-quality line unless explicitly requested. S3-A to S3-D2B are historical groundwork for the verifier-centric redesign, not the active optimization target. Legacy high/needs/low and P1/P2/P3 outputs are not ground truth. R-2A verifier verdicts, R-2B-0 readiness states, R-2B-P0b RPKI lookup statuses, R-2B VRP-aware verdicts, R-2B-OPS workload projections, R-2C-0 path-readiness states, R-2C-P0b AS-rel lookup states, R-2C-P1 path diagnostic classes, and R-2C-P2 path-legality smoke verdicts are also not ground truth. RPKI valid is not benign, RPKI invalid is not confirmed attack, RPKI unknown is not normal, stale AS-rel is not strong evidence, AS-rel violation is not confirmed route leak, AS-rel path legality is not benign, AS-rel-only support is not enough for strong verdicts, possible valley-free diagnostics are not confirmed route leaks, and missing path evidence is not benign. Current target line is CCF-A / top-tier networking or security venue; SCI Q2 is fallback only. The learning layer sits between the verifier and Top-K review; it is an incident/component-aware ranker and calibrator, not an attack/benign classifier and not a verifier override. No new detector-score experiments should be launched before R-2D/R-3/L1 verifier and robustness work is explicitly started.
 
 维护规则：
 
@@ -67,6 +70,8 @@ Current phase: Phase R-2C-P2 completed. R-1 verifier state machine design has be
 13. `project_docs/R2C_P0B_2024_ASREL_CACHE.md`
 14. `project_docs/R2C_P1_PATH_RELATION_LOOKUP_SMOKE.md`
 15. `project_docs/R2C_P2_PATH_LEGALITY_VERIFIER_SMOKE.md`
-16. `project_docs/CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`
-17. `project_docs/LEARNING_LAYER_POSITIONING.md`
-18. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`
+16. `project_docs/ARCHITECTURE_MINIMALITY_AND_ABLATION_PLAN.md`
+17. `project_docs/SYSTEM_OUTPUT_SCHEMA_SIMPLIFIED.md`
+18. `project_docs/CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`
+19. `project_docs/LEARNING_LAYER_POSITIONING.md`
+20. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`

@@ -117,7 +117,36 @@ R-2C-P2 builds a route-leak/path-legality verifier smoke from these diagnostics,
 
 R-2C-P2 full fixed S2 smoke processed `217165` incidents and emitted only conservative R-1-compatible verifier-smoke outputs: `evidence_supported_suspicious=44`, `evidence_conflict=86`, `evidence_insufficient=78324`, `abstain=10822`, `background_like_but_unconfirmed=127889`, and `strongly_supported_suspicious=0`. It generated no confirmed route-leak labels, did not modify R-2B verifier verdicts, and passed hard safety audit with `0` violations. This is the correct CCF-A shape: path evidence becomes a review/verifier layer with explicit uncertainty, not a hidden detector score or attack label.
 
-## 8. Fallback Policy
+## 8. Minimal Architecture and Ablation Defense
+
+R-LOCK-1 freezes the final paper-facing system as a minimal three-stage architecture:
+
+```text
+Stage 1: Monitor-triggered Incident Construction
+  -> Stage 2: Evidence-constrained Verification
+  -> Stage 3: Component-aware Learning Triage
+  -> Top-K Review Queue
+```
+
+This is the guardrail against a "module pile" critique:
+
+- Stage 1 keeps the old seven-layer pipeline only as monitor-triggered incident construction, evidence lookup key extraction, and weak/context signal generation. It is not the final detector and does not output attack/benign truth.
+- Stage 2 is the verifier. It attaches RPKI/VRP origin evidence, AS-rel path evidence, future stealth/path evidence, and emits evidence-supported, conflict, insufficient, unavailable, background-like, or abstain outcomes.
+- Stage 3 is the component-aware learning ranker/calibrator. It sits after the verifier and before Top-K. It ranks, calibrates, and prioritizes components/incidents without overriding hard verifier rules.
+- Top-K is the human-facing review budget, not the learning layer.
+
+Each module must defend a distinct failure mode:
+
+- monitor-only labels are poisonable, so Stage 2 verifier is required;
+- origin-only evidence misses path attacks, so AS-rel/path evidence is required;
+- path-only evidence misses forged-origin evidence, so RPKI/VRP remains required;
+- mixed incidents cause overclaim, so component purity is required;
+- missing/conflicting evidence requires abstain/conflict, not forced labels;
+- too many review candidates require learning ranker plus Top-K budget.
+
+The CCF-A evaluation must therefore include ablations that remove the verifier, origin evidence, path evidence, component purity, abstention/conflict handling, learning ranker, and Top-K budget. The defense is not "every module sounds useful"; it is measurable degradation under unsupported alert ratio, evidence-supported density, Top-K density, conflict preservation, abstain safety, mixed incident overclaim, human review burden, and poisoning robustness.
+
+## 9. Fallback Policy
 
 If the poisoning benchmark or learning ranker is weak, the project can fall back to a strong SCI version.
 

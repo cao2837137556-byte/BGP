@@ -10,6 +10,12 @@
   - SCI Q2 is only a fallback, not the design target.
   - Final system positioning: poisoning-robust, evidence-constrained, component-aware semantic BGP incident triage under partial observability.
   - Learning layer must become a component-aware semantic ranker/calibrator after verifier-supported targets exist; it must not become an attack/benign classifier.
+- Current Architecture Lock State:
+  - Phase R-LOCK-1 completed.
+  - Final paper-facing architecture is now locked to three stages: Stage 1 Monitor-triggered Incident Construction, Stage 2 Evidence-constrained Verification, Stage 3 Component-aware Learning Triage, followed by the Top-K Review Queue.
+  - The legacy seven-layer pipeline is retained as Stage 1 incident construction and weak-signal context only; it is not the final detector or truth source.
+  - The learning layer sits after the verifier and before Top-K review; it ranks/calibrates components and incidents but cannot override verifier hard rules.
+  - Every module must map to a failure mode and must be defensible by ablation.
 - Phase R has started.
 - The previous "BGP forged-origin weak-signal detector" positioning is superseded by "adversarially robust multi-evidence BGP incident verification and triage".
 - No new experiments should be launched before Phase R documents are finalized and the verifier redesign entry point is clear.
@@ -29,7 +35,8 @@
 - Phase R-2C-P0b 2024-near CAIDA AS relationship cache materialization has completed: source `https://data.caida.org/datasets/as-relationships/serial-2/20240401.as-rel2.txt.bz2`; snapshot `2024-04-01`, run date `2024-04-16`, delta `15` days; raw AS-rel records `571330`, directed lookup records `1142660`; AS-pair unique match rate `0.918932`; no route-leak verdict generated and no verifier verdict modified.
 - Phase R-2C-P1 path relation lookup smoke has completed on fixed S2: expanded AS-pair rows `421989`, row-level AS-pair match rate `0.947510`, triplet rows `205067`, full-path rows `217162`, incident path evidence rows `217165`; path states `aligned_medium=161992`, `diagnostic_only=34192`, `evidence_insufficient=18084`, `unavailable=2897`; route-leak-like diagnostic candidates `34555`; path-manipulation-like diagnostic candidates `44189`; no route-leak verdict generated and no R-2B verifier verdict modified.
 - Phase R-2C-P2 path-legality verifier smoke has completed on fixed S2: processed incidents `217165`; verdict smoke distribution `background_like_but_unconfirmed=127889`, `evidence_insufficient=78324`, `abstain=10822`, `evidence_conflict=86`, `evidence_supported_suspicious=44`; route-leak-like review candidates `34555`; path-manipulation-like review candidates `44189`; `strongly_supported_suspicious=0`; hard safety violations `0`; no confirmed route-leak label generated and no R-2B verifier verdict modified.
-- Next default steps are R-2D-0 communities / NO_EXPORT field availability audit, L1 component-aware semantic learner design, and R-3 poisoning benchmark early design; do not return to legacy detector-score tuning unless explicitly requested.
+- Phase R-LOCK-1 architecture minimality and ablation plan has completed: old seven-layer pipeline compressed into Stage 1, verifier locked as Stage 2, learning ranker locked as Stage 3 before Top-K, output card schema simplified, and ablation plan A0-A9 defined for reviewer defense.
+- Next default steps are R-2D-0 communities / NO_EXPORT field availability audit, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
 
