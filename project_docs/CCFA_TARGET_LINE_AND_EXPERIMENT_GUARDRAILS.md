@@ -117,6 +117,22 @@ R-2C-P2 builds a route-leak/path-legality verifier smoke from these diagnostics,
 
 R-2C-P2 full fixed S2 smoke processed `217165` incidents and emitted only conservative R-1-compatible verifier-smoke outputs: `evidence_supported_suspicious=44`, `evidence_conflict=86`, `evidence_insufficient=78324`, `abstain=10822`, `background_like_but_unconfirmed=127889`, and `strongly_supported_suspicious=0`. It generated no confirmed route-leak labels, did not modify R-2B verifier verdicts, and passed hard safety audit with `0` violations. This is the correct CCF-A shape: path evidence becomes a review/verifier layer with explicit uncertainty, not a hidden detector score or attack label.
 
+R-2D-0 communities / NO_EXPORT field availability audit starts the stealth evidence branch under the same CCF-A guardrails. It found that raw update chunks preserve `communities` in `864` parquet files, and full audit observed well-known community rows `NO_EXPORT=223410`, `NO_ADVERTISE=1240`, `NO_EXPORT_SUBCONFED=0`, and `NOPEER=5634`. However, communities are retained only at `raw_updates`; they are not present in `event_units`, `incident_membership`, `incident_tickets`, or R-2B/R-2C verifier outputs, so incident join readiness is currently `false`.
+
+The R-2D red lines are:
+
+- NO_EXPORT present is not a confirmed attack.
+- NO_EXPORT absent is not safe.
+- NO_ADVERTISE / NO_EXPORT_SUBCONFED / NOPEER present is not a stealth label.
+- low visibility does not mean NO_EXPORT.
+- collector asymmetry does not prove monitor evasion.
+- missing communities are not benign.
+- provider-specific communities require later semantic decoding and provenance.
+- learning cannot infer missing communities or convert community absence into normal traffic.
+- R-2D-1 must wait for community retention into event and incident/member tables, or it must remain explicitly raw-only and not incident-verifier-ready.
+
+For the CCF-A target, this result is useful precisely because it prevents overclaiming: stealth evidence exists in raw data, but the current Stage 1 pipeline does not yet preserve it for Stage 2 verification. The next step is community-retention pipeline repair, not a stealth detector claim.
+
 ## 8. Minimal Architecture and Ablation Defense
 
 R-LOCK-1 freezes the final paper-facing system as a minimal three-stage architecture:

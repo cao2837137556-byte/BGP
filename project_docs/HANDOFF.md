@@ -5,6 +5,13 @@
 
 ## Current Strategic State
 
+- Current Phase R-2D State:
+  - Phase R-2D-0 communities / NO_EXPORT field availability audit has completed on fixed S2.
+  - Raw update chunks preserve a `communities` field in `864` parquet files; full audit scanned `39039005` raw rows, with `35657850` non-empty community rows and parser success on `27843441` rows.
+  - Well-known community rows observed in raw updates: `NO_EXPORT=223410`, `NO_ADVERTISE=1240`, `NO_EXPORT_SUBCONFED=0`, `NOPEER=5634`.
+  - Communities are retained only at `raw_updates`; they are not present in `event_units`, `incident_membership`, `incident_tickets`, or R-2B/R-2C verifier outputs, so incident join readiness is `false`.
+  - This is not a NO_EXPORT attack detector: NO_EXPORT present is not confirmed attack, NO_EXPORT absent is not safe, and low visibility is not confirmed NO_EXPORT.
+  - Next step is pipeline retention repair around `scripts/build_event_units.py` and downstream incident membership propagation, then R-2D-0 rerun before any R-2D-1 community-aware stealth evidence branch.
 - Current CCF-A Target State:
   - Main target: CCF-A / top-tier networking or security venue.
   - SCI Q2 is only a fallback, not the design target.
@@ -36,7 +43,7 @@
 - Phase R-2C-P1 path relation lookup smoke has completed on fixed S2: expanded AS-pair rows `421989`, row-level AS-pair match rate `0.947510`, triplet rows `205067`, full-path rows `217162`, incident path evidence rows `217165`; path states `aligned_medium=161992`, `diagnostic_only=34192`, `evidence_insufficient=18084`, `unavailable=2897`; route-leak-like diagnostic candidates `34555`; path-manipulation-like diagnostic candidates `44189`; no route-leak verdict generated and no R-2B verifier verdict modified.
 - Phase R-2C-P2 path-legality verifier smoke has completed on fixed S2: processed incidents `217165`; verdict smoke distribution `background_like_but_unconfirmed=127889`, `evidence_insufficient=78324`, `abstain=10822`, `evidence_conflict=86`, `evidence_supported_suspicious=44`; route-leak-like review candidates `34555`; path-manipulation-like review candidates `44189`; `strongly_supported_suspicious=0`; hard safety violations `0`; no confirmed route-leak label generated and no R-2B verifier verdict modified.
 - Phase R-LOCK-1 architecture minimality and ablation plan has completed: old seven-layer pipeline compressed into Stage 1, verifier locked as Stage 2, learning ranker locked as Stage 3 before Top-K, output card schema simplified, and ablation plan A0-A9 defined for reviewer defense.
-- Next default steps are R-2D-0 communities / NO_EXPORT field availability audit, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
+- Next default steps are R-2D community-retention pipeline repair plus R-2D-0 rerun, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
 
@@ -685,7 +692,7 @@ Phase R 后，项目主线重定位为：对抗鲁棒多证据 BGP 事件验证�
 22. R-2C-0 path evidence readiness audit 已完成：path/triplet lookup keys 基本 ready，但 2024-near AS-rel/ASPA/Roles evidence cache 缺失；2017 CAIDA AS-rel 只能 stale diagnostic。
 23. R-2C-P0b 2024-near CAIDA AS relationship cache materialization 已完成：`2024-04-01` snapshot 可用，AS-pair lookup smoke match rate `0.918932`；AS-rel 仍只是 inferred path evidence，不是 route-leak truth。
 24. 当前 CCF-A target line 已冻结：主目标为 CCF-A/top-tier networking or security venue，SCI Q2 仅 fallback；最终系统不是普通 BGP anomaly detector，而是 poisoning-robust, evidence-constrained, component-aware semantic triage。
-25. 下一步默认不是继续优化 raw detector score，而是进入 R-2C-P1 path relation lookup smoke / path-legality smoke，并同步设计 R-3 poisoning benchmark 与 L1 component-aware semantic learner。
+25. R-2D-0 communities / NO_EXPORT field availability audit 已完成：raw updates 保留 `communities`，但 event/incidents/verifier 层未保留，incident join 不 ready；下一步默认不是继续优化 raw detector score，而是先做 community-retention pipeline repair、复跑 R-2D-0，再决定是否进入 R-2D-1 community-aware stealth evidence branch，并同步推进 R-3 poisoning benchmark 与 L1 component-aware semantic learner design。
 26. S3-D3/S4 形成 high-confidence set 后，再考虑正式训练 incident-level learning ranker / evidence calibrator。
 27. 24h expanded 应作为 `S2-D 24h with incidents/verifier`，不要回到纯 event-level 评估。
 28. 扩展稳定后，再进入 stealth / NO_EXPORT / 2024 隐蔽狩猎所需的特征扩展与数据准备。

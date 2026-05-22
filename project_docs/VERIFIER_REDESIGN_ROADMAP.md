@@ -787,6 +787,8 @@ Locked route after R-LOCK-1:
 ```text
 Architecture Lock
   -> R-2D-0 communities / NO_EXPORT field availability audit
+  -> community-retention pipeline repair if incident join is not ready
+  -> R-2D-0 rerun / R-2D-1 community-aware stealth evidence branch if ready
   -> R-3 poisoning / evasion benchmark design
   -> L1 component-aware semantic learner design
   -> architecture ablation implementation
@@ -794,3 +796,66 @@ Architecture Lock
 ```
 
 This route is now the default. Further legacy detector-score optimization is out of scope unless it is needed to repair Stage 1 lookup keys or to define a poisoning baseline.
+
+## 20. R-2D-0 Communities / NO_EXPORT Field Availability Audit
+
+R-2D-0 starts the stealth / monitor-evasion evidence branch with an audit-only step.
+
+Scope:
+
+- scan fixed S2 raw/event/incident/verifier artifacts for community-like fields;
+- parse raw well-known communities: `NO_EXPORT`, `NO_ADVERTISE`, `NO_EXPORT_SUBCONFED`, and `NOPEER`;
+- audit pipeline retention from raw updates to event units, incident membership, incident tickets, and verifier outputs;
+- check whether community fields can be joined to incident/member/component keys;
+- produce a stealth evidence readiness matrix;
+- do not implement a stealth verifier;
+- do not detect a NO_EXPORT attack;
+- do not modify R-2B/R-2C verifier verdicts;
+- do not train learning;
+- do not run poisoning/evasion.
+
+Implementation entry:
+
+- `scripts/run_r2d0_communities_field_availability_audit.py`
+- `project_docs/R2D0_COMMUNITIES_FIELD_AVAILABILITY_AUDIT.md`
+
+Fixed S2 full result:
+
+- scanned files: `893`;
+- raw update files with `communities`: `864`;
+- raw rows: `39039005`;
+- non-empty community rows: `35657850`;
+- parser success rows: `27843441`;
+- well-known community rows: `NO_EXPORT=223410`, `NO_ADVERTISE=1240`, `NO_EXPORT_SUBCONFED=0`, `NOPEER=5634`;
+- layers retaining communities: `raw_updates` only;
+- first concrete retention break: `event_units`;
+- incident join ready: `false`;
+- can enter R-2D-1 now: `false`;
+- verifier verdict modified: `false`;
+- learning trained: `false`.
+
+Interpretation:
+
+The raw evidence channel exists, and well-known communities are parseable. However, the evidence is not yet incident-ready because communities are dropped before event/incident construction. R-2D-1 should not start as a verifier branch until community retention is repaired.
+
+Updated route:
+
+```text
+R-2D-0 audit
+  -> repair Stage 1 community retention in event construction
+  -> propagate community summaries into incident membership/cards
+  -> rerun R-2D-0 to verify incident join readiness
+  -> R-2D-1 community-aware stealth evidence branch if ready
+  -> R-3 poisoning/evasion benchmark design
+  -> L1 component-aware semantic learner design
+```
+
+Safety boundaries:
+
+- `NO_EXPORT` present is not a confirmed attack;
+- `NO_EXPORT` absent is not safe;
+- `NO_ADVERTISE`, `NO_EXPORT_SUBCONFED`, and `NOPEER` are not stealth labels by themselves;
+- low visibility does not mean `NO_EXPORT`;
+- collector asymmetry does not prove monitor evasion;
+- missing community evidence is not benign;
+- community evidence must keep provenance and incident/component join keys before Stage 2 can consume it.
