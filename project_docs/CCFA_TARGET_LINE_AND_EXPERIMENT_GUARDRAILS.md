@@ -103,14 +103,19 @@ CAIDA AS relationship evidence remains inferred evidence even when snapshot-alig
 
 R-2C-P1 is the first incident-level path relation smoke on this CCF-A path. It attaches the `2024-04-01` CAIDA AS relationship cache back to AS-pair, triplet, and full-path incident evidence, producing route-leak-like and path-manipulation-like diagnostic candidates without changing R-2B verifier verdicts. This is the right shape for the target line: path evidence becomes explicit, component-aware verifier input, not hidden detector score or claimed route-leak truth.
 
-R-2C-P2 may build a route-leak/path-legality verifier smoke from these diagnostics, but it must still preserve these guardrails:
+R-2C-P2 builds a route-leak/path-legality verifier smoke from these diagnostics, but it still preserves these guardrails:
 
 - possible valley-free diagnostics are not confirmed route leaks;
 - AS-rel matched is not benign;
 - AS-rel unmatched is not suspicious;
+- path diagnostic is not confirmed route leak;
+- `path_review_signal_density` is not attack density;
+- AS-rel-only evidence cannot trigger a strong verdict;
 - ASPA / BGP Roles / OTC feasibility should be considered before any stronger path-legality claim;
 - NO_EXPORT / communities remain a separate R-2D-0 availability audit;
-- AS Hegemony remains downstream impact-aware ranking evidence for L1/L2, not part of R-2C-P1.
+- AS Hegemony remains downstream impact-aware ranking evidence for L1/L2, not part of R-2C-P1/P2.
+
+R-2C-P2 full fixed S2 smoke processed `217165` incidents and emitted only conservative R-1-compatible verifier-smoke outputs: `evidence_supported_suspicious=44`, `evidence_conflict=86`, `evidence_insufficient=78324`, `abstain=10822`, `background_like_but_unconfirmed=127889`, and `strongly_supported_suspicious=0`. It generated no confirmed route-leak labels, did not modify R-2B verifier verdicts, and passed hard safety audit with `0` violations. This is the correct CCF-A shape: path evidence becomes a review/verifier layer with explicit uncertainty, not a hidden detector score or attack label.
 
 ## 8. Fallback Policy
 

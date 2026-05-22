@@ -1,6 +1,6 @@
 # Verifier Redesign Roadmap
 
-Last updated: 2026-05-20
+Last updated: 2026-05-22
 
 ## 1. Architecture
 
@@ -688,3 +688,58 @@ Safety boundaries:
 - possible valley-free diagnostics are not confirmed route leaks;
 - AS relationship evidence is inferred and must keep provenance visible;
 - R-2C-P2 may consume R-2C-P1 diagnostic candidates, but it must still preserve abstain/conflict behavior and hard safety rules.
+
+## 18. R-2C-P2 Path-legality Verifier Smoke
+
+R-2C-P2 converts R-2C-P1 path diagnostic evidence into an R-1 verdict-compatible path-legality smoke table.
+
+Scope:
+
+- tighten R-2C-P1 naming so diagnostic classes are not presented as suspicious labels;
+- split route-leak-like and path-manipulation-like diagnostics into review, insufficient, conflict, abstain, and background queues;
+- combine R-2B origin evidence, R-2C-P1 path evidence, and component purity;
+- generate a deterministic Top-K path-legality review smoke;
+- do not generate confirmed route-leak labels;
+- do not modify R-2B verifier verdicts;
+- do not train learning models;
+- do not run NO_EXPORT/community, AS Hegemony, ASPA, or BGP Roles / OTC branches.
+
+Implementation entry:
+
+- `scripts/run_r2c_p2_path_legality_verifier_smoke.py`
+- `project_docs/R2C_P2_PATH_LEGALITY_VERIFIER_SMOKE.md`
+
+Fixed S2 result:
+
+- processed incidents: `217165`;
+- path-legality verdict smoke distribution: `background_like_but_unconfirmed=127889`, `evidence_insufficient=78324`, `abstain=10822`, `evidence_conflict=86`, `evidence_supported_suspicious=44`;
+- route-leak-like review candidates: `34555`;
+- path-manipulation-like review candidates: `44189`;
+- `strongly_supported_suspicious=0`;
+- hard safety violations: `0`;
+- confirmed route-leak generated: `false`;
+- R-2B verifier verdict modified: `false`.
+
+Top-K path-legality smoke:
+
+- Top-50: path review signal density `1.0`, evidence-supported density `0.88`;
+- Top-100: path review signal density `1.0`, evidence-supported density `0.44`;
+- Top-500: path review signal density `1.0`, evidence-supported density `0.088`.
+
+Updated route:
+
+```text
+R-2C-P2 path-legality verifier smoke
+  -> R-2D-0 communities / NO_EXPORT field availability audit
+  -> L1 component-aware semantic learner design
+  -> R-3 poisoning/evasion benchmark early design
+  -> ASPA / BGP Roles / OTC feasibility checks
+```
+
+Safety boundaries:
+
+- path diagnostics are not confirmed route leaks;
+- `path_review_signal_density` is not attack density;
+- AS-rel-only evidence cannot trigger a strong verdict;
+- `background_like_but_unconfirmed` remains unconfirmed and cannot be used as a negative label;
+- learning may consume these fields later for ranking/calibration design, but formal training remains blocked until verifier-supported targets and robustness scenarios exist.
