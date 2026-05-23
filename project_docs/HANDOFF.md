@@ -1,10 +1,18 @@
 ﻿# BGP Platform Handoff
 
-最后更新：2026-05-22
+最后更新：2026-05-23
 定位：项目唯一长期维护的交接总览文件。
 
 ## Current Strategic State
 
+- Current R-CONSIST-1 State:
+  - Phase R-CONSIST-1 Stage 1 evidence provenance and AS-rel alignment audit has completed.
+  - Stage 1 AS-rel source was detected as legacy CAIDA `2017-07-01` via defaults in `scripts/04_annotate_caida_rel.py`, `scripts/run.py`, and `scripts/run_s2a_downstream_from_raw.py`.
+  - Stage 2 R-2C uses the versioned 2024-near CAIDA cache `data/evidence/as_relationships/as_rel_2024-04-01.parquet`, snapshot `2024-04-01`, run date `2024-04-16`, delta `15` days.
+  - Consistency status is `likely_inconsistent`; risk level is `high` if stale Stage 1 AS-rel-derived weak/path fields are used as final main-result evidence without alignment or drift analysis.
+  - Affected fields are primarily `rel_seq`, `rel_unknown_cnt`, `rel_has_unknown`, and S3-C path plausibility fields; current audit did not find direct AS-rel snapshot dependency in incident grouping, which is based on AS-path signatures.
+  - Recommended next action is `r_consist2_aligned_reannotation`, not blind full Stage 1 replay. If aligned reannotation changes candidate/gate/incident outputs, escalate to R-CONSIST-2 aligned Stage 1 replay.
+  - Final paper main results must use consistent versioned evidence cache snapshots, or explicitly report drift/impact analysis. Unreported mixed AS-rel snapshots are not allowed.
 - Current Phase R-2D State:
   - Phase R-2D-0 communities / NO_EXPORT field availability audit has completed on fixed S2.
   - Raw update chunks preserve a `communities` field in `864` parquet files; full audit scanned `39039005` raw rows, with `35657850` non-empty community rows and parser success on `27843441` rows.
@@ -43,7 +51,7 @@
 - Phase R-2C-P1 path relation lookup smoke has completed on fixed S2: expanded AS-pair rows `421989`, row-level AS-pair match rate `0.947510`, triplet rows `205067`, full-path rows `217162`, incident path evidence rows `217165`; path states `aligned_medium=161992`, `diagnostic_only=34192`, `evidence_insufficient=18084`, `unavailable=2897`; route-leak-like diagnostic candidates `34555`; path-manipulation-like diagnostic candidates `44189`; no route-leak verdict generated and no R-2B verifier verdict modified.
 - Phase R-2C-P2 path-legality verifier smoke has completed on fixed S2: processed incidents `217165`; verdict smoke distribution `background_like_but_unconfirmed=127889`, `evidence_insufficient=78324`, `abstain=10822`, `evidence_conflict=86`, `evidence_supported_suspicious=44`; route-leak-like review candidates `34555`; path-manipulation-like review candidates `44189`; `strongly_supported_suspicious=0`; hard safety violations `0`; no confirmed route-leak label generated and no R-2B verifier verdict modified.
 - Phase R-LOCK-1 architecture minimality and ablation plan has completed: old seven-layer pipeline compressed into Stage 1, verifier locked as Stage 2, learning ranker locked as Stage 3 before Top-K, output card schema simplified, and ablation plan A0-A9 defined for reviewer defense.
-- Next default steps are R-2D community-retention pipeline repair plus R-2D-0 rerun, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
+- Next default steps are R-CONSIST-2 aligned AS-rel reannotation / impact comparison, R-2D community-retention pipeline repair plus R-2D-0 rerun, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
 

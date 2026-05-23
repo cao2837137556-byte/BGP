@@ -787,6 +787,8 @@ Locked route after R-LOCK-1:
 ```text
 Architecture Lock
   -> R-2D-0 communities / NO_EXPORT field availability audit
+  -> R-CONSIST-1 Stage 1 evidence provenance and AS-rel alignment audit
+  -> R-CONSIST-2 aligned AS-rel reannotation or replay if needed
   -> community-retention pipeline repair if incident join is not ready
   -> R-2D-0 rerun / R-2D-1 community-aware stealth evidence branch if ready
   -> R-3 poisoning / evasion benchmark design
@@ -859,3 +861,54 @@ Safety boundaries:
 - collector asymmetry does not prove monitor evasion;
 - missing community evidence is not benign;
 - community evidence must keep provenance and incident/component join keys before Stage 2 can consume it.
+
+## 21. R-CONSIST-1 Stage 1 AS-rel Provenance and Alignment Audit
+
+R-CONSIST-1 was added after R-2D-0 because Stage 2 now uses a versioned 2024-near CAIDA AS-rel cache, while Stage 1 may have retained older AS-rel-derived weak fields.
+
+Scope:
+
+- scan Stage 1 code, run metadata, logs, and output schemas for AS-rel provenance;
+- identify whether Stage 1 references CAIDA AS-rel and which snapshot is implied;
+- audit whether Stage 1 output fields depend on AS-rel-derived fields such as `rel_seq`, `rel_unknown_cnt`, and `rel_has_unknown`;
+- compare Stage 1 inferred AS-rel snapshot against Stage 2 `2024-04-01` AS-rel metadata;
+- estimate replay scope;
+- do not rerun Stage 1;
+- do not modify verifier verdicts;
+- do not download new evidence;
+- do not train learning.
+
+Implementation entry:
+
+- `scripts/run_r_consist1_stage1_asrel_provenance_audit.py`
+- `project_docs/R_CONSIST1_STAGE1_ASREL_PROVENANCE_AUDIT.md`
+
+Full audit result:
+
+- Stage 1 AS-rel detected: `yes`;
+- inferred Stage 1 snapshot: `2017-07-01`;
+- inferred Stage 1 path: `data/caida/as-relationships/serial-2/20170701.as-rel2.txt`;
+- Stage 2 snapshot: `2024-04-01`;
+- Stage 2 path: `data/evidence/as_relationships/as_rel_2024-04-01.parquet`;
+- consistency status: `likely_inconsistent`;
+- consistency risk level: `high`;
+- primary affected fields: `rel_seq`, `rel_unknown_cnt`, `rel_has_unknown`, and S3-C path plausibility fields;
+- required replay scope: `path_feature_reannotation_only`;
+- recommended next action: `r_consist2_aligned_reannotation`.
+
+Updated R-CONSIST branch:
+
+```text
+R-CONSIST-1 provenance audit
+  -> no_action_needed / metadata_patch_only if Stage 1 has no relevant AS-rel dependency or is already aligned
+  -> R-CONSIST-2 aligned reannotation if only AS-rel-derived weak/path fields need refresh
+  -> R-CONSIST-2 aligned Stage 1 replay if candidate, gate, or incident construction depends on stale AS-rel fields
+  -> report drift / impact analysis before final paper main results if any mixed snapshot remains
+```
+
+Safety boundaries:
+
+- Stage 1 AS-rel is a weak trigger/context source, not verifier truth.
+- Stage 2 AS-rel is versioned verifier evidence with confidence caps, not route-leak truth.
+- Final main experiments must use consistent evidence cache snapshots or report drift/impact analysis.
+- Unreported mixed AS-rel snapshots are not allowed in the final paper claim.

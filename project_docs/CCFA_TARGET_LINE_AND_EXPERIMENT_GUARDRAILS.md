@@ -69,6 +69,7 @@ Contribution 3: Component-aware semantic learning ranker
 - Do not use unavailable or stale evidence as benign.
 - Do not let learning override verifier hard rules.
 - Do not optimize legacy detector score unless it blocks verifier lookup or poisoning baseline.
+- Do not mix unreported AS-rel / evidence-cache snapshots across Stage 1 and Stage 2 in final main results.
 
 ## 6. Experiment Roadmap Toward CCF-A
 
@@ -132,6 +133,18 @@ The R-2D red lines are:
 - R-2D-1 must wait for community retention into event and incident/member tables, or it must remain explicitly raw-only and not incident-verifier-ready.
 
 For the CCF-A target, this result is useful precisely because it prevents overclaiming: stealth evidence exists in raw data, but the current Stage 1 pipeline does not yet preserve it for Stage 2 verification. The next step is community-retention pipeline repair, not a stealth detector claim.
+
+R-CONSIST-1 adds an evidence cache consistency guardrail. Stage 1 provenance audit found that Stage 1 AS-rel annotation code defaults to CAIDA `2017-07-01`, while Stage 2 R-2C uses the aligned `2024-04-01` AS-rel cache. This does not invalidate the verifier design, but it creates a high reviewer-risk condition if stale Stage 1 AS-rel-derived weak/path fields are used in final main results without alignment or drift analysis.
+
+The evidence cache consistency red lines are:
+
+- Stage 1 AS-rel use is weak trigger/context, not verifier truth.
+- Stage 2 AS-rel use is versioned verifier evidence, not route-leak truth.
+- Final main experiments should use a consistent AS-rel snapshot across Stage 1-derived path fields and Stage 2 evidence when those fields are jointly reported.
+- If consistency is impossible for a historical artifact, the paper must report snapshot provenance and drift/impact analysis.
+- Stale Stage 1 AS-rel fields cannot support strong evidence claims.
+- Learning cannot hide AS-rel snapshot drift inside ranking features.
+- R-CONSIST-2 aligned reannotation should run before using Stage 1 AS-rel-derived weak/path fields as final paper evidence.
 
 ## 8. Minimal Architecture and Ablation Defense
 

@@ -224,14 +224,28 @@ Core metrics:
 | Learning may hide unsafe evidence | The learning layer sits after the verifier and before Top-K. It cannot override hard safety rules or hide conflict/abstention. |
 | Old seven-layer detector is still there | It is Stage 1 incident construction and weak-signal context, not the final detector or the paper's truth source. |
 
-## 8. Next Roadmap After Architecture Lock
+## 8. Versioned Evidence Cache Consistency
+
+Stage 1 and Stage 2 can use the same class of external evidence, but the paper must record their different responsibilities.
+
+- Stage 1 may use AS relationship data as a weak trigger/context source for incident construction, lookup key extraction, and path plausibility hints.
+- Stage 2 uses AS relationship data as verifier evidence with provider, snapshot date, run-date alignment, confidence caps, and explicit conflict/insufficient/abstain states.
+- Stage 1 AS-rel fields such as `rel_seq`, `rel_unknown_cnt`, and `rel_has_unknown` are not route-leak truth and cannot be promoted into attack/benign labels.
+- Stage 2 AS-rel path evidence is also inferred evidence; AS-rel violation is not confirmed route leak, and AS-rel matched is not benign.
+- Final main experiments should use a consistent evidence cache snapshot across Stage 1-derived path fields and Stage 2 verifier evidence, or explicitly report snapshot drift and impact analysis.
+- The final paper must not silently mix unreported AS-rel snapshots, especially legacy Stage 1 `2017-07-01` fields with Stage 2 `2024-04-01` verifier evidence.
+
+R-CONSIST-1 therefore becomes part of the architecture defense: evidence versioning is not a cosmetic metadata issue, but a requirement for reviewer-safe provenance and reproducibility.
+
+## 9. Next Roadmap After Architecture Lock
 
 Recommended order:
 
-1. R-2D-0 communities / NO_EXPORT field availability audit.
-2. R-3 poisoning / evasion benchmark design.
-3. L1 component-aware semantic learner design.
-4. Architecture ablation implementation.
-5. R-2D community-aware stealth evidence branch if fields exist.
+1. R-CONSIST-2 aligned AS-rel reannotation / impact comparison.
+2. R-2D community-retention pipeline repair and R-2D-0 rerun.
+3. R-3 poisoning / evasion benchmark design.
+4. L1 component-aware semantic learner design.
+5. Architecture ablation implementation.
+6. R-2D community-aware stealth evidence branch if fields exist and incident join is ready.
 
 R-LOCK-1 is a paper-safety step. It keeps the system from drifting into a module pile and gives each future experiment an ablation reason.
