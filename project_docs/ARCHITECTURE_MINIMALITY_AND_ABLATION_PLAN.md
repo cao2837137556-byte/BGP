@@ -224,7 +224,22 @@ Core metrics:
 | Learning may hide unsafe evidence | The learning layer sits after the verifier and before Top-K. It cannot override hard safety rules or hide conflict/abstention. |
 | Old seven-layer detector is still there | It is Stage 1 incident construction and weak-signal context, not the final detector or the paper's truth source. |
 
-## 8. Versioned Evidence Cache Consistency
+## 8. Evidence Reuse Without Redundancy
+
+Stage 1 and Stage 2 may use the same class of data source without becoming redundant.
+
+The rule is role separation:
+
+- Stage 1 uses shared evidence sources as weak trigger/context. For example, AS-rel fields can help create path-related candidates or path plausibility hints.
+- Stage 2 uses shared evidence sources as provenance-aware verifier evidence. For example, the 2024-near CAIDA AS-rel cache supports explicit path evidence states and diagnostics.
+- Stage 1 answers "is this worth organizing into a case?"
+- Stage 2 answers "what does versioned evidence support, conflict with, or fail to support?"
+
+This is reviewer-defensible because the two stages solve different failure modes: Stage 1 controls scale and structure, while Stage 2 controls evidence validity and overclaim risk.
+
+The non-negotiable cost is provenance. If the same evidence family appears in both stages, the system must record the provider, snapshot, role, and alignment status.
+
+## 9. Versioned Evidence Cache Consistency
 
 Stage 1 and Stage 2 can use the same class of external evidence, but the paper must record their different responsibilities.
 
@@ -234,10 +249,11 @@ Stage 1 and Stage 2 can use the same class of external evidence, but the paper m
 - Stage 2 AS-rel path evidence is also inferred evidence; AS-rel violation is not confirmed route leak, and AS-rel matched is not benign.
 - Final main experiments should use a consistent evidence cache snapshot across Stage 1-derived path fields and Stage 2 verifier evidence, or explicitly report snapshot drift and impact analysis.
 - The final paper must not silently mix unreported AS-rel snapshots, especially legacy Stage 1 `2017-07-01` fields with Stage 2 `2024-04-01` verifier evidence.
+- If Stage 1 and Stage 2 use different AS-rel snapshots, the project must run drift / impact analysis or an aligned replay before using those fields in final main-result claims.
 
 R-CONSIST-1 therefore becomes part of the architecture defense: evidence versioning is not a cosmetic metadata issue, but a requirement for reviewer-safe provenance and reproducibility.
 
-## 9. Next Roadmap After Architecture Lock
+## 10. Next Roadmap After Architecture Lock
 
 Recommended order:
 

@@ -1,0 +1,343 @@
+# PROJECT DECISION REGISTER
+
+Last updated: 2026-05-23
+
+Status: active project-level research decision register.
+
+## Purpose
+
+This document records project-level research decisions, architecture boundaries, naming constraints, experiment ordering, and reviewer-risk defenses.
+
+It exists to prevent important decisions from being scattered across chat history or one-off task reports. New topical documents can still exist, but key decisions must be folded back into this register and the mainline documentation set: `README.md`, `HANDOFF.md`, `EXPERIMENT_MAINLINE.md`, `VERIFIER_REDESIGN_ROADMAP.md`, and `CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`.
+
+R-DOC-1 is a documentation consolidation step. It does not run experiments, modify verifier outputs, download evidence, train learning, or change code logic.
+
+## Current Locked Architecture
+
+The paper-facing architecture is locked as:
+
+```text
+Stage 1: Monitor-triggered Incident Construction
+  -> Stage 2: Evidence-constrained Verification
+  -> Stage 3: Component-aware Learning Triage
+  -> Top-K Review Queue
+```
+
+### Stage 1: Monitor-triggered Incident Construction
+
+Plain meaning: make the case file.
+
+Responsibilities:
+
+- construct incidents and components from raw BGP updates;
+- preserve weak signals, historical deviation, visibility evidence, path structure, legacy score/gate/augment context;
+- extract lookup keys for external evidence;
+- provide monitor-side hints for later verification and ranking.
+
+Not responsible for:
+
+- final attack judgment;
+- benign judgment;
+- ground truth labels.
+
+`high/needs/low` and `P1/P2/P3` are not truth.
+
+### Stage 2: Evidence-constrained Verification
+
+Plain meaning: check the evidence.
+
+Responsibilities:
+
+- attach versioned evidence such as RPKI/VRP, CAIDA AS-rel, future communities/NO_EXPORT, and future ASPA/BGP Roles/OTC;
+- preserve provenance, confidence caps, missing evidence, stale evidence, and conflicts;
+- output evidence-supported, conflict, insufficient, unavailable, background-like, or abstain states.
+
+Not responsible for:
+
+- confirmed attack labels;
+- confirmed benign labels;
+- hiding uncertainty inside a score.
+
+### Stage 3: Component-aware Learning Triage
+
+Plain meaning: learn the review order.
+
+Responsibilities:
+
+- sit after the verifier and before Top-K;
+- consume unified incident cards from Stage 1 and Stage 2;
+- estimate `review_priority_score`, `topk_rank`, component priority, evidence consistency, split priority, and `recommended_action`;
+- reduce human review burden under verifier hard rules.
+
+Not responsible for:
+
+- overriding verifier hard rules;
+- confirmed attack/benign classification;
+- formal training before the output schema and evidence provenance are stable.
+
+### Top-K Review Queue
+
+The Top-K Review Queue is the final human-facing output. It is produced after the learning layer. Top-K is not the learning layer itself.
+
+## Stage 1 vs Stage 2 Boundary
+
+Stage 1 is the trigger, organizer, and weak signal provider. Stage 2 is the evidence verifier and provenance-aware evidence attachment layer.
+
+The same field or data source can appear in both stages without being redundant, because the responsibility is different.
+
+Example: AS-rel in Stage 1:
+
+- legacy weak structural feature;
+- helps trigger path-related candidates;
+- means "worth checking";
+- Stage 1 weak trigger, not truth.
+
+Example: AS-rel in Stage 2:
+
+- versioned external path evidence;
+- uses the 2024-near CAIDA AS-rel cache when aligned;
+- means "evidence supports, is insufficient, conflicts, or is unavailable";
+- Stage 2 verifier evidence, not route-leak truth.
+
+This is not duplication. It is evidence reuse with different roles. But the evidence version must be recorded. Final main experiments should use a consistent AS-rel cache across Stage 1-derived path fields and Stage 2 verifier evidence, or report drift/impact analysis.
+
+## Unified Output Taxonomy Decision
+
+The final output must not use category explosion. Evidence combinations should not become top-level incident categories.
+
+Forbidden main categories include:
+
+- `origin_valid_path_suspicious`
+- `no_export_route_leak_origin_xxx`
+- `rpki_unknown_path_suspicious`
+
+The unified output schema is:
+
+- `primary_family`
+- `secondary_families`
+- `observability_mode`
+- `verifier_state`
+- `evidence_tags`
+- `confidence_cap`
+- `review_priority_score`
+- `topk_rank`
+- `recommended_action`
+- `why_not_confirmed`
+
+`evidence_tags` carry evidence combinations. They do not manufacture new attack labels.
+
+## Primary Family Taxonomy
+
+The locked `primary_family` set is intentionally small:
+
+- `forged_origin_like`
+- `route_leak_like`
+- `path_manipulation_like`
+- `stealth_evasion_like`
+- `mixed_or_conflict`
+
+`forged_origin_like` must explicitly exist. It must not be blurred into `origin_hijack_like`.
+
+`weak_signal` is not an attack category. It belongs to `observability_mode`.
+
+`background_or_insufficient` is not an attack family. It should be expressed through `verifier_state`, `review_bucket`, or `recommended_action`.
+
+## Observability Mode
+
+Locked `observability_mode` values:
+
+- `strong_signal`
+- `weak_signal`
+- `stealth_signal`
+- `mixed_signal`
+
+`forged_origin_like + weak_signal` is one of the core output combinations for this project. It captures the original weak-signal research thread without turning weak evidence into ground truth.
+
+`stealth_signal` may be supported by NO_EXPORT, low visibility, collector asymmetry, or related monitor-evasion evidence after retention and provenance are repaired.
+
+`mixed_signal` usually means component refinement, conflict handling, or abstention is needed.
+
+## Verifier State
+
+Locked `verifier_state` values:
+
+- `evidence_supported_suspicious`
+- `evidence_conflict`
+- `evidence_insufficient`
+- `external_evidence_unavailable`
+- `background_like_but_unconfirmed`
+- `abstain`
+
+`strongly_supported_suspicious` is not a default main output now. It should appear only if future evidence is strong enough, such as operator confirmation, reliable data-plane validation, or stronger path-legality evidence.
+
+`background_like_but_unconfirmed` is not confirmed benign.
+
+`evidence_supported_suspicious` is not confirmed attack.
+
+## Evidence Tags
+
+`evidence_tags` are extensible evidence carriers, not new categories.
+
+Current and future examples:
+
+- `new_origin_as`
+- `prefix_origin_not_in_history`
+- `rpki_invalid_asn`
+- `rpki_invalid_length`
+- `rpki_unknown`
+- `path_relation_diagnostic`
+- `possible_valley_transition`
+- `high_unknown_path`
+- `no_export_present`
+- `no_advertise_present`
+- `low_visibility`
+- `collector_asymmetry`
+- `component_pure`
+- `component_mixed`
+- `evidence_conflict`
+- `short_duration`
+
+Tags support filtering, ranking, explanation, and ablation. They do not define truth.
+
+## Component Purity Decision
+
+Component purity is an incident purity audit.
+
+Plain model:
+
+- incident = parent case / case bag;
+- component = concrete fragment inside the case bag.
+
+Do not split Stage 1 incidents too finely at the beginning. The current strategy is:
+
+1. Stage 1 performs coarse aggregation into incidents and members.
+2. Stage 2 performs component purity and refinement.
+3. If a mixed pattern appears repeatedly and predictably, feed it back into Stage 1 splitting rules later.
+
+This avoids premature over-engineering while preserving reviewer-safe component awareness.
+
+## Abstain Handling Decision
+
+`abstain` is not a manual garbage bin.
+
+Allowed post-abstain routes:
+
+- split component;
+- wait for more evidence;
+- conflict queue;
+- low-priority sampling;
+- high-impact Top-K only.
+
+Forbidden interpretations:
+
+- send every abstain case to analysts;
+- treat abstain as the system "shrugging";
+- treat abstain as benign;
+- treat abstain as attack.
+
+Abstention is a reliability mechanism.
+
+## Communities / NO_EXPORT Decision
+
+R-2D-0 found:
+
+- raw updates retain a `communities` field;
+- `NO_EXPORT`, `NO_ADVERTISE`, and `NOPEER` are parseable at raw layer;
+- `event_units`, `incident_membership`, and `incident_tickets` currently do not retain communities;
+- communities cannot currently be joined to incident/member/component;
+- R-2D-1 must not start as an incident-level stealth verifier until retention is repaired.
+
+Design principles:
+
+- do not copy full raw communities blindly into every incident card;
+- raw layer keeps full communities;
+- event/member layer should carry lightweight flags, counts, and hashes;
+- incident/component layer should aggregate share, entropy, and core-share;
+- verifier layer should consume only `stealth_evidence_state` and provenance-ready summaries;
+- `NO_EXPORT` present is not confirmed attack;
+- `NO_EXPORT` absent is not safe;
+- low visibility is not confirmed `NO_EXPORT`.
+
+## AS-rel Consistency Decision
+
+Stage 2 already uses the 2024-near CAIDA AS-rel cache:
+
+- snapshot: `2024-04-01`;
+- run date: `2024-04-16`;
+- delta: `15` days.
+
+Early Stage 1 artifacts may use legacy 2017 AS-rel, unknown AS-rel placeholders, or no substantive AS-rel dependency. This creates evidence consistency risk for final main experiments.
+
+Decision:
+
+- real systems should use a unified versioned evidence cache;
+- Stage 1 AS-rel use must record snapshot and role;
+- Stage 2 AS-rel use must record snapshot and role;
+- if Stage 1 and Stage 2 snapshots differ, perform drift/impact analysis or aligned replay before final main-result claims.
+
+Current repo note:
+
+- R-CONSIST-1 has already audited this risk and found Stage 1 likely used legacy `2017-07-01` defaults while Stage 2 uses `2024-04-01`;
+- recommended follow-up is `R-CONSIST-2 aligned reannotation`, escalating to aligned Stage 1 replay only if candidate/gate/incident outputs change.
+
+## Learning Layer Decision
+
+Do not train the learning layer now.
+
+Learning must wait until:
+
+- unified incident card schema is stable;
+- evidence provenance is attached;
+- R-CONSIST risks are resolved or explicitly documented;
+- communities / NO_EXPORT propagation design is clear if stealth evidence is used;
+- poisoning/evasion scenarios exist for robustness evaluation.
+
+Learning input:
+
+- unified incident card;
+- verifier state;
+- component purity;
+- evidence tags;
+- confidence caps;
+- monitor-side weak/context signals;
+- provenance and availability fields.
+
+Learning output:
+
+- `review_priority_score`;
+- `evidence_consistency_score`;
+- `component_priority_score`;
+- `should_split_score`;
+- `topk_rank`;
+- `recommended_action`.
+
+Learning must not output confirmed attack/benign labels and must not override hard verifier rules. Its target is Top-K triage, not an ordinary attack classifier.
+
+Learning before Top-K means:
+
+```text
+Stage 2 verifier
+  -> Stage 3 learning ranker / calibrator
+  -> Top-K Review Queue
+```
+
+## Near-term Roadmap Decision
+
+Near-term decision order:
+
+1. R-DOC-1: record the discussion outcomes and decision boundaries.
+2. R-OUT-1: Unified Incident Output Taxonomy Design.
+3. R-CONSIST-1: Stage 1 AS-rel provenance / alignment audit.
+4. R-2D-P0-design: Communities propagation schema design.
+5. R-2D-P0-repair: repair communities propagation from raw to event/incident.
+6. R-3: Poisoning / evasion benchmark design.
+7. L1: Component-aware semantic learner design.
+
+Current repo note:
+
+- R-CONSIST-1 has already completed before R-DOC-1 was consolidated.
+- The remaining near-term choices are therefore R-OUT-1, R-CONSIST-2 aligned reannotation, and R-2D-P0-design.
+
+R-CONSIST and R-2D-P0 ordering can be adjusted by future research-control decisions, but both must be resolved before formal learning training.
+
+Do not keep adding external evidence indefinitely. Do not train learning while schema and provenance are unstable.

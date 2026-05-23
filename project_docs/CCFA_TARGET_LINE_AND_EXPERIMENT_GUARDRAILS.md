@@ -70,10 +70,17 @@ Contribution 3: Component-aware semantic learning ranker
 - Do not let learning override verifier hard rules.
 - Do not optimize legacy detector score unless it blocks verifier lookup or poisoning baseline.
 - Do not mix unreported AS-rel / evidence-cache snapshots across Stage 1 and Stage 2 in final main results.
+- Do not create category explosion by turning every evidence combination into an attack family.
+- Do not treat `evidence_tags` as attack labels.
+- Do not place learning after Top-K or let learning replace Top-K policy.
 
 ## 6. Experiment Roadmap Toward CCF-A
 
 ```text
+R-DOC-1: decision register and mainline documentation lock
+R-OUT-1: unified incident output taxonomy design
+R-CONSIST-2: aligned AS-rel reannotation / impact analysis if Stage 1 fields are used
+R-2D-P0: communities propagation schema and repair before stealth verifier use
 R-2B: VRP-aware verifier smoke + incident purity audit
 R-2C: path evidence branch / route-leak legality refinement
 R-3: monitor poisoning / evasion benchmark
@@ -84,6 +91,35 @@ Paper stage: CCF-A claim consolidation
 ```
 
 R-2B is the first evidence-backed verifier smoke on this path. Its value is not only RPKI lookup coverage; it is the component-aware constraint that prevents mixed incidents from being forced into suspicious or background verdicts.
+
+## 6A. Unified Output Taxonomy Guardrail
+
+R-DOC-1 locks the output shape for CCF-A writing and evaluation.
+
+Small `primary_family` set:
+
+- `forged_origin_like`
+- `route_leak_like`
+- `path_manipulation_like`
+- `stealth_evasion_like`
+- `mixed_or_conflict`
+
+Required supporting fields:
+
+- `observability_mode`
+- `verifier_state`
+- `evidence_tags`
+- `confidence_cap`
+- `review_priority_score`
+- `topk_rank`
+- `recommended_action`
+- `why_not_confirmed`
+
+No category explosion: combinations such as RPKI status, AS-rel diagnostic, NO_EXPORT presence, low visibility, and component purity belong in `evidence_tags` and verifier fields, not in newly minted primary categories.
+
+Evidence tags are not attack labels. They are provenance-bearing facts used for verification, ranking, explanation, and ablation.
+
+Learning remains after the verifier and before Top-K. It ranks and calibrates incident cards; it does not output confirmed attack/benign, override hard rules, or hide evidence conflict.
 
 ## 7. Operational Deployment Guardrails
 

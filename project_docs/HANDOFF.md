@@ -5,6 +5,13 @@
 
 ## Current Strategic State
 
+- Current Decision State:
+  - Phase R-DOC-1 research decision consolidation has completed as a documentation-only step.
+  - `project_docs/PROJECT_DECISION_REGISTER.md` is now the long-lived decision register for architecture boundaries, output taxonomy, Stage 1 / Stage 2 evidence reuse, component purity, abstain handling, communities / NO_EXPORT propagation, AS-rel consistency, learning-layer timing, and near-term roadmap.
+  - Unified output taxonomy is locked to small `primary_family` values plus `observability_mode`, `verifier_state`, and extensible `evidence_tags`; evidence combinations must not become category explosion.
+  - Stage 1 remains weak trigger / organizer / lookup-key provider. Stage 2 remains provenance-aware verifier evidence. Evidence reuse across stages is allowed only with clear role and version metadata.
+  - Learning remains after verifier and before Top-K; current state is no formal learning training until R-OUT-1 schema, R-CONSIST consistency handling, and R-2D-P0 communities propagation design are stable.
+  - Next candidates are R-OUT-1 unified incident output taxonomy design, R-CONSIST-2 aligned AS-rel reannotation / impact comparison, and R-2D-P0-design communities propagation schema design.
 - Current R-CONSIST-1 State:
   - Phase R-CONSIST-1 Stage 1 evidence provenance and AS-rel alignment audit has completed.
   - Stage 1 AS-rel source was detected as legacy CAIDA `2017-07-01` via defaults in `scripts/04_annotate_caida_rel.py`, `scripts/run.py`, and `scripts/run_s2a_downstream_from_raw.py`.
@@ -51,7 +58,7 @@
 - Phase R-2C-P1 path relation lookup smoke has completed on fixed S2: expanded AS-pair rows `421989`, row-level AS-pair match rate `0.947510`, triplet rows `205067`, full-path rows `217162`, incident path evidence rows `217165`; path states `aligned_medium=161992`, `diagnostic_only=34192`, `evidence_insufficient=18084`, `unavailable=2897`; route-leak-like diagnostic candidates `34555`; path-manipulation-like diagnostic candidates `44189`; no route-leak verdict generated and no R-2B verifier verdict modified.
 - Phase R-2C-P2 path-legality verifier smoke has completed on fixed S2: processed incidents `217165`; verdict smoke distribution `background_like_but_unconfirmed=127889`, `evidence_insufficient=78324`, `abstain=10822`, `evidence_conflict=86`, `evidence_supported_suspicious=44`; route-leak-like review candidates `34555`; path-manipulation-like review candidates `44189`; `strongly_supported_suspicious=0`; hard safety violations `0`; no confirmed route-leak label generated and no R-2B verifier verdict modified.
 - Phase R-LOCK-1 architecture minimality and ablation plan has completed: old seven-layer pipeline compressed into Stage 1, verifier locked as Stage 2, learning ranker locked as Stage 3 before Top-K, output card schema simplified, and ablation plan A0-A9 defined for reviewer defense.
-- Next default steps are R-CONSIST-2 aligned AS-rel reannotation / impact comparison, R-2D community-retention pipeline repair plus R-2D-0 rerun, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
+- Next default steps are R-OUT-1 unified incident output taxonomy design, R-CONSIST-2 aligned AS-rel reannotation / impact comparison, R-2D-P0 communities propagation schema design / repair plus R-2D-0 rerun, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
 

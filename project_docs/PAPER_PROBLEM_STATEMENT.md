@@ -1,6 +1,6 @@
 # Paper Problem Statement
 
-Last updated: 2026-05-22
+Last updated: 2026-05-23
 
 This is a planning note for Phase R. It is not the paper text.
 
@@ -33,6 +33,20 @@ Chinese:
 ```text
 基于公共 BGP 监控器的检测器可以发现异常候选，但在攻击者可操纵路由公告且真值不完备的现实环境中，它们无法可靠核验一个候选事件究竟是否为真实的后 ROV 劫持或路由泄露。
 ```
+
+## 3A. R-DOC-1 Refined Problem Definition
+
+The paper is not about building a multi-rule BGP detector.
+
+The paper is about building an evidence-constrained, abstention-aware, component-aware BGP incident triage system under three hard conditions:
+
+- public BGP monitors can be poisoned or evaded;
+- observability is incomplete;
+- ground truth is incomplete.
+
+The system starts from monitor-triggered incidents, attaches versioned evidence, preserves conflict/insufficient/abstain states, and outputs Top-K review incident cards rather than attack/benign labels.
+
+`forged_origin_like + weak_signal` remains a core family because it carries the original research thread. `route_leak_like`, `path_manipulation_like`, and `stealth_evasion_like` are expanded families handled through the same evidence-constrained triage frame.
 
 ## 4. Three Contributions
 
@@ -101,7 +115,7 @@ This version is the cleanest contribution framing:
 | Data sources | RouteViews/RIPE RIS, time-aligned ROA/VRP if available, AS-rel/IRR, optional ASPA/BGP Roles/OTC |
 | Adversarial scenarios | monitor poisoning with `0/1/2/3/5` crafted announcements, monitor subset manipulation, stale evidence injection |
 | Evidence settings | monitor-only, RPKI-only, legality-only, multi-evidence, missing-evidence stress |
-| Outputs | verdict candidates, confidence, provenance, abstain |
+| Outputs | unified incident cards, verifier states, confidence caps, provenance, abstain/conflict, Top-K review ranking |
 | Metrics | precision proxy, supported suspicious recall, abstention rate, evidence coverage, stale/unavailable rate, robustness drop, evasion cost, top-K retention, human review burden proxy |
 
 ## 6. Likely Reviewer Questions

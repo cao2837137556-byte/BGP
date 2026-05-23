@@ -788,6 +788,8 @@ Locked route after R-LOCK-1:
 Architecture Lock
   -> R-2D-0 communities / NO_EXPORT field availability audit
   -> R-CONSIST-1 Stage 1 evidence provenance and AS-rel alignment audit
+  -> R-DOC-1 research decision consolidation
+  -> R-OUT-1 unified incident output taxonomy design
   -> R-CONSIST-2 aligned AS-rel reannotation or replay if needed
   -> community-retention pipeline repair if incident join is not ready
   -> R-2D-0 rerun / R-2D-1 community-aware stealth evidence branch if ready
@@ -912,3 +914,38 @@ Safety boundaries:
 - Stage 2 AS-rel is versioned verifier evidence with confidence caps, not route-leak truth.
 - Final main experiments must use consistent evidence cache snapshots or report drift/impact analysis.
 - Unreported mixed AS-rel snapshots are not allowed in the final paper claim.
+
+## 22. R-DOC-1 Decision Consolidation and Near-term Gates
+
+R-DOC-1 consolidates recent research-control decisions into long-lived documents before more implementation work proceeds.
+
+Decision register:
+
+- `project_docs/PROJECT_DECISION_REGISTER.md`
+
+Locked decisions:
+
+- three-stage architecture remains the final paper-facing structure;
+- Stage 1 is weak trigger / organizer / lookup-key provider;
+- Stage 2 is provenance-aware verifier evidence;
+- Stage 3 learning is after verifier and before Top-K;
+- Top-K is the human-facing output, not the learning layer;
+- final outputs use a unified taxonomy with `primary_family`, `observability_mode`, `verifier_state`, and `evidence_tags`;
+- no category explosion from evidence combinations;
+- `forged_origin_like + weak_signal` remains a core output combination;
+- communities / NO_EXPORT require propagation schema design before verifier use;
+- AS-rel versioned evidence cache consistency must be resolved or reported before final main-result claims.
+
+Updated near-term route:
+
+```text
+R-DOC-1 decision consolidation
+  -> R-OUT-1 unified incident output taxonomy design
+  -> R-CONSIST-2 aligned AS-rel reannotation / impact comparison
+  -> R-2D-P0-design communities propagation schema
+  -> R-2D-P0-repair and R-2D-0 rerun
+  -> R-3 poisoning/evasion benchmark design
+  -> L1 component-aware semantic learner design
+```
+
+Do not directly enter learning. Formal learning waits until R-OUT-1, R-CONSIST handling, and R-2D-P0 propagation design are stable.

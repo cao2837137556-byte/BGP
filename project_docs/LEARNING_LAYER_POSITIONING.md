@@ -1,6 +1,6 @@
 # Learning Layer Positioning
 
-Last updated: 2026-05-22
+Last updated: 2026-05-23
 
 ## 1. Core Judgment
 
@@ -9,6 +9,8 @@ The learning layer is not removed. It is moved later.
 Before reliable verification labels exist, do not train an attack/benign classifier. The learning layer should become an incident-level ranker and evidence calibrator, not the primary detector or final judge.
 
 For the current CCF-A target line, the learning layer must become a component-aware semantic ranker/calibrator. It should learn incident internal structure and verifier-supported weak signals; it must not downgrade the project into a detector-score classifier.
+
+Current R-DOC-1 decision: do not train the learning layer yet. Learning must wait for the unified incident card schema, output taxonomy, evidence provenance, AS-rel consistency handling, and communities propagation design to stabilize.
 
 ## 2. Why Not Train Now
 
@@ -24,9 +26,13 @@ Do not train an attack/benign classifier from current outputs because:
 ## 3. New Role Of Learning Layer
 
 Learning layer input:
+- unified incident card
 - incident evidence table
 - evidence state
 - provenance
+- `primary_family`
+- `observability_mode`
+- `evidence_tags`
 - component purity / mixture class
 - dominant pair evidence and member-level evidence distribution
 - monitor evidence
@@ -36,13 +42,12 @@ Learning layer input:
 - verifier verdict candidates
 
 Learning layer output:
-- `verification_priority_score`
-- `evidence_confidence_calibration`
-- top-K ranking
-- component split / merge recommendation
-- abstention recommendation
-- conflict likelihood
-- human review priority
+- `review_priority_score`
+- `evidence_consistency_score`
+- `component_priority_score`
+- `should_split_score`
+- `topk_rank`
+- `recommended_action`
 
 The model ranks and calibrates. It does not override verifier safety rules.
 
@@ -69,6 +74,14 @@ It is not allowed to:
 
 Top-K is the human-facing queue produced after ranking. It is not the learning model itself.
 
+Short form: Learning before Top-K, after the verifier.
+
+```text
+Verifier output
+  -> Learning before Top-K
+  -> Top-K Review Queue
+```
+
 ## 4. When To Train
 
 Train only after these conditions are met:
@@ -78,6 +91,9 @@ Train only after these conditions are met:
 - held-out windows exist
 - evidence provenance is attached
 - unavailable evidence is not treated as normal
+- R-OUT-1 unified output taxonomy is settled
+- R-CONSIST evidence-cache risks are handled or explicitly documented
+- R-2D-P0 communities propagation schema is designed if stealth evidence is included
 
 Minimum trainable unit:
 

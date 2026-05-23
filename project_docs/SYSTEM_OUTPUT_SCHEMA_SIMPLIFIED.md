@@ -12,6 +12,15 @@ An incident card is the unit shown to the verifier/ranker and eventually to huma
 incident_id: incident_000000
 parent_incident_id: incident_000000
 component_id: component_000000
+primary_family: forged_origin_like
+secondary_families:
+  - path_manipulation_like
+observability_mode: weak_signal
+evidence_tags:
+  - new_origin_as
+  - rpki_invalid_asn
+  - low_visibility
+why_not_confirmed: no operator confirmation or data-plane evidence
 stage1_trigger_summary:
   legacy_score: 82.0
   legacy_final_label: high_priority_alert
@@ -50,10 +59,49 @@ learning_ranker_output:
 
 The card is not a truth label. It is a compact provenance-preserving triage record.
 
+## 1A. Unified Output Taxonomy
+
+The system must avoid category explosion. Evidence combinations are represented by `evidence_tags`; they are not promoted into top-level classes such as `origin_valid_path_suspicious`, `rpki_unknown_path_suspicious`, or future `no_export_route_leak_origin_xxx` labels.
+
+Locked `primary_family` values:
+
+- `forged_origin_like`
+- `route_leak_like`
+- `path_manipulation_like`
+- `stealth_evasion_like`
+- `mixed_or_conflict`
+
+`forged_origin_like` is explicit because forged-origin weak-signal triage remains a core project family. It should not be blurred into `origin_hijack_like`.
+
+Locked `observability_mode` values:
+
+- `strong_signal`
+- `weak_signal`
+- `stealth_signal`
+- `mixed_signal`
+
+`weak_signal` is not an attack type. `forged_origin_like + weak_signal` is one of the core output combinations for the project. `stealth_signal` can be supported by future NO_EXPORT/community evidence, low visibility, or collector asymmetry, but low visibility alone is not proof of NO_EXPORT.
+
+Locked `verifier_state` values:
+
+- `evidence_supported_suspicious`
+- `evidence_conflict`
+- `evidence_insufficient`
+- `external_evidence_unavailable`
+- `background_like_but_unconfirmed`
+- `abstain`
+
+`strongly_supported_suspicious` is not a default main output unless future evidence provides stronger external validation.
+
 ## 2. Output Meaning Table
 
 | Output field | Plain-language meaning | Used by | Not allowed interpretation |
 | --- | --- | --- | --- |
+| `primary_family` | Small family label such as forged-origin-like, route-leak-like, path-manipulation-like, stealth-evasion-like, or mixed/conflict | verifier, ranker, report | Not a truth label and not a detailed evidence combination |
+| `secondary_families` | Optional additional families for mixed incidents | verifier, ranker | Not category explosion or multi-label truth |
+| `observability_mode` | Whether the signal is strong, weak, stealth-like, or mixed | verifier, ranker, Top-K | `weak_signal` is not an attack class |
+| `evidence_tags` | Extensible evidence facts such as RPKI invalid, low visibility, or NO_EXPORT present | verifier, ranker, report | Tags are not attack labels |
+| `why_not_confirmed` | Short explanation of what prevents confirmed attack/benign wording | report, reviewer defense | Not a weakness to hide |
 | `rpki_status` | Origin authorization lookup result for prefix-origin pair | verifier, ranker | `valid` is not benign; `invalid` is not confirmed attack; `unknown` is not normal |
 | `rpki_evidence_state` | Whether RPKI evidence is aligned, weak, stale, or unavailable | verifier | A medium evidence state is not truth |
 | `path_evidence_state` | Strength/availability of AS-path relationship evidence | verifier, ranker | AS-rel matched is not benign; AS-rel violation is not confirmed route leak |
@@ -176,6 +224,33 @@ learning_ranker_output:
 ```
 
 Interpretation: conflict must remain visible and must not be hidden by a model or score.
+
+### Example F: Forged-origin-like weak signal with evidence tags
+
+```yaml
+primary_family: forged_origin_like
+secondary_families: []
+observability_mode: weak_signal
+evidence_tags:
+  - new_origin_as
+  - rpki_invalid_asn
+  - low_visibility
+  - component_pure
+origin_evidence:
+  rpki_status: invalid_asn
+  rpki_evidence_state: aligned_medium
+component_purity:
+  component_purity_class: pure_dominant
+verifier_output:
+  verifier_verdict: evidence_supported_suspicious
+  confidence_cap: 0.75
+learning_ranker_output:
+  topk_bucket: Top-K review
+  recommended_action: human_review
+why_not_confirmed: no operator confirmation / no data-plane evidence
+```
+
+Interpretation: this preserves the original forged-origin weak-signal family while keeping evidence and truth separate. The alternative `verifier_verdict` can be `evidence_insufficient` if supporting evidence is incomplete.
 
 ## 4. Where Learning Layer Sits
 
