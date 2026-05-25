@@ -182,7 +182,36 @@ The evidence cache consistency red lines are:
 - Learning cannot hide AS-rel snapshot drift inside ranking features.
 - R-CONSIST-2 aligned reannotation should run before using Stage 1 AS-rel-derived weak/path fields as final paper evidence.
 
-## 8. Minimal Architecture and Ablation Defense
+## 8. Raw Incident Construction Guardrail
+
+R-AGG-ENTRY-0 adds a Raw Incident Dossier entry point audit before any new incident-level aggregation claim. This is necessary because the project must not become a normal detector that simply repackages old final labels.
+
+CCF-A line:
+
+- the contribution is explainable incident construction plus evidence grounding under partial observability, not ordinary event-level detector tuning;
+- final labels are weak workflow signals, not truth labels;
+- high/needs/low and P1/P2/P3 are workflow/priority hints, not truth labels;
+- no truth label is created by Raw Incident construction;
+- Raw Incident Dossier should begin from an entry with enough fields for aggregation and evidence lookup, but low judgment contamination;
+- current recommended main entry is `candidate-entry`;
+- `event-entry` and `scored-entry` are auxiliary references;
+- `gated-entry`, `augmented-entry`, and `final-entry` should not be the main Raw Incident entry because they carry old judgment decisions.
+
+Research red lines:
+
+- Do not default to the old final-level 21w ticket aggregation as the paper main result.
+- Do not optimize legacy final label quality as the core contribution.
+- Do not let final/gate/augment labels become attack labels.
+- background-like is operational suppression, not confirmed benign.
+- family_hint is semantic hint, not confirmed attack label.
+
+Forward-looking CCF-A assets:
+
+- poisoning benchmark retained as the key experiment for showing robustness under incomplete and poisonable public monitors;
+- learning layer postponed until Raw Incident Dossier and Evidence-grounded Incident schemas are stable;
+- future learning should aim at BEAM-style semantic learning for incident representation and prioritization, not rule re-scoring.
+
+## 9. Minimal Architecture and Ablation Defense
 
 R-LOCK-1 freezes the final paper-facing system as a minimal three-stage architecture:
 
@@ -211,7 +240,7 @@ Each module must defend a distinct failure mode:
 
 The CCF-A evaluation must therefore include ablations that remove the verifier, origin evidence, path evidence, component purity, abstention/conflict handling, learning ranker, and Top-K budget. The defense is not "every module sounds useful"; it is measurable degradation under unsupported alert ratio, evidence-supported density, Top-K density, conflict preservation, abstain safety, mixed incident overclaim, human review burden, and poisoning robustness.
 
-## 9. Fallback Policy
+## 10. Fallback Policy
 
 If the poisoning benchmark or learning ranker is weak, the project can fall back to a strong SCI version.
 

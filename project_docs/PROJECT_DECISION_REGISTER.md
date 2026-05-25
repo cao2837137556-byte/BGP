@@ -341,3 +341,49 @@ Current repo note:
 R-CONSIST and R-2D-P0 ordering can be adjusted by future research-control decisions, but both must be resolved before formal learning training.
 
 Do not keep adding external evidence indefinitely. Do not train learning while schema and provenance are unstable.
+
+## R-AGG-ENTRY-0 Raw Incident Entry Decision
+
+Status: active.
+
+Decision:
+
+- Raw Incident Dossier construction must be preceded by an entry point audit.
+- Do not default to `final-entry` or the old final-level 21w ticket aggregation.
+- Use `candidate-entry` as the current recommended main entry for Raw Incident construction.
+- Use `event-entry` as an auxiliary recall / raw observability reference.
+- Use `scored-entry` only as an auxiliary diagnostic upper bound, not as truth.
+- Avoid `gated-entry`, `augmented-entry`, and `final-entry` as primary Raw Incident entries because they carry increasing judgment contamination.
+
+Rationale:
+
+- final labels are weak workflow signals, not truth labels.
+- high/needs/low are workflow outputs, not ground truth.
+- P1/P2/P3 are priority hints, not ground truth.
+- final/gate/augment layers already encode old system decisions, so using them as the first Raw Incident representation risks circularly reproducing the old detector.
+- The new system needs Raw Incident Dossier first, then Evidence-grounded Incident, then verifier/triage outputs.
+
+Consequence:
+
+- The old seven-layer chain becomes a weak-signal source and lookup-key extraction path, not a truth producer.
+- Raw Incident Dossier can include `family_hint`, `trigger_reasons`, aggregation keys, and uncertainty fields, but these are hints, not verdicts.
+- background-like is operational suppression, not confirmed benign.
+- family_hint is semantic hint, not confirmed attack label.
+- R-AGG-1 should design the Raw Incident Dossier schema before final incident aggregation or learning starts.
+
+Long-term decisions attached to R-AGG-ENTRY-0:
+
+- poisoning benchmark retained as a core evaluation asset for public-monitor incomplete / poisonable settings.
+- learning layer postponed until Raw Incident Dossier and Evidence-grounded Incident schemas are stable.
+- Future learning must target semantic representation, prioritization, calibration, and component ranking, not legacy rule re-scoring.
+- Future learning should be compatible with BEAM-style semantic learning ideas, while remaining downstream of verifier hard rules.
+- no truth label should be produced at Raw Incident construction time.
+
+Updated near-term order:
+
+1. R-AGG-1: Raw Incident Dossier schema design.
+2. Evidence-grounded Incident construction and provenance attachment.
+3. R-OUT-1: unified incident output taxonomy tightening if needed.
+4. R-CONSIST-2 / R-2D-P0 repairs where evidence provenance or community propagation blocks final claims.
+5. R-3 poisoning / evasion benchmark.
+6. L1 component-aware semantic learner design.

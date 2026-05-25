@@ -949,3 +949,66 @@ R-DOC-1 decision consolidation
 ```
 
 Do not directly enter learning. Formal learning waits until R-OUT-1, R-CONSIST handling, and R-2D-P0 propagation design are stable.
+
+## 23. R-AGG-ENTRY-0 Raw Incident Entry Point Audit
+
+R-AGG-ENTRY-0 was added because Stage 1 cannot be treated as "whatever final labels already produced". The old seven-layer chain remains useful, but Raw Incident Dossier construction must avoid inheriting hidden gate/augment/final judgment as if it were truth.
+
+Scope:
+
+- compare event, candidate, scored, gated, augmented, and final entry points;
+- audit field availability, judgment contamination, noise exposure, aggregation explainability, evidence readiness, and learning readiness;
+- do not rerun raw/events/baseline/candidate/score/gate/augment/final;
+- do not modify old verifier/evidence outputs;
+- do not create attack/benign truth labels;
+- do not train learning.
+
+Implementation entry:
+
+- `scripts/audit_raw_incident_entry_points.py`
+- `project_docs/R_AGG_ENTRY_0_RAW_INCIDENT_ENTRY_AUDIT.md`
+
+Core route change:
+
+```text
+legacy seven-layer pipeline
+  -> Raw Incident Dossier
+  -> Evidence-grounded Incident
+  -> Evidence-constrained Verification
+  -> Component-aware Learning Triage
+  -> Top-K Review Queue
+```
+
+Verification / evidence grounding must not connect directly to old final labels. External evidence should enter Evidence-grounded Incident records and verifier evidence states, not rewrite `final_alert_label`.
+
+R-AGG-ENTRY-0 result:
+
+- recommended main entry: `candidate-entry`;
+- recommended auxiliary entries: `event-entry` and `scored-entry`;
+- not recommended as main Raw Incident entry: `gated-entry`, `augmented-entry`, `final-entry`;
+- final labels are weak workflow signals, not truth labels;
+- final-entry has high judgment contamination because it already carries final/gating/augmentation workflow decisions.
+
+Safety boundaries:
+
+- high/needs/low are not truth;
+- P1/P2/P3 are not truth;
+- no truth label is produced by R-AGG-ENTRY-0;
+- background-like is operational suppression, not confirmed benign;
+- family_hint is semantic hint, not confirmed attack label;
+- Raw Incident Dossier may carry weak hints, but Stage 2 verifier state must remain evidence-constrained;
+- poisoning benchmark retained as the key robustness evaluation path;
+- learning layer postponed until Raw Incident Dossier and Evidence-grounded Incident schemas are stable;
+- future learning should move toward BEAM-style semantic learning for representation/prioritization, not legacy rule re-scoring.
+
+Updated near-term route:
+
+```text
+R-AGG-ENTRY-0 entry point audit
+  -> R-AGG-1 Raw Incident Dossier schema design
+  -> Evidence-grounded Incident construction
+  -> R-OUT-1 unified output taxonomy if schema fields need further tightening
+  -> R-CONSIST-2 / R-2D-P0 repairs where evidence provenance blocks final claims
+  -> R-3 poisoning/evasion benchmark design
+  -> L1 component-aware semantic learner design
+```
