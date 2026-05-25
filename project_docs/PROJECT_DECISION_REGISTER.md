@@ -387,3 +387,46 @@ Updated near-term order:
 4. R-CONSIST-2 / R-2D-P0 repairs where evidence provenance or community propagation blocks final claims.
 5. R-3 poisoning / evasion benchmark.
 6. L1 component-aware semantic learner design.
+
+## R-AGG-1 Raw Incident Dossier Schema Decision
+
+Status: active.
+
+Decision:
+
+- Raw Incident Dossier schema v0 uses candidate-entry as the primary source.
+- `configs/raw_incident_dossier_schema_v0.yaml` is the active schema design artifact.
+- `scripts/prototype_raw_incident_schema_mapping.py` is a mapping preview, not a final aggregation script.
+- final-entry remains only a comparison/reference source.
+
+Rationale:
+
+- candidate-entry balances weak-signal context and low judgment contamination.
+- candidate-entry preserves prefix, origin AS, AS path, collector, and candidate reason fields needed for later evidence grounding.
+- scored/gated/augmented/final entries carry increasing legacy judgment contamination.
+- final labels are weak workflow signals, not truth labels.
+
+Consequence:
+
+- Raw Incident Dossier schema v0 contains nine field groups: identity, time_scope, routing_object, observation_scope, aggregation_explanation, weak_semantic_hint, structure_quality, legacy_reference, and downstream_hooks.
+- family_hint is semantic hint, not attack label.
+- background-like is operational suppression, not confirmed benign.
+- legacy score/gate/final fields can be recorded only under `legacy_reference`, not used as truth.
+- Evidence-grounded Incident construction starts only after Raw Incident schema is stable.
+- R-AGG-2 should prototype aggregation and repair time scope via event-entry join or upstream retention.
+
+Current mapping preview:
+
+- sample source: `s2a_baseline_v01_pilot_6h_april16` candidate-entry;
+- sampled rows: `5000`;
+- schema field coverage: `0.904762`;
+- required field missing rate: `0.075059`;
+- available lookup keys: `prefix_origin_key`, `as_path_signature`, `collector_set`, and `candidate_reason_set`;
+- `time_scope` is not ready because candidate-entry lacks `start_time` / `end_time`.
+
+Long-term guardrails:
+
+- no truth label at Raw Incident construction time;
+- poisoning benchmark retained as a core robustness evaluation path;
+- learning layer postponed until Raw Incident Dossier and Evidence-grounded Incident schemas are stable;
+- future learning should target BEAM-style semantic learning for incident/component/evidence representation and prioritization, not legacy rule re-scoring.

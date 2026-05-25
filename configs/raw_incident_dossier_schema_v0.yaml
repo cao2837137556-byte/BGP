@@ -1,0 +1,355 @@
+schema_name: Raw Incident Dossier schema v0
+phase: R-AGG-1
+status: active_design
+primary_source: candidate-entry
+description: >
+  Schema v0 for constructing Raw Incident Dossier records from the
+  candidate-entry layer. This schema is for incident construction and
+  downstream evidence grounding. It does not define attack/benign truth.
+
+global_guardrails:
+  - final labels are weak workflow signals, not truth labels
+  - family_hint is semantic hint, not attack label
+  - background-like is operational suppression, not confirmed benign
+  - candidate-entry is the primary source; final-entry is reference only
+  - no RPKI, AS-rel, communities, NO_EXPORT, or ASPA evidence is attached here
+  - poisoning benchmark retained
+  - learning layer postponed until Raw Incident and Evidence-grounded Incident are stable
+
+field_groups:
+  identity:
+    description: Dossier identity and source provenance.
+    fields:
+      raw_incident_id:
+        type: string
+        required: true
+        source_candidates: [prototype_generated]
+        missing_default: missing
+        description: Prototype dossier id; final aggregation may replace it.
+        forbidden_misuse: Must not be interpreted as final incident identity.
+      run_id:
+        type: string
+        required: true
+        source_candidates: [run_id]
+        missing_default: cli_run_id
+        description: Run identifier from candidate row or CLI.
+        forbidden_misuse: Must not imply evidence alignment by itself.
+      source_entry:
+        type: string
+        required: true
+        source_candidates: [constant:candidate-entry]
+        missing_default: candidate-entry
+        description: Entry point used by this schema.
+        forbidden_misuse: Must not silently switch to final-entry.
+      source_row_count:
+        type: integer
+        required: true
+        source_candidates: [candidate_file_metadata]
+        missing_default: 0
+        description: Source candidate table row count.
+        forbidden_misuse: Must not be reported as incident count after aggregation.
+      source_member_event_ids:
+        type: list[string]
+        required: false
+        source_candidates: [event_id, member_event_ids]
+        missing_default: []
+        description: Candidate event ids represented by this prototype row.
+        forbidden_misuse: Member ids are not analyst labels.
+
+  time_scope:
+    description: Time interval and temporal completeness.
+    fields:
+      start_time:
+        type: timestamp
+        required: true
+        source_candidates: [first_seen, start_time, ts, timestamp, time]
+        missing_default: missing
+        description: Dossier start time, preferably from event layer or candidate row.
+        forbidden_misuse: Missing time must not be treated as benign.
+      end_time:
+        type: timestamp
+        required: true
+        source_candidates: [last_seen, end_time, ts, timestamp, time]
+        missing_default: missing
+        description: Dossier end time.
+        forbidden_misuse: Missing time must not be treated as short-lived evidence.
+      duration_sec:
+        type: float
+        required: false
+        source_candidates: [duration_sec, duration, time_span_sec]
+        missing_default: missing
+        description: Candidate or aggregated duration in seconds.
+        forbidden_misuse: Short duration alone is not attack truth.
+      time_bucket_key:
+        type: string
+        required: false
+        source_candidates: [derived_from_start_time]
+        missing_default: missing
+        description: Coarse time bucket for future aggregation.
+        forbidden_misuse: Bucket key is not an incident id.
+      time_completeness_flag:
+        type: string
+        required: true
+        source_candidates: [derived_from_time_fields]
+        missing_default: missing_time
+        description: Whether start/end/duration are complete or partial.
+        forbidden_misuse: Incomplete time is uncertainty, not benign.
+
+  routing_object:
+    description: Routing objects and path signatures.
+    fields:
+      prefix_set:
+        type: list[string]
+        required: true
+        source_candidates: [prefix, prefix_set]
+        missing_default: []
+        description: Prefixes in the dossier.
+        forbidden_misuse: Prefix presence is not attack evidence by itself.
+      dominant_prefix:
+        type: string
+        required: true
+        source_candidates: [prefix, dominant_prefix]
+        missing_default: missing
+        description: Current dominant prefix for prototype mapping.
+        forbidden_misuse: Dominant prefix is not a confirmed victim label.
+      origin_as_set:
+        type: list[string]
+        required: true
+        source_candidates: [origin_as, origin, origin_as_set]
+        missing_default: []
+        description: Origin AS values represented by the dossier.
+        forbidden_misuse: New or rare origin is not confirmed hijack.
+      dominant_origin_as:
+        type: string
+        required: true
+        source_candidates: [origin_as, origin, dominant_origin_as]
+        missing_default: missing
+        description: Prototype dominant origin AS.
+        forbidden_misuse: Dominant origin is not attacker identity.
+      prefix_origin_key:
+        type: string
+        required: true
+        source_candidates: [prefix+origin_as]
+        missing_default: missing
+        description: Key used for origin evidence lookup.
+        forbidden_misuse: Lookup key is not evidence verdict.
+      as_path_signature_set:
+        type: list[string]
+        required: true
+        source_candidates: [as_path_signature, as_path_clean, as_path]
+        missing_default: []
+        description: AS-path signatures in the dossier.
+        forbidden_misuse: Path novelty is not confirmed manipulation.
+      dominant_as_path_signature:
+        type: string
+        required: true
+        source_candidates: [as_path_signature, as_path_clean, as_path]
+        missing_default: missing
+        description: Prototype dominant AS-path signature.
+        forbidden_misuse: Dominant path is not path legality verdict.
+
+  observation_scope:
+    description: Monitor visibility and collector coverage.
+    fields:
+      collector_set:
+        type: list[string]
+        required: true
+        source_candidates: [collector_set, collector, collector_name]
+        missing_default: []
+        description: Collectors observing the member events.
+        forbidden_misuse: Collector set is observation scope, not truth.
+      collector_count:
+        type: integer
+        required: false
+        source_candidates: [collector_count, visibility_count]
+        missing_default: missing
+        description: Count of observing collectors.
+        forbidden_misuse: Low count is not confirmed NO_EXPORT or attack.
+      visibility_mode:
+        type: string
+        required: false
+        source_candidates: [derived_from_collector_count]
+        missing_default: unknown_visibility
+        description: Coarse visibility hint.
+        forbidden_misuse: Visibility mode is not benign/attack label.
+      visibility_span_hint:
+        type: string
+        required: false
+        source_candidates: [visibility_count, collector_count, po_collector_support]
+        missing_default: missing
+        description: Coarse monitor span hint.
+        forbidden_misuse: Low visibility does not prove stealth.
+
+  aggregation_explanation:
+    description: Why rows may belong to the same raw dossier.
+    fields:
+      aggregation_key:
+        type: string
+        required: true
+        source_candidates: [prefix_origin_key+time_bucket_key+family_hint]
+        missing_default: missing
+        description: Prototype aggregation key for future R-AGG-2.
+        forbidden_misuse: Not a final incident id.
+      aggregation_reason:
+        type: string
+        required: true
+        source_candidates: [candidate_reasons, trigger_reasons]
+        missing_default: candidate_entry_prototype
+        description: Human-readable aggregation rationale.
+        forbidden_misuse: Aggregation reason is not a verifier verdict.
+      member_event_count:
+        type: integer
+        required: true
+        source_candidates: [member_event_count, record_count]
+        missing_default: 1
+        description: Prototype member count.
+        forbidden_misuse: Large member count is not severity by itself.
+      candidate_reason_set:
+        type: list[string]
+        required: true
+        source_candidates: [candidate_reasons]
+        missing_default: []
+        description: Candidate-layer weak signal reasons.
+        forbidden_misuse: Candidate reasons are hints, not labels.
+      trigger_reason_set:
+        type: list[string]
+        required: false
+        source_candidates: [trigger_reasons, candidate_reasons]
+        missing_default: []
+        description: Trigger reasons for incident construction.
+        forbidden_misuse: Trigger reason is not attack evidence.
+
+  weak_semantic_hint:
+    description: Semantic hints that guide later grouping and review.
+    fields:
+      family_hint:
+        type: enum
+        required: true
+        allowed_values:
+          - forged_origin_like
+          - route_leak_like
+          - path_manipulation_like
+          - stealth_visibility_like
+          - background_like_pattern
+          - mixed_unknown
+        source_candidates: [candidate_reasons, as_path_clean, collector_count]
+        missing_default: mixed_unknown
+        description: Weak semantic family hint.
+        forbidden_misuse: family_hint is semantic hint, not attack label.
+      family_hint_source:
+        type: string
+        required: true
+        source_candidates: [derived_from_candidate_reasons]
+        missing_default: heuristic_from_candidate_entry
+        description: Source rule for family_hint.
+        forbidden_misuse: Must not imply confirmed evidence.
+      weak_signal_tags:
+        type: list[string]
+        required: false
+        source_candidates: [candidate_reasons]
+        missing_default: []
+        description: Weak monitor-side signal tags.
+        forbidden_misuse: Weak tags are not evidence tags.
+
+  structure_quality:
+    description: Mixedness and split-readiness hints.
+    fields:
+      mixedness_hint:
+        type: string
+        required: false
+        source_candidates: [prefix_unique_origins, po_unique_paths, matched_rule_count]
+        missing_default: unknown
+        description: Coarse hint about whether the prototype row may need component split.
+        forbidden_misuse: Mixedness is not conflict verdict.
+      aggregation_confidence:
+        type: float
+        required: false
+        source_candidates: [derived_from_available_fields]
+        missing_default: 0.0
+        description: Prototype confidence that required construction fields exist.
+        forbidden_misuse: Not verifier confidence.
+      component_count_estimate:
+        type: integer
+        required: false
+        source_candidates: [derived_from_path/origin diversity]
+        missing_default: 1
+        description: Placeholder for future component estimation.
+        forbidden_misuse: Not a final component count.
+      dominant_component_share:
+        type: float
+        required: false
+        source_candidates: [derived_in_aggregation]
+        missing_default: missing
+        description: Future aggregation statistic.
+        forbidden_misuse: Not purity proof in v0.
+      split_needed_hint:
+        type: string
+        required: false
+        source_candidates: [derived_from_mixedness_hint]
+        missing_default: unknown
+        description: Whether R-AGG-2 may need to split components.
+        forbidden_misuse: Not an abstain verdict.
+
+  legacy_reference:
+    description: Explicit reference-only legacy fields.
+    fields:
+      legacy_score_fields_present:
+        type: boolean
+        required: true
+        source_candidates: [risk_score, risk_bucket]
+        missing_default: false
+        description: Whether score-layer fields are present in the chosen source.
+        forbidden_misuse: Legacy score fields must not define truth.
+      legacy_gate_fields_present:
+        type: boolean
+        required: true
+        source_candidates: [gating_label, certainty_score, conflict_score]
+        missing_default: false
+        description: Whether gate-layer fields are present.
+        forbidden_misuse: Gate fields are reference only.
+      legacy_final_fields_present:
+        type: boolean
+        required: true
+        source_candidates: [final_alert_label]
+        missing_default: false
+        description: Whether final-layer fields are present.
+        forbidden_misuse: final labels are weak workflow signals, not truth labels.
+      legacy_reference_only_note:
+        type: string
+        required: true
+        source_candidates: [constant]
+        missing_default: legacy fields are reference only
+        description: Explicit note preventing misuse.
+        forbidden_misuse: Must not be removed in paper-facing exports.
+
+  downstream_hooks:
+    description: Hooks for evidence grounding, poisoning evaluation, and learning.
+    fields:
+      evidence_grounding_ready:
+        type: boolean
+        required: true
+        source_candidates: [required_lookup_keys]
+        missing_default: false
+        description: Whether required lookup keys are mostly present.
+        forbidden_misuse: Ready for lookup is not evidence support.
+      required_lookup_keys:
+        type: list[string]
+        required: true
+        source_candidates: [prefix_origin_key, time_scope, as_path_signature, collector_set, candidate_reason_set]
+        missing_default: []
+        description: Minimal keys for RPKI/AS-rel/community/ASPA-ready evidence grounding.
+        forbidden_misuse: Keys are not external evidence.
+      learning_ready_features:
+        type: list[string]
+        required: false
+        source_candidates: [non_truth_schema_fields]
+        missing_default: []
+        description: Future semantic learning features.
+        forbidden_misuse: Learning features must not be attack/benign labels.
+      poisoning_benchmark_relevant_fields:
+        type: list[string]
+        required: false
+        source_candidates: [collector_set, visibility_mode, candidate_reason_set, as_path_signature_set]
+        missing_default: []
+        description: Fields likely useful for monitor poisoning/evasion benchmark.
+        forbidden_misuse: Poisoning relevance is not a poisoning label.

@@ -6,6 +6,12 @@
 ## Current Strategic State
 
 - Current Raw Incident Entry State:
+  - Phase R-AGG-1 Raw Incident Dossier schema design has completed as a schema/mapping preview step.
+  - `configs/raw_incident_dossier_schema_v0.yaml` is the active schema v0. It uses candidate-entry as the primary source and keeps final-entry as comparison/reference only.
+  - `scripts/prototype_raw_incident_schema_mapping.py` ran on local candidate parquet `s2a_baseline_v01_pilot_6h_april16` with `5000` sampled rows. Schema field coverage is `0.904762`; required field missing rate is `0.075059`.
+  - Available lookup keys in the sample: `prefix_origin_key`, `as_path_signature`, `collector_set`, and `candidate_reason_set`. `time_scope` is not ready because candidate-entry has `duration_sec` but no `start_time` / `end_time`; R-AGG-2 should repair this via event-entry join or upstream retention.
+  - R-AGG-1 does not implement aggregation, does not attach external evidence, does not train learning, and produces no truth label.
+  - Next step is R-AGG-2 Raw Incident prototype aggregation, then Evidence-grounded Incident construction after the Raw Incident schema is stable.
   - Phase R-AGG-ENTRY-0 Raw Incident entry point audit has completed as a read-only audit plus documentation update.
   - The system is now re-anchored as explainable incident construction plus evidence grounding, with future semantic learning after the incident/evidence schemas stabilize.
   - R-AGG-ENTRY-0 compared `event-entry`, `candidate-entry`, `scored-entry`, `gated-entry`, `augmented-entry`, and `final-entry` for Raw Incident Dossier construction.
@@ -14,7 +20,7 @@
   - Directly using the old final-level 21w ticket aggregation as the paper main口径 is prohibited unless a later audit explicitly justifies it.
   - final labels are weak workflow signals, not truth labels; high/needs/low and P1/P2/P3 remain workflow or priority hints, not truth.
   - background-like is operational suppression, not confirmed benign. family_hint is semantic hint, not confirmed attack label.
-  - Next candidate step is R-AGG-1 Raw Incident Dossier schema design, then Evidence-grounded Incident construction.
+  - R-AGG-1 has now turned this into a schema/mapping design. Next candidate step is R-AGG-2 Raw Incident prototype aggregation, then Evidence-grounded Incident construction.
   - poisoning benchmark retained for R-3; learning layer postponed until Raw Incident Dossier and Evidence-grounded Incident are stable, with future direction toward BEAM-style semantic learning for representation/prioritization rather than rule re-scoring.
 - Current Decision State:
   - Phase R-DOC-1 research decision consolidation has completed as a documentation-only step.
@@ -69,7 +75,7 @@
 - Phase R-2C-P1 path relation lookup smoke has completed on fixed S2: expanded AS-pair rows `421989`, row-level AS-pair match rate `0.947510`, triplet rows `205067`, full-path rows `217162`, incident path evidence rows `217165`; path states `aligned_medium=161992`, `diagnostic_only=34192`, `evidence_insufficient=18084`, `unavailable=2897`; route-leak-like diagnostic candidates `34555`; path-manipulation-like diagnostic candidates `44189`; no route-leak verdict generated and no R-2B verifier verdict modified.
 - Phase R-2C-P2 path-legality verifier smoke has completed on fixed S2: processed incidents `217165`; verdict smoke distribution `background_like_but_unconfirmed=127889`, `evidence_insufficient=78324`, `abstain=10822`, `evidence_conflict=86`, `evidence_supported_suspicious=44`; route-leak-like review candidates `34555`; path-manipulation-like review candidates `44189`; `strongly_supported_suspicious=0`; hard safety violations `0`; no confirmed route-leak label generated and no R-2B verifier verdict modified.
 - Phase R-LOCK-1 architecture minimality and ablation plan has completed: old seven-layer pipeline compressed into Stage 1, verifier locked as Stage 2, learning ranker locked as Stage 3 before Top-K, output card schema simplified, and ablation plan A0-A9 defined for reviewer defense.
-- Next default steps are R-AGG-1 Raw Incident Dossier schema design, Evidence-grounded Incident construction, R-OUT-1 unified incident output taxonomy design, R-CONSIST-2 aligned AS-rel reannotation / impact comparison, R-2D-P0 communities propagation schema design / repair plus R-2D-0 rerun, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
+- Next default steps are R-AGG-2 Raw Incident prototype aggregation, Evidence-grounded Incident construction, R-OUT-1 unified incident output taxonomy design, R-CONSIST-2 aligned AS-rel reannotation / impact comparison, R-2D-P0 communities propagation schema design / repair plus R-2D-0 rerun, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
 
