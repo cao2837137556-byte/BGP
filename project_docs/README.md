@@ -47,6 +47,8 @@
   - `R_AGG_ENTRY_0_RAW_INCIDENT_ENTRY_AUDIT.md`
 - Phase R-AGG-1 Raw Incident Dossier schema 文档：
   - `R_AGG_1_RAW_INCIDENT_DOSSIER_SCHEMA.md`
+- Phase R-AGG-2 Raw Incident prototype aggregation 文档：
+  - `R_AGG_2_RAW_INCIDENT_PROTOTYPE_AGGREGATION.md`
 - Phase R architecture lock 文档：
   - `ARCHITECTURE_MINIMALITY_AND_ABLATION_PLAN.md`
   - `SYSTEM_OUTPUT_SCHEMA_SIMPLIFIED.md`
@@ -55,11 +57,11 @@
 
 ## Current Phase Guardrail
 
-Current phase: Phase R-AGG-1 has completed Raw Incident Dossier schema v0 design and candidate-entry mapping preview. The project is no longer optimizing old final labels; it is moving from the legacy event-level detector chain toward explainable incident construction plus evidence grounding. R-AGG-ENTRY-0 compared event, candidate, scored, gated, augmented, and final entry points and recommends `candidate-entry` as the main Raw Incident construction entry, with `event-entry` and `scored-entry` as auxiliary references. R-AGG-1 now records the schema groups, candidate-entry field mapping, legacy-reference guardrails, and downstream hooks for Evidence-grounded Incident, poisoning benchmark, and future semantic learning.
+Current phase: Phase R-AGG-2 has completed Raw Incident prototype aggregation. The project is no longer optimizing old final labels; it is moving from the legacy event-level detector chain toward explainable incident construction plus evidence grounding. R-AGG-ENTRY-0 compared event, candidate, scored, gated, augmented, and final entry points and recommends `candidate-entry` as the main Raw Incident construction entry, with `event-entry` and `scored-entry` as auxiliary references. R-AGG-1 records the schema groups, candidate-entry field mapping, legacy-reference guardrails, and downstream hooks for Evidence-grounded Incident, poisoning benchmark, and future semantic learning. R-AGG-2 now builds prototype raw incidents using candidate-entry plus event-entry time repair.
 
-R-AGG-ENTRY-0 locks the following guardrail: final labels are weak workflow signals, not truth labels. The old final layer can provide context, but direct final-level 21w aggregation must not become the paper's main incident口径 without entry-point justification. After R-AGG-1, the next step is R-AGG-2 Raw Incident prototype aggregation, followed by Evidence-grounded Incident construction.
+R-AGG-ENTRY-0 locks the following guardrail: final labels are weak workflow signals, not truth labels. The old final layer can provide context, but direct final-level 21w aggregation must not become the paper's main incident口径 without entry-point justification. After R-AGG-2, the next step is R-AGG-3 aggregation quality audit, followed by Evidence-grounded Incident construction.
 
-R-AGG-1 locks the following guardrail: candidate-entry is the Raw Incident primary source, but this round only designs schema and mapping preview. It does not implement aggregation, does not attach external evidence, and does not train learning. The next implementation step is R-AGG-2 Raw Incident prototype aggregation.
+R-AGG-1 locks the following guardrail: candidate-entry is the Raw Incident primary source, but schema design alone does not implement final aggregation, attach external evidence, or train learning. R-AGG-2 keeps that boundary: it performs Raw Incident prototype aggregation only, with event-entry time repair, and still does not use final-entry as the main source. The next step is R-AGG-3 aggregation quality audit or Evidence-grounded Incident design.
 
 The new `PROJECT_DECISION_REGISTER.md` remains the project-level decision table for architecture boundaries, output taxonomy, Stage 1 / Stage 2 evidence reuse, component purity, abstain handling, communities / NO_EXPORT propagation, AS-rel consistency, learning-layer timing, and Raw Incident entry decisions. R-LOCK-1 still locks the paper-facing system as a minimal three-stage architecture: Stage 1 Monitor-triggered Incident Construction, Stage 2 Evidence-constrained Verification, and Stage 3 Component-aware Learning Triage before the Top-K Review Queue. R-DOC-1 also locks the no-category-explosion output taxonomy: `primary_family`, `observability_mode`, `verifier_state`, `evidence_tags`, confidence, rank, action, and `why_not_confirmed`. R-CONSIST-1 found a versioned evidence provenance risk: Stage 1 annotation code defaults to CAIDA `2017-07-01` AS-rel while Stage 2 R-2C uses the aligned `2024-04-01` AS-rel cache; recommended follow-up remains `r_consist2_aligned_reannotation`. R-2D-0 found raw `communities` fields and parseable `NO_EXPORT` / `NO_ADVERTISE` / `NOPEER`, but communities are retained only at raw-update layer and are not incident join-ready. Do not continue the legacy S3 detector-quality line unless explicitly requested. Legacy high/needs/low and P1/P2/P3 outputs are not ground truth. R-2A/R-2B/R-2C/R-2D verifier/evidence outputs are not ground truth. Final main experiments must use consistent versioned evidence cache snapshots or report drift/impact analysis. The learning layer sits between the verifier and Top-K review; it is an incident/component-aware ranker and calibrator, not an attack/benign classifier and not a verifier override.
 
@@ -96,6 +98,7 @@ Poisoning benchmark retained: R-3 remains a core evaluation direction for showin
 20. `project_docs/R_CONSIST1_STAGE1_ASREL_PROVENANCE_AUDIT.md`
 21. `project_docs/R_AGG_ENTRY_0_RAW_INCIDENT_ENTRY_AUDIT.md`
 22. `project_docs/R_AGG_1_RAW_INCIDENT_DOSSIER_SCHEMA.md`
-23. `project_docs/CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`
-24. `project_docs/LEARNING_LAYER_POSITIONING.md`
-25. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`
+23. `project_docs/R_AGG_2_RAW_INCIDENT_PROTOTYPE_AGGREGATION.md`
+24. `project_docs/CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`
+25. `project_docs/LEARNING_LAYER_POSITIONING.md`
+26. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`

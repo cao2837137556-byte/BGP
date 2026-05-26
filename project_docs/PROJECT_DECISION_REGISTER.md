@@ -430,3 +430,48 @@ Long-term guardrails:
 - poisoning benchmark retained as a core robustness evaluation path;
 - learning layer postponed until Raw Incident Dossier and Evidence-grounded Incident schemas are stable;
 - future learning should target BEAM-style semantic learning for incident/component/evidence representation and prioritization, not legacy rule re-scoring.
+
+## R-AGG-2 Raw Incident Prototype Aggregation Decision
+
+Status: active.
+
+Decision:
+
+- Raw Incident prototype aggregation uses candidate-entry as the primary source.
+- event-entry is used only for time/observation repair, primarily through `event_id` exact join.
+- score/gate/augment/final remain auxiliary references, not aggregation entry points.
+- final-entry is not the main Raw Incident source.
+
+Rationale:
+
+- candidate-entry balances low judgment contamination and weak-signal context.
+- event-entry preserves original `first_seen` / `last_seen` / collector observation details that candidate-entry lacks.
+- R-AGG-1 showed candidate-entry time_scope readiness was `0.0`; R-AGG-2 repairs this by joining event-entry.
+- Keeping the aggregation key conservative reduces over-aggregation risk for the first prototype.
+
+Consequence:
+
+- R-AGG-2 produces Raw Incident prototype records, not final review tickets.
+- Prototype key v0 is intentionally conservative: `prefix_origin_key + as_path_signature + family_hint + collector_set + time_bucket_key`.
+- The baseline run produced `3128971` prototype raw incidents from `3431103` candidate rows, compression ratio `1.09656`.
+- time_scope coverage improved to `1.0` through exact event join.
+- The low compression ratio means R-AGG-3 must audit under-aggregation before Evidence-grounded Incident consumes this table.
+- family_hint is semantic hint, not attack label.
+- background-like remains operational suppression, not confirmed benign.
+
+Current result:
+
+- run: `s2a_baseline_v01_pilot_6h_april16`;
+- candidate rows: `3431103`;
+- event rows: `3431103`;
+- raw incidents: `3128971`;
+- time repair: `exact_join=3128971`;
+- family_hint distribution: `mixed_unknown=1707486`, `stealth_visibility_like=1406742`, `forged_origin_like=14743`;
+- evidence_grounding_ready_rate: `0.948727`.
+
+Next:
+
+- Prefer R-AGG-3 aggregation quality audit before Evidence-grounded Incident design.
+- R-AGG-3 should decide whether to add a full raw incident membership table and whether any safe coarser grouping is justified.
+- poisoning benchmark retained.
+- learning layer postponed and must target BEAM-style semantic learning, not legacy rule re-scoring.
