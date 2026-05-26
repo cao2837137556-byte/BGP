@@ -475,3 +475,56 @@ Next:
 - R-AGG-3 should decide whether to add a full raw incident membership table and whether any safe coarser grouping is justified.
 - poisoning benchmark retained.
 - learning layer postponed and must target BEAM-style semantic learning, not legacy rule re-scoring.
+
+## R-AGG-3 Raw Incident Aggregation Quality Decision
+
+Status: active.
+
+Decision:
+
+- Before optimizing Raw Incident aggregation, run aggregation quality audit.
+- R-AGG-3 audits key_fragmentation, background-like operational candidates, merge opportunities, high-value retention risk, and family_hint quality.
+- No safe merge or pre-incident filter should be implemented before audit evidence and family_hint mapping repair.
+- R-AGG-3 does not change R-AGG-2 aggregation logic and does not produce a truth label.
+
+Rationale:
+
+- R-AGG-2 proved candidate-entry construction and event-entry time repair, but compression is only `1.09656x`.
+- The low compression ratio means the prototype is still close to candidate-row granularity.
+- Directly returning to final-entry would reintroduce old judgment contamination.
+- background-like is operational suppression candidate, not confirmed benign.
+- family_hint is semantic hint, not attack label.
+
+Consequence:
+
+- candidate-entry remains the Raw Incident primary source.
+- R-AGG-3 estimates safe merge opportunity without executing any merge.
+- R-AGG-3 estimates pre-incident filter pressure without implementing background suppression.
+- High-value weak signals must be explicitly protected before any background filter or coarser merge is allowed.
+- Future learning remains postponed and must target BEAM-style semantic learning for representation/prioritization, not legacy rule re-scoring.
+
+Current result:
+
+- run: `s2a_baseline_v01_pilot_6h_april16`;
+- raw incidents: `3128971`;
+- estimated best safe group count: `1793817`;
+- estimated best safe compression ratio: `1.912739`;
+- possible_background_like_count: `3114228`;
+- possible_background_like_rate: `0.995288`;
+- high_value_candidate_count: `3118030`;
+- risky_suppression_count: `3103287`;
+- mixed_unknown_count: `1707486`.
+
+Key interpretation:
+
+- `prefix_origin_key` alone offers high apparent compression (`10.707374x`) but carries high over-merge risk.
+- `prefix_origin_key + family_hint + dominant_as_path_signature` offers lower-risk compression around `2.088168x`.
+- mixed_unknown is mostly a family_hint mapping / priority issue, not missing core lookup keys.
+- Because possible background-like rows overlap heavily with high-value weak-signal candidates, a pre-incident filter is needed as a design problem but is not safe to implement blindly.
+
+Next:
+
+- Prefer R-AGG-4 family_hint mapping repair before safe merge / pre-incident filter design.
+- Then run a focused safe merge key design or aggregation quality re-audit before Evidence-grounded Incident consumes the Raw Incident table.
+- poisoning benchmark retained.
+- learning layer postponed and must target BEAM-style semantic learning.
