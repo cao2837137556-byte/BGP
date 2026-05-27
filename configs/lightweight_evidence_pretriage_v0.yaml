@@ -1,0 +1,147 @@
+config_name: lightweight_evidence_pretriage_v0
+phase: R-EVID-0
+status: design_and_feasibility_audit
+description: >
+  Lightweight evidence-aware pre-triage design for Raw Incident Dossier
+  outputs. This configuration defines audit-only signals for protecting
+  suspicious weak evidence, identifying suppressible background-like
+  candidates, and retaining gray-zone cases. It does not define truth labels
+  or implement suppression.
+
+global_guardrails:
+  - lightweight evidence pre-triage is not suppression implementation
+  - RPKI invalid is not attack truth
+  - AS-rel diagnostic is not route leak truth
+  - background-like is not benign
+  - final/high/needs/low are not truth labels
+  - protected_suspicious is a triage protection state, not confirmed attack
+  - suppressible_background_like is an operational candidate state, not benign
+  - gray_zone_retained is a reliability state, not failure
+  - learning layer postponed
+  - poisoning benchmark retained
+
+evidence_types:
+  prefix_origin_key:
+    source_candidates: [raw_incidents.prefix_origin_key]
+    role: lookup_key
+    misuse_guardrail: Prefix-origin key is not a verdict.
+  origin_novelty:
+    source_candidates: [candidate_reason_set, weak_signal_tags, family_hint]
+    role: weak suspicious signal
+    misuse_guardrail: New or unseen origin is not confirmed hijack.
+  path_novelty:
+    source_candidates: [candidate_reason_set, weak_signal_tags, dominant_as_path_signature]
+    role: weak suspicious signal
+    misuse_guardrail: Path novelty is not confirmed path manipulation.
+  visibility_signal:
+    source_candidates: [collector_count, collector_set, visibility_mode]
+    role: observability signal
+    misuse_guardrail: Low visibility is not confirmed stealth or NO_EXPORT.
+  rpki_status:
+    source_candidates: [data/evidence/rpki/vrp_2024-04-16.parquet]
+    role: external origin evidence
+    misuse_guardrail: RPKI invalid is not attack truth; RPKI valid is not benign.
+  asrel_path_diagnostic:
+    source_candidates: [event_units.rel_seq, event_units.rel_unknown_cnt, event_units.rel_has_unknown]
+    role: path diagnostic signal
+    misuse_guardrail: AS-rel diagnostic is not route leak truth.
+  candidate_reason_set:
+    source_candidates: [raw_incidents.candidate_reason_set]
+    role: Stage 1 weak signal provenance
+    misuse_guardrail: Candidate reasons are not labels.
+  time_scope:
+    source_candidates: [start_time, end_time, duration_sec, time_bucket_key]
+    role: temporal audit context
+    misuse_guardrail: Short or missing time is not benign or attack.
+  family_hint:
+    source_candidates: [raw_incidents.family_hint]
+    role: semantic hint
+    misuse_guardrail: family_hint is semantic hint, not attack label.
+
+protected_suspicious_rules:
+  - id: origin_novelty_present
+    signal: new_origin or unseen prefix-origin in candidate_reason_set / weak_signal_tags
+    output_state: protected_suspicious
+    misuse_guardrail: Do not call it confirmed hijack.
+  - id: rpki_invalid_present
+    signal: rpki_status in [invalid_asn, invalid_length]
+    output_state: protected_suspicious
+    misuse_guardrail: RPKI invalid is not attack truth.
+  - id: path_novelty_present
+    signal: unseen_path, path_change, abnormal_path_length, or path_manipulation-like hint
+    output_state: protected_suspicious
+    misuse_guardrail: Path novelty is not confirmed path attack.
+  - id: asrel_diagnostic_present
+    signal: valley-like, suspect triplet, path relation diagnostic, or relation unknown diagnostic
+    output_state: protected_suspicious
+    misuse_guardrail: AS-rel diagnostic is not route leak truth.
+  - id: low_visibility_with_other_weak_signal
+    signal: single_collector or low_visibility plus origin/path/candidate weak signal
+    output_state: protected_suspicious
+    misuse_guardrail: Low visibility alone does not prove stealth.
+  - id: community_or_no_export_present
+    signal: community, no_export, no_advertise, nopeer if retained in future incident schema
+    output_state: protected_suspicious
+    misuse_guardrail: NO_EXPORT present is not confirmed attack.
+
+suppressible_background_like_rules:
+  - id: no_protected_signal
+    required: true
+    description: The row must not satisfy any protected_suspicious rule.
+  - id: no_origin_or_path_diagnostic
+    required: true
+    description: No origin novelty, path novelty, RPKI invalid, or AS-rel diagnostic signal.
+  - id: weak_or_missing_candidate_reason
+    required: false
+    description: Candidate reasons are missing or limited to low-specificity operational hints.
+  - id: no_visibility_anomaly
+    required: true
+    description: Collector coverage is not single-collector-only and visibility_mode is not weak.
+  - id: reference_only
+    required: true
+    description: This is only a candidate for lower review priority, not a deletion instruction.
+
+gray_zone_rules:
+  - id: insufficient_protected_signal
+    description: Evidence is not strong enough to protect as suspicious.
+  - id: unsafe_to_suppress
+    description: Evidence is also not safe enough to mark suppressible_background_like.
+  - id: retain_for_audit
+    description: Keep the case for later evidence grounding or sampling.
+
+forbidden_truth_claims:
+  - RPKI invalid is not attack truth
+  - RPKI valid is not benign
+  - AS-rel diagnostic is not route leak truth
+  - background-like is not benign
+  - suppressible_background_like is not deletion
+  - protected_suspicious is not confirmed attack
+  - final/high/needs/low are not truth
+
+stop_loss_criteria:
+  protected_background_overlap_rate:
+    threshold: 0.20
+    action: do not implement suppression; repair protection rules or family_hint first
+  gray_zone_rate:
+    threshold: 0.50
+    action: evidence is insufficient; do not enter R-EVID-1 implementation
+  rpki_coverage:
+    threshold: 0.20
+    action: RPKI alone cannot support pre-triage
+  asrel_diagnostic_coverage:
+    threshold: 0.20
+    action: path diagnostic cannot support pre-triage without join repair
+  risky_suppression_rate:
+    threshold: 0.01
+    action: do not suppress until high-value retention constraints are repaired
+  mixed_unknown_rate:
+    threshold: 0.40
+    action: repair family_hint mapping before safe merge or filter implementation
+
+learning_layer_guardrails:
+  - learning layer postponed
+  - future learning must target BEAM-style semantic learning
+  - learning input should be evidence-grounded incidents
+  - learning target is semantic priority / low false positive triage, not attack/benign classification
+  - learning must be deployable, low false alarm, and auditable
+  - learning must not override verifier hard rules

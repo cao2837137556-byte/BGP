@@ -1,11 +1,21 @@
 ﻿# BGP Platform Handoff
 
-最后更新：2026-05-26
+最后更新：2026-05-27
 定位：项目唯一长期维护的交接总览文件。
 
 ## Current Strategic State
 
 - Current Raw Incident Entry State:
+  - Phase R-EVID-0 lightweight evidence pre-triage design and feasibility audit has completed on `s2a_baseline_v01_pilot_6h_april16`.
+  - Implementation: `scripts/audit_lightweight_evidence_pretriage.py`.
+  - Config: `configs/lightweight_evidence_pretriage_v0.yaml`.
+  - Outputs: `outputs/r_evid_0/s2a_baseline_v01_pilot_6h_april16/r_evid_0_summary.json`, evidence availability audit, protected signal audit, suppressible background feasibility audit, gray-zone audit, and overlap risk audit.
+  - R-EVID-0 is design/audit only: no deletion, no background suppression, no safe merge, no verifier verdict modification, no learning training, and no truth labels.
+  - Evidence availability: prefix_origin_key `0.952224`, path_novelty `0.544715`, visibility signals `1.0`, RPKI status coverage `0.550384`, AS-rel/path diagnostic event join `1.0`, candidate_reason_set `0.996503`, time_scope `1.0`, communities/NO_EXPORT in Raw Incident `0.0`.
+  - Triage feasibility: protected_suspicious `2908323` (`0.929482`), suppressible_background_like `0` (`0.0`), gray_zone_retained `220648` (`0.070518`).
+  - Stop-loss triggered: protected_background_overlap_rate `0.92477`, risky_suppression_count `2893580`, mixed_unknown_rate `0.545702`.
+  - Recommended next step is not R-EVID-1 implementation yet. Prefer R-AGG-4 family_hint mapping repair, then rerun R-EVID-0 before any evidence pre-triage smoke.
+  - Safety boundaries: RPKI invalid is not attack truth; AS-rel diagnostic is not route leak truth; background-like is not benign.
   - Phase R-AGG-3 Raw Incident aggregation quality audit has completed on `s2a_baseline_v01_pilot_6h_april16`.
   - Implementation: `scripts/audit_raw_incident_quality.py`.
   - Outputs: `outputs/r_agg_3/s2a_baseline_v01_pilot_6h_april16/r_agg_3_summary.json`, key fragmentation audit, background candidate audit, merge opportunity audit, high-value retention audit, family_hint quality audit, sample CSV, and markdown report.
@@ -13,7 +23,7 @@
   - Full result: raw incidents `3128971`; estimated best safe group count `1793817`; estimated best safe compression ratio `1.912739`; possible_background_like `3114228` (`0.995288`); high_value_candidate_count `3118030`; risky_suppression_count `3103287`; mixed_unknown `1707486`.
   - Key fragmentation: grouping by `prefix_origin_key` alone gives high-risk compression `10.707374x`; adding `family_hint + dominant_as_path_signature` gives lower-risk compression `2.088168x`; the audit estimates safe merge space but does not merge.
   - Main diagnosis: `mixed_unknown` is mostly a family_hint mapping/priority issue, not missing core keys. Core keys are present for most mixed_unknown rows, so blindly filtering background-like rows would suppress many high-value weak-signal candidates.
-  - Recommended next step is R-AGG-4 family_hint mapping repair before safe merge or pre-incident filter design.
+  - Recommended next step is R-AGG-4 family_hint mapping repair before safe merge or pre-incident filter design; R-EVID-0 has now reinforced that stop-loss.
   - Phase R-AGG-2 Raw Incident prototype aggregation has completed on `s2a_baseline_v01_pilot_6h_april16`.
   - Implementation: `scripts/build_raw_incident_prototype.py`.
   - Outputs: `outputs/r_agg_2/s2a_baseline_v01_pilot_6h_april16/raw_incidents_prototype.parquet`, preview CSV, summary JSON, time repair audit, and grouping stats.
@@ -37,7 +47,7 @@
   - Directly using the old final-level 21w ticket aggregation as the paper main口径 is prohibited unless a later audit explicitly justifies it.
   - final labels are weak workflow signals, not truth labels; high/needs/low and P1/P2/P3 remain workflow or priority hints, not truth.
   - background-like is operational suppression, not confirmed benign. family_hint is semantic hint, not confirmed attack label.
-  - R-AGG-1 turned this into a schema/mapping design, R-AGG-2 built the first prototype table, and R-AGG-3 audited over-fragmentation. Next candidate step is R-AGG-4 family_hint mapping repair, then safe merge / pre-incident filter design or Evidence-grounded Incident construction.
+  - R-AGG-1 turned this into a schema/mapping design, R-AGG-2 built the first prototype table, R-AGG-3 audited over-fragmentation, and R-EVID-0 audited lightweight evidence-aware pre-triage feasibility. Next candidate step is R-AGG-4 family_hint mapping repair, then R-EVID-0 rerun / R-EVID-1 smoke, safe merge / pre-incident filter design, or Evidence-grounded Incident construction.
   - poisoning benchmark retained for R-3; learning layer postponed until Raw Incident Dossier and Evidence-grounded Incident are stable, with future direction toward BEAM-style semantic learning for representation/prioritization rather than rule re-scoring.
 - Current Decision State:
   - Phase R-DOC-1 research decision consolidation has completed as a documentation-only step.
@@ -92,7 +102,7 @@
 - Phase R-2C-P1 path relation lookup smoke has completed on fixed S2: expanded AS-pair rows `421989`, row-level AS-pair match rate `0.947510`, triplet rows `205067`, full-path rows `217162`, incident path evidence rows `217165`; path states `aligned_medium=161992`, `diagnostic_only=34192`, `evidence_insufficient=18084`, `unavailable=2897`; route-leak-like diagnostic candidates `34555`; path-manipulation-like diagnostic candidates `44189`; no route-leak verdict generated and no R-2B verifier verdict modified.
 - Phase R-2C-P2 path-legality verifier smoke has completed on fixed S2: processed incidents `217165`; verdict smoke distribution `background_like_but_unconfirmed=127889`, `evidence_insufficient=78324`, `abstain=10822`, `evidence_conflict=86`, `evidence_supported_suspicious=44`; route-leak-like review candidates `34555`; path-manipulation-like review candidates `44189`; `strongly_supported_suspicious=0`; hard safety violations `0`; no confirmed route-leak label generated and no R-2B verifier verdict modified.
 - Phase R-LOCK-1 architecture minimality and ablation plan has completed: old seven-layer pipeline compressed into Stage 1, verifier locked as Stage 2, learning ranker locked as Stage 3 before Top-K, output card schema simplified, and ablation plan A0-A9 defined for reviewer defense.
-- Next default steps are R-AGG-4 family_hint mapping repair before safe merge / pre-incident filter design, Evidence-grounded Incident construction, R-OUT-1 unified incident output taxonomy design, R-CONSIST-2 aligned AS-rel reannotation / impact comparison, R-2D-P0 communities propagation schema design / repair plus R-2D-0 rerun, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
+- Next default steps are R-AGG-4 family_hint mapping repair before R-EVID-1 / safe merge / pre-incident filter design, R-EVID-0 rerun after mapping repair, Evidence-grounded Incident construction, R-OUT-1 unified incident output taxonomy design, R-CONSIST-2 aligned AS-rel reannotation / impact comparison, R-2D-P0 communities propagation schema design / repair plus R-2D-0 rerun, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
 

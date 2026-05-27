@@ -528,3 +528,59 @@ Next:
 - Then run a focused safe merge key design or aggregation quality re-audit before Evidence-grounded Incident consumes the Raw Incident table.
 - poisoning benchmark retained.
 - learning layer postponed and must target BEAM-style semantic learning.
+
+## R-EVID-0 Lightweight Evidence Pre-Triage Decision
+
+Status: active.
+
+Decision:
+
+- Before implementing compression, design lightweight evidence-aware pre-triage.
+- R-EVID-0 defines three audit-only states: `protected_suspicious`, `suppressible_background_like`, and `gray_zone_retained`.
+- No suppression, deletion, safe merge, or R-EVID-1 implementation should proceed before evidence-aware protection rules pass stop-loss.
+- RPKI and AS-rel/path diagnostics may support triage protection, but they are not truth labels.
+
+Rationale:
+
+- R-AGG-3 showed background-like and high-value signals heavily overlap.
+- A naive background filter would suppress many weak-signal cases that are exactly the cases the project wants to preserve under partial observability.
+- Lightweight evidence can act as a guardrail before compression, but only if it reduces risky overlap instead of hiding it.
+- External GPT-style plans are treated as broad direction; final implementation must follow local data, provenance, and safety constraints.
+
+Consequence:
+
+- No suppression before evidence-aware protection rules are audited.
+- R-EVID-0 samples detailed audit rows but computes full-population counts and rates.
+- `protected_suspicious` means "do not suppress without stronger evidence", not confirmed attack.
+- `suppressible_background_like` means "future low-priority candidate", not benign and not deletion.
+- `gray_zone_retained` means evidence is insufficient for either protection or suppression.
+- Learning remains postponed and must target BEAM-style semantic learning over evidence-grounded incidents, not attack/benign classification or rule re-scoring.
+
+Current result:
+
+- run: `s2a_baseline_v01_pilot_6h_april16`;
+- raw incidents: `3128971`;
+- RPKI coverage: `0.550384`;
+- AS-rel/path diagnostic event join: `1.0`;
+- communities / NO_EXPORT in Raw Incident: `0.0`;
+- protected_suspicious: `2908323` (`0.929482`);
+- suppressible_background_like: `0` (`0.0`);
+- gray_zone_retained: `220648` (`0.070518`);
+- protected_background_overlap: `2893580` (`0.92477`);
+- mixed_unknown_rate: `0.545702`.
+
+Stop-loss:
+
+- triggered: `protected_background_overlap_rate_too_high`;
+- triggered: `risky_suppression_rate_too_high`;
+- triggered: `family_hint_mixed_unknown_rate_too_high`;
+- decision: `do_not_enter_R_EVID_1_yet`.
+
+Next:
+
+- Prefer R-AGG-4 family_hint mapping repair.
+- Rerun R-EVID-0 after mapping repair.
+- Only then consider R-EVID-1 evidence pre-triage smoke, still with no deletion and no truth labels.
+- RPKI invalid is not attack truth.
+- AS-rel diagnostic is not route leak truth.
+- background-like is not benign.

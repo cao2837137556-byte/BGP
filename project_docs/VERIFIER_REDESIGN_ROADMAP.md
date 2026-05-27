@@ -1012,3 +1012,49 @@ R-AGG-ENTRY-0 entry point audit
   -> R-3 poisoning/evasion benchmark design
   -> L1 component-aware semantic learner design
 ```
+
+## 24. R-EVID-0 Lightweight Evidence Pre-Triage Gate
+
+R-EVID-0 was added after R-AGG-3 because Raw Incident compression cannot safely proceed from Stage 1 hints alone. R-AGG-3 showed that background-like operational candidates and high-value weak signals heavily overlap, so any pre-incident filter or safe merge needs evidence-aware protection first.
+
+Scope:
+
+- audit lightweight evidence availability over R-AGG-2 Raw Incident prototypes;
+- use local RPKI / VRP cache as origin evidence for triage protection only;
+- use event-entry `rel_*` fields as path diagnostic signals only;
+- design `protected_suspicious`, `suppressible_background_like`, and `gray_zone_retained`;
+- do not delete rows, implement suppression, implement safe merge, modify verifier outputs, or train learning.
+
+R-EVID-0 result:
+
+- raw incidents: `3128971`;
+- RPKI coverage: `0.550384`;
+- AS-rel/path diagnostic event join: `1.0`;
+- communities / NO_EXPORT in Raw Incident: `0.0`;
+- protected_suspicious: `2908323` (`0.929482`);
+- suppressible_background_like: `0` (`0.0`);
+- gray_zone_retained: `220648` (`0.070518`);
+- protected_background_overlap_rate: `0.92477`;
+- stop-loss decision: `do_not_enter_R_EVID_1_yet`.
+
+Safety boundaries:
+
+- RPKI invalid is not attack truth.
+- AS-rel diagnostic is not route leak truth.
+- background-like is not benign.
+- `protected_suspicious` is a triage protection state, not a confirmed attack.
+- `suppressible_background_like` is a future low-priority candidate state, not deletion.
+- `gray_zone_retained` is reliability control, not model failure.
+- Learning remains downstream of Evidence-grounded Incident and must target BEAM-style semantic learning, not rule re-scoring.
+
+Updated route:
+
+```text
+R-AGG-3 quality audit
+  -> R-EVID-0 lightweight evidence pre-triage design
+  -> stop-loss triggered
+  -> R-AGG-4 family_hint mapping repair
+  -> rerun R-EVID-0
+  -> R-EVID-1 evidence pre-triage smoke only if overlap risk is reduced
+  -> Evidence-grounded Incident construction
+```

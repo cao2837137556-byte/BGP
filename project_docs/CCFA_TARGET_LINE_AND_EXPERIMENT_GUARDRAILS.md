@@ -211,7 +211,38 @@ Forward-looking CCF-A assets:
 - learning layer postponed until Raw Incident Dossier and Evidence-grounded Incident schemas are stable;
 - future learning should aim at BEAM-style semantic learning for incident representation and prioritization, not rule re-scoring.
 
-## 9. Minimal Architecture and Ablation Defense
+## 9. Lightweight Evidence Pre-Triage Guardrail
+
+R-EVID-0 adds a lightweight evidence pre-triage design gate before any Raw Incident compression, safe merge, or background suppression implementation.
+
+This gate exists because R-AGG-3 found that background-like operational candidates and high-value weak signals overlap heavily. A CCF-A-quality system cannot simply discard or suppress low-visibility / mixed_unknown cases, because those are also where partial observability and monitor poisoning matter most.
+
+R-EVID-0 result:
+
+- protected_suspicious rate: `0.929482`;
+- suppressible_background_like rate: `0.0`;
+- gray_zone_retained rate: `0.070518`;
+- protected_background_overlap_rate: `0.92477`;
+- stop-loss decision: `do_not_enter_R_EVID_1_yet`.
+
+CCF-A line:
+
+- lightweight evidence pre-triage is a reliability guardrail, not a detector;
+- RPKI invalid is not attack truth;
+- AS-rel diagnostic is not route leak truth;
+- background-like is not benign;
+- protected_suspicious is not confirmed attack;
+- suppressible_background_like is not a deletion instruction;
+- gray_zone_retained is not failure;
+- no compression should be implemented until high-value weak signals are protected.
+
+Next required guardrail:
+
+- repair `family_hint` mapping before R-EVID-1;
+- rerun R-EVID-0 after mapping repair;
+- only then consider a no-deletion evidence pre-triage smoke.
+
+## 10. Minimal Architecture and Ablation Defense
 
 R-LOCK-1 freezes the final paper-facing system as a minimal three-stage architecture:
 
@@ -240,7 +271,7 @@ Each module must defend a distinct failure mode:
 
 The CCF-A evaluation must therefore include ablations that remove the verifier, origin evidence, path evidence, component purity, abstention/conflict handling, learning ranker, and Top-K budget. The defense is not "every module sounds useful"; it is measurable degradation under unsupported alert ratio, evidence-supported density, Top-K density, conflict preservation, abstain safety, mixed incident overclaim, human review burden, and poisoning robustness.
 
-## 10. Fallback Policy
+## 11. Fallback Policy
 
 If the poisoning benchmark or learning ranker is weak, the project can fall back to a strong SCI version.
 
