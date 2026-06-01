@@ -1,16 +1,16 @@
 # Learning Layer Positioning
 
-Last updated: 2026-05-23
+Last updated: 2026-06-01
 
 ## 1. Core Judgment
 
-The learning layer is not removed. It is moved later.
+The learning layer is not removed. R-RESET-1 changes its role.
 
-Before reliable verification labels exist, do not train an attack/benign classifier. The learning layer should become an incident-level ranker and evidence calibrator, not the primary detector or final judge.
+Before reliable foreground/explanation targets exist, do not train an attack/benign classifier.
 
-For the current CCF-A target line, the learning layer must become a component-aware semantic ranker/calibrator. It should learn incident internal structure and verifier-supported weak signals; it must not downgrade the project into a detector-score classifier.
+For the current CCF-A target line, the learning layer is a `multi-attack judgment layer`, not semantic ranking. It should make low false positive foreground judgments across multiple BGP attack families, preserve uncertainty, and produce evidence explanations.
 
-Current R-DOC-1 decision: do not train the learning layer yet. Learning must wait for the unified incident card schema, output taxonomy, evidence provenance, AS-rel consistency handling, and communities propagation design to stabilize.
+Current R-RESET-1 decision: do not train the learning layer yet. Learning must wait for R-NOISE-0/R-NOISE-1 foreground extraction evidence, poisoning/evasion benchmark design, and evidence-grounded feature stability.
 
 ## 2. Why Not Train Now
 
@@ -23,37 +23,51 @@ Do not train an attack/benign classifier from current outputs because:
 - Training now would learn legacy rule bias and public-monitor bias.
 - Unavailable evidence must not be converted into normal/benign labels.
 
-## 3. New Role Of Learning Layer
+## 3. New Role Of Learning Layer After R-RESET-1
 
 Learning layer input:
-- unified incident card
-- incident evidence table
+- foreground event or candidate view
+- evidence-grounded event features
 - evidence state
 - provenance
-- `primary_family`
-- `observability_mode`
 - `evidence_tags`
-- component purity / mixture class
-- dominant pair evidence and member-level evidence distribution
 - monitor evidence
 - RPKI / IRR / ASPA / path-legality evidence
 - temporal and collector features
 - poisoning susceptibility features
-- verifier verdict candidates
+- communities / NO_EXPORT features when propagated
+- historical background pattern features
 
 Learning layer output:
-- `review_priority_score`
-- `evidence_consistency_score`
-- `component_priority_score`
-- `should_split_score`
-- `topk_rank`
-- `recommended_action`
+- `suspicious_forged_origin`
+- `suspicious_route_leak`
+- `suspicious_path_manipulation`
+- `suspicious_stealth_visibility`
+- `poisoning_or_evasion_suspected`
+- `background_noise`
+- `uncertain_need_evidence`
+- confidence / evidence explanation
 
-The model ranks and calibrates. It does not override verifier safety rules.
+The model makes operational foreground judgments. It is not semantic ranking, not a single attack/benign classifier, and not a verifier override.
 
-## 3A. Placement Between Verifier And Top-K
+## 3A. Placement In The R-RESET-1 Pipeline
 
-R-LOCK-1 fixes the learning-layer position:
+R-RESET-1 fixes the new placement:
+
+```text
+raw BGP / candidate events
+  -> obvious noise suppression / foreground extraction
+  -> multi-attack judgment layer
+  -> attack-like incident aggregation
+  -> evidence explanation
+  -> poisoning/evasion robustness evaluation
+```
+
+Incident aggregation after judgment is the new main path. Background is not ranked in the primary human-facing output, but background remains auditable through summary statistics and samples.
+
+## 3B. Superseded Ranker-First Placement
+
+Earlier R-LOCK-1 / R-DOC-1 documents placed learning as a component-aware ranker / calibrator between verifier and Top-K:
 
 ```text
 Stage 2 verifier
@@ -61,7 +75,7 @@ Stage 2 verifier
   -> Top-K Review Queue
 ```
 
-The learning layer is before Top-K, not after Top-K. It is the mechanism that orders and calibrates verifier-supported, conflict, insufficient, abstain, and background-like incident/component records under a review budget.
+R-RESET-1 weakens that as the main paper route. Ranking may still exist inside a review budget after judgment, but it is no longer the core learning claim.
 
 It is not allowed to:
 
@@ -69,38 +83,30 @@ It is not allowed to:
 - turn `background_like_but_unconfirmed` into a negative label;
 - hide `evidence_conflict` or `abstain`;
 - convert unavailable evidence into benignness;
-- replace the Top-K review queue with an unbounded manual workload;
+- replace foreground judgment with pure ranking;
 - become a primary attack/benign detector trained from `high/needs/low` or `P1/P2/P3`.
 
-Top-K is the human-facing queue produced after ranking. It is not the learning model itself.
-
-Short form: Learning before Top-K, after the verifier.
-
-```text
-Verifier output
-  -> Learning before Top-K
-  -> Top-K Review Queue
-```
+Short form: multi-attack judgment first; ranking is optional and downstream, not the main learning definition.
 
 ## 4. When To Train
 
 Train only after these conditions are met:
-- verified or evidence-supported incident set exists
-- supported suspicious / background-like-but-unconfirmed / conflict / insufficient strata are defined
+- R-NOISE-0 obvious noise audit is complete
+- R-NOISE-1 foreground extraction smoke preserves must-keep signals
+- multi-attack operational labels or weak supervision targets are defined without truth leakage
 - poisoning and evasion scenarios exist
 - held-out windows exist
 - evidence provenance is attached
 - unavailable evidence is not treated as normal
-- R-OUT-1 unified output taxonomy is settled
 - R-CONSIST evidence-cache risks are handled or explicitly documented
 - R-2D-P0 communities propagation schema is designed if stealth evidence is included
 
 Minimum trainable unit:
 
 ```text
-incident-level evidence record
-  -> verifier verdict candidate
-  -> optional human/operator review outcome
+foreground event / evidence-grounded candidate
+  -> multi-attack operational judgment
+  -> optional attack-like incident aggregation
 ```
 
 Not trainable as truth:
@@ -114,11 +120,11 @@ legacy P1/P2/P3 priority
 ## 5. Possible Models
 
 Candidate models, not current implementation targets:
-- logistic regression / calibrated linear ranker
-- gradient boosting ranker
-- learning-to-rank
+- logistic regression / calibrated linear model
+- gradient boosting classifier with abstention
+- cost-sensitive multi-class model
 - graph representation over AS/path evidence
-- semi-supervised anomaly ranking
+- semi-supervised anomaly foregrounding
 - conformal prediction / abstention-aware calibration
 
 Start simple. The first learning model should be interpretable enough to debug evidence leakage and label bias.
@@ -153,38 +159,35 @@ S3 outputs become features, not labels:
 The first safe learning task is:
 
 ```text
-incident-level review prioritization under verifier constraints
+low false positive multi-attack foreground judgment with abstention
 ```
 
 It should answer:
-- Which incidents deserve top-K human review first?
-- Which evidence conflicts need operator attention?
+- Is this foreground event suspicious_forged_origin, suspicious_route_leak, suspicious_path_manipulation, suspicious_stealth_visibility, poisoning_or_evasion_suspected, background_noise, or uncertain_need_evidence?
+- Which evidence explains the operational judgment?
 - Which cases should abstain until external evidence is attached?
-- Which background-like cases are low priority but not confirmed normal?
-- Which component-mixed incidents should be split before any incident-level verdict?
-- Which verifier-supported components carry semantic evidence worth preserving under poisoning?
+- Which background_noise cases are operationally suppressible but not confirmed benign?
+- Which poisoning/evasion-sensitive cases must be preserved?
 
 It should not answer:
-- Is this attack or benign?
+- Is this confirmed attack or confirmed benign?
 - Can this low-priority incident be used as a negative label?
 - Can the model ignore missing evidence?
 
-## 9. CCF-A Component-Aware Learning Target
+## 9. CCF-A Multi-Attack Judgment Target
 
 For the CCF-A target line, learning is positioned as:
 
 ```text
-component-aware semantic ranker / evidence calibrator
+multi-attack foreground judgment layer with abstention and evidence explanation
 ```
 
-It should consume R-2B/R-2C style verifier tables, including:
+It should consume foreground event features and evidence-grounded diagnostics, including:
 
 - dominant prefix-origin evidence;
-- member/component evidence distribution;
-- `component_purity_class`;
-- `should_split_incident_flag`;
-- `evidence_conflict` and `abstain` outcomes;
-- path legality / route-leak evidence when R-2C is complete;
+- path legality / route-leak diagnostic evidence;
+- stealth visibility / NO_EXPORT evidence when available;
+- `evidence_conflict` and abstention signals;
 - poisoning susceptibility features when R-3 is complete.
 
-It should optimize human review ordering and evidence calibration under verifier hard rules. It must not emit final attack/benign labels, hide mixed evidence, or override abstention.
+It should optimize deployable, low false alarm, multi-family foreground judgment under verifier hard rules. It must not emit final confirmed attack/benign labels, hide mixed evidence, or override abstention.

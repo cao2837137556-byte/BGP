@@ -584,3 +584,77 @@ Next:
 - RPKI invalid is not attack truth.
 - AS-rel diagnostic is not route leak truth.
 - background-like is not benign.
+
+## R-RESET-1 Mainline Pivot Decision
+
+Status: active.
+
+Decision:
+
+- Move incident aggregation after multi-attack judgment.
+- `full candidate-entry incident aggregation stopped` as the paper-facing mainline.
+- Use R-AGG/R-EVID as stop-loss evidence, not as failed or deleted work.
+
+Rationale:
+
+- Candidate-first aggregation caused `3.13M` raw incidents and compression ratio `1.09656`.
+- R-AGG-3 found possible background-like rate `0.995288`, but high-value weak signals heavily overlapped.
+- R-EVID-0 found `protected_suspicious_rate=0.929482`, `suppressible_background_like_rate=0.0`, and `protected_background_overlap_rate=0.92477`.
+- Therefore full candidate-entry aggregation and direct pre-triage compression are not safe first-stage mainline designs.
+
+Consequence:
+
+- New mainline is a `noise-filtered multi-attack judgment pipeline`.
+- Pipeline order becomes: raw/candidate events -> obvious noise suppression / foreground extraction -> multi-attack judgment layer -> incident aggregation after judgment -> evidence explanation -> poisoning/evasion robustness evaluation.
+- Background is not ranked in the primary human-facing output; it is summarized, sampled, and audited.
+- background-like / background_noise is not confirmed benign.
+- Suspicious / attack-like events are aggregated after judgment.
+
+## R-RESET-1 Learning Layer Decision
+
+Status: active.
+
+Decision:
+
+- Learning layer is a multi-attack judgment layer, not semantic ranking.
+- It is not a single attack/benign classifier.
+
+Rationale:
+
+- Ranking does not solve operational decision or background explosion.
+- The paper needs low false positive foreground judgment under incomplete and poisonable monitors.
+- Learning must preserve abstain / uncertain behavior and evidence explanation.
+
+Consequence:
+
+- Learning output must include attack family / background / uncertain / poisoning-suspected judgments:
+  - `suspicious_forged_origin`;
+  - `suspicious_route_leak`;
+  - `suspicious_path_manipulation`;
+  - `suspicious_stealth_visibility`;
+  - `poisoning_or_evasion_suspected`;
+  - `background_noise`;
+  - `uncertain_need_evidence`.
+- These are operational judgments, not truth labels.
+- Future learning must be deployable, low false positive, robust to poisoning/evasion, and explainable enough for routing security context.
+
+## R-RESET-1 Poisoning / Evasion Decision
+
+Status: active.
+
+Decision:
+
+- Poisoning/evasion robustness is a core paper problem.
+- `poisoning/evasion robustness is core`, not an appendix experiment.
+
+Rationale:
+
+- Public-monitor-only systems can be poisoned or evaded.
+- NO_EXPORT / communities / collector asymmetry can change what public monitors observe.
+- Traditional monitor-only anomaly detectors can either miss stealth events or overreact to crafted background-like artifacts.
+
+Consequence:
+
+- Poisoning benchmark must be designed before final model claims.
+- Evaluation must include low false positive behavior, false-negative / must-keep miss risk, background compression, per-family coverage, and poisoning/evasion robustness.
+- R-NOISE-0 is the next step before learning or incident aggregation implementation.

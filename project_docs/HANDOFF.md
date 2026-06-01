@@ -1,11 +1,21 @@
 ﻿# BGP Platform Handoff
 
-最后更新：2026-05-27
+最后更新：2026-06-01
 定位：项目唯一长期维护的交接总览文件。
 
 ## Current Strategic State
 
 - Current Raw Incident Entry State:
+  - Phase R-RESET-1 has pivoted the mainline from candidate-first full incident aggregation to a noise-filtered multi-attack judgment pipeline.
+  - `full candidate-entry incident aggregation stopped` as the paper-facing mainline.
+  - New mainline: raw BGP / candidate events -> obvious noise suppression / foreground extraction -> multi-attack judgment layer -> incident aggregation after judgment -> evidence explanation -> poisoning/evasion robustness evaluation.
+  - R-AGG/R-EVID are not deleted or treated as failed work. They are stop-loss evidence proving that candidate-first aggregation and direct pre-triage compression are unsafe as first-stage mainline.
+  - Stop-loss evidence: R-AGG-2 raw incidents `3128971`, compression ratio `1.09656`; R-AGG-3 possible_background_like_rate `0.995288` with high-value overlap; R-EVID-0 protected_suspicious_rate `0.929482`, suppressible_background_like_rate `0.0`, protected_background_overlap_rate `0.92477`.
+  - Background is an operational suppression state, not confirmed benign. `background is not ranked` in the primary human-facing output, but background remains auditable through summary statistics and sampling.
+  - Learning is repositioned as a `multi-attack judgment layer`, not semantic ranking and not a single attack/benign classifier.
+  - Expected operational outputs: `suspicious_forged_origin`, `suspicious_route_leak`, `suspicious_path_manipulation`, `suspicious_stealth_visibility`, `poisoning_or_evasion_suspected`, `background_noise`, and `uncertain_need_evidence`.
+  - `poisoning/evasion robustness is core`; final experiments must report low false positive behavior, false-negative / must-keep miss risk, background compression, and robustness under incomplete / poisonable public monitors.
+  - Current next step is R-NOISE-0 obvious noise audit. Do not proceed to R-AGG-4, R-EVID-1, or learning training as the next mainline step unless explicitly redirected.
   - Phase R-EVID-0 lightweight evidence pre-triage design and feasibility audit has completed on `s2a_baseline_v01_pilot_6h_april16`.
   - Implementation: `scripts/audit_lightweight_evidence_pretriage.py`.
   - Config: `configs/lightweight_evidence_pretriage_v0.yaml`.
@@ -102,7 +112,7 @@
 - Phase R-2C-P1 path relation lookup smoke has completed on fixed S2: expanded AS-pair rows `421989`, row-level AS-pair match rate `0.947510`, triplet rows `205067`, full-path rows `217162`, incident path evidence rows `217165`; path states `aligned_medium=161992`, `diagnostic_only=34192`, `evidence_insufficient=18084`, `unavailable=2897`; route-leak-like diagnostic candidates `34555`; path-manipulation-like diagnostic candidates `44189`; no route-leak verdict generated and no R-2B verifier verdict modified.
 - Phase R-2C-P2 path-legality verifier smoke has completed on fixed S2: processed incidents `217165`; verdict smoke distribution `background_like_but_unconfirmed=127889`, `evidence_insufficient=78324`, `abstain=10822`, `evidence_conflict=86`, `evidence_supported_suspicious=44`; route-leak-like review candidates `34555`; path-manipulation-like review candidates `44189`; `strongly_supported_suspicious=0`; hard safety violations `0`; no confirmed route-leak label generated and no R-2B verifier verdict modified.
 - Phase R-LOCK-1 architecture minimality and ablation plan has completed: old seven-layer pipeline compressed into Stage 1, verifier locked as Stage 2, learning ranker locked as Stage 3 before Top-K, output card schema simplified, and ablation plan A0-A9 defined for reviewer defense.
-- Next default steps are R-AGG-4 family_hint mapping repair before R-EVID-1 / safe merge / pre-incident filter design, R-EVID-0 rerun after mapping repair, Evidence-grounded Incident construction, R-OUT-1 unified incident output taxonomy design, R-CONSIST-2 aligned AS-rel reannotation / impact comparison, R-2D-P0 communities propagation schema design / repair plus R-2D-0 rerun, R-3 poisoning benchmark design, and L1 component-aware semantic learner design; do not return to legacy detector-score tuning unless explicitly requested.
+- Next default steps are R-NOISE-0 obvious noise audit, R-NOISE-1 foreground extraction smoke if R-NOISE-0 is safe, R-LEARN-0 multi-attack judgment layer design, R-POISON-0 poisoning benchmark design, and R-INC-0 attack-like incident aggregation after judgment; do not return to candidate-first full incident aggregation or legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
 

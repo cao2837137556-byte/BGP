@@ -242,7 +242,47 @@ Next required guardrail:
 - rerun R-EVID-0 after mapping repair;
 - only then consider a no-deletion evidence pre-triage smoke.
 
-## 10. Minimal Architecture and Ablation Defense
+## 10. R-RESET-1 CCF-A Mainline Guardrail
+
+R-RESET-1 changes the paper-facing mainline.
+
+Do not write the contribution as an ordinary ranking / triage system. The core goal is:
+
+```text
+low-false-positive multi-attack judgment under poisonable and incomplete public monitors
+```
+
+Required wording:
+
+- `full candidate-entry incident aggregation stopped` as the mainline;
+- new route is a `noise-filtered multi-attack judgment pipeline`;
+- `incident aggregation after judgment`;
+- `background is not ranked` in the primary human-facing output;
+- `multi-attack judgment layer`, not semantic ranking;
+- `poisoning/evasion robustness is core`.
+
+Attack families that must remain visible:
+
+- `suspicious_forged_origin`;
+- `suspicious_route_leak`;
+- `suspicious_path_manipulation`;
+- `suspicious_stealth_visibility`;
+- `poisoning_or_evasion_suspected`;
+- `background_noise`;
+- `uncertain_need_evidence`.
+
+Evaluation red lines:
+
+- report low false positive behavior;
+- report false-negative or must-keep miss risk;
+- report background compression;
+- report poisoning/evasion robustness;
+- report per-family coverage;
+- report uncertainty / abstain / gray-zone behavior;
+- never treat background_noise as confirmed benign;
+- never train from final/high/needs/low or P1/P2/P3 as truth.
+
+## 11. Minimal Architecture and Ablation Defense
 
 R-LOCK-1 freezes the final paper-facing system as a minimal three-stage architecture:
 
@@ -271,7 +311,9 @@ Each module must defend a distinct failure mode:
 
 The CCF-A evaluation must therefore include ablations that remove the verifier, origin evidence, path evidence, component purity, abstention/conflict handling, learning ranker, and Top-K budget. The defense is not "every module sounds useful"; it is measurable degradation under unsupported alert ratio, evidence-supported density, Top-K density, conflict preservation, abstain safety, mixed incident overclaim, human review burden, and poisoning robustness.
 
-## 11. Fallback Policy
+R-RESET-1 updates the interpretation: Stage 3 is no longer primarily a semantic ranker. It is a low false positive multi-attack judgment layer, with any ranking or Top-K budget downstream of foreground judgment.
+
+## 12. Fallback Policy
 
 If the poisoning benchmark or learning ranker is weak, the project can fall back to a strong SCI version.
 

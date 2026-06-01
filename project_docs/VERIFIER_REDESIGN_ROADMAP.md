@@ -1058,3 +1058,55 @@ R-AGG-3 quality audit
   -> R-EVID-1 evidence pre-triage smoke only if overlap risk is reduced
   -> Evidence-grounded Incident construction
 ```
+
+## 25. R-RESET-1 Mainline Pivot
+
+R-RESET-1 pivots the mainline based on R-AGG/R-EVID stop-loss evidence.
+
+Decision:
+
+- `full candidate-entry incident aggregation stopped` as the paper-facing mainline.
+- The new route is a `noise-filtered multi-attack judgment pipeline`.
+- Evidence grounding serves judgment and explanation first, not final/high/needs/low rewriting and not pure ranking.
+- `incident aggregation after judgment` becomes the main aggregation path.
+
+New route:
+
+```text
+raw BGP / candidate events
+  -> obvious noise suppression / foreground extraction
+  -> multi-attack judgment layer
+  -> attack-like incident aggregation
+  -> evidence explanation
+  -> poisoning/evasion robustness evaluation
+```
+
+Safety boundaries:
+
+- background is not ranked in the primary human-facing output;
+- background_noise is not confirmed benign;
+- RPKI invalid is not attack truth;
+- AS-rel diagnostic is not route leak truth;
+- multi-attack judgment layer is not semantic ranking;
+- poisoning/evasion robustness is core.
+
+Judgment outputs:
+
+- `suspicious_forged_origin`;
+- `suspicious_route_leak`;
+- `suspicious_path_manipulation`;
+- `suspicious_stealth_visibility`;
+- `poisoning_or_evasion_suspected`;
+- `background_noise`;
+- `uncertain_need_evidence`.
+
+Updated near-term route:
+
+```text
+R-RESET-1 mainline pivot
+  -> R-NOISE-0 obvious noise audit
+  -> R-NOISE-1 foreground extraction smoke
+  -> R-LEARN-0 multi-attack judgment layer design
+  -> R-POISON-0 poisoning benchmark design
+  -> R-INC-0 attack-like incident aggregation after judgment
+```
