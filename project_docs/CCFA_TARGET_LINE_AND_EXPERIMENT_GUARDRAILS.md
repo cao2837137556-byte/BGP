@@ -282,7 +282,35 @@ Evaluation red lines:
 - never treat background_noise as confirmed benign;
 - never train from final/high/needs/low or P1/P2/P3 as truth.
 
-## 11. Minimal Architecture and Ablation Defense
+## 11. R-NOISE-0 Separability Guardrail
+
+R-NOISE-0 adds a CCF-A guardrail before any foreground extraction implementation:
+
+```text
+safe obvious background suppression requires separability evidence
+```
+
+R-NOISE-0 result on `s2a_baseline_v01_pilot_6h_april16`:
+
+- candidate-entry rows: `3431103`;
+- multi-attack must-keep rows: `1812334` (`0.528207`);
+- `policy_A_very_conservative` suppressible rows: `1614840` (`0.470647`);
+- estimated compression ratio: `1.889100`;
+- policy_A suppressed `0` must-keep rows;
+- policy_A suppressed `0` legacy high/needs workflow-reference rows;
+- policy_A suppressed `0` poisoning/evasion-like proxy rows.
+
+CCF-A red lines:
+
+- R-NOISE-0 is a separability audit, not a detector.
+- policy_A can enter only a conservative R-NOISE-1 smoke.
+- policy_C is an upper-bound stress test, not a default implementation.
+- may-suppress/background_noise is operational, not confirmed benign.
+- final/high/needs/low are workflow references, not truth.
+- poisoning/evasion-like proxies must be retained until the poisoning benchmark is designed.
+- foreground extraction must report compression and must-keep miss risk together.
+
+## 12. Minimal Architecture and Ablation Defense
 
 R-LOCK-1 freezes the final paper-facing system as a minimal three-stage architecture:
 
@@ -313,7 +341,7 @@ The CCF-A evaluation must therefore include ablations that remove the verifier, 
 
 R-RESET-1 updates the interpretation: Stage 3 is no longer primarily a semantic ranker. It is a low false positive multi-attack judgment layer, with any ranking or Top-K budget downstream of foreground judgment.
 
-## 12. Fallback Policy
+## 13. Fallback Policy
 
 If the poisoning benchmark or learning ranker is weak, the project can fall back to a strong SCI version.
 

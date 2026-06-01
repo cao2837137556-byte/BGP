@@ -10,7 +10,7 @@ Before reliable foreground/explanation targets exist, do not train an attack/ben
 
 For the current CCF-A target line, the learning layer is a `multi-attack judgment layer`, not semantic ranking. It should make low false positive foreground judgments across multiple BGP attack families, preserve uncertainty, and produce evidence explanations.
 
-Current R-RESET-1 decision: do not train the learning layer yet. Learning must wait for R-NOISE-0/R-NOISE-1 foreground extraction evidence, poisoning/evasion benchmark design, and evidence-grounded feature stability.
+Current R-NOISE-0 decision: do not train the learning layer yet. R-NOISE-0 completed a separability audit and recommends only a conservative R-NOISE-1 foreground extraction smoke using `policy_A_very_conservative` with must-keep guards. Learning must wait for R-NOISE-1 evidence, poisoning/evasion benchmark design, and evidence-grounded feature stability.
 
 ## 2. Why Not Train Now
 
@@ -91,7 +91,7 @@ Short form: multi-attack judgment first; ranking is optional and downstream, not
 ## 4. When To Train
 
 Train only after these conditions are met:
-- R-NOISE-0 obvious noise audit is complete
+- R-NOISE-0 obvious noise separability audit is complete
 - R-NOISE-1 foreground extraction smoke preserves must-keep signals
 - multi-attack operational labels or weak supervision targets are defined without truth leakage
 - poisoning and evasion scenarios exist

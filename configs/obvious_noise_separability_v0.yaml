@@ -1,0 +1,97 @@
+schema_version: obvious_noise_separability_v0
+phase: R-NOISE-0
+status: audit_only
+
+purpose:
+  - Test whether obvious operational background noise can be separated from multi-attack weak signals.
+  - Simulate counterfactual suppression policies without deleting candidates.
+  - Stop before implementation if compression and must-keep protection cannot both pass.
+
+inputs:
+  primary_entry: candidate-entry
+  optional_context:
+    - event-entry time and AS-rel diagnostic fields
+    - local VRP/RPKI cache
+    - legacy final workflow reference
+  forbidden_truth_inputs:
+    - final/high/needs/low as truth
+    - P1/P2/P3 as truth
+    - background-like as benign
+    - RPKI invalid as attack truth
+    - AS-rel diagnostic as route leak truth
+
+must_keep_families:
+  forged_origin:
+    signals:
+      - new origin
+      - unseen prefix-origin
+      - RPKI invalid plus weak signal
+    output_hint: suspicious_forged_origin
+    forbidden_claim: confirmed origin hijack
+  route_leak:
+    signals:
+      - valley-like diagnostic
+      - AS-rel/path diagnostic
+      - suspect triplet
+      - high unknown relation plus path or origin novelty
+    output_hint: suspicious_route_leak
+    forbidden_claim: confirmed route leak
+  path_manipulation:
+    signals:
+      - unseen path
+      - unseen exact path
+      - path pattern change
+      - abnormal path length
+    output_hint: suspicious_path_manipulation
+    forbidden_claim: confirmed path manipulation
+  stealth_visibility:
+    signals:
+      - single or low visibility plus another weak signal
+      - collector asymmetry
+      - community or NO_EXPORT hint if propagated
+    output_hint: suspicious_stealth_visibility
+    forbidden_claim: confirmed stealth or NO_EXPORT attack
+  poisoning_evasion:
+    signals:
+      - explicit poisoning/evasion token
+      - crafted-looking low-visibility path-novelty proxy
+      - monitor inconsistency proxy
+    output_hint: poisoning_or_evasion_suspected
+    forbidden_claim: confirmed poisoning or confirmed evasion
+
+counterfactual_policies:
+  policy_A_very_conservative:
+    suppress_if:
+      - candidate_flag is false
+      - no multi-attack must-keep signal
+      - low-information reason only
+      - path was seen before
+      - prefix-origin has no origin multiplicity
+    purpose: safest first foreground-extraction smoke candidate
+  policy_B_balanced:
+    suppress_if:
+      - no multi-attack must-keep signal
+      - low-information reason only
+      - path was seen before
+      - low AS-rel uncertainty
+    purpose: balanced counterfactual, not default implementation
+  policy_C_aggressive:
+    suppress_if:
+      - no multi-attack must-keep signal
+      - low-information reason only
+      - path was seen before
+    purpose: upper-bound stress test only
+
+stop_loss_criteria:
+  - any policy suppresses must-keep rows
+  - any policy suppresses poisoning/evasion-like rows
+  - any policy suppresses legacy high workflow-reference rows
+  - no safe policy suppresses at least 5 percent of candidate-entry rows
+  - gray-zone remains too large for foreground extraction
+
+guardrails:
+  - R-NOISE-0 does not implement suppression.
+  - May-suppress means operational background candidate, not confirmed benign.
+  - Missing external evidence is not background evidence.
+  - Legacy labels are workflow references, not truth.
+  - Poisoning/evasion robustness is core and must be retained.

@@ -57,6 +57,8 @@
   - `PIPELINE_RESET_MAINLINE_R_RESET_1.md`
   - `NOISE_FILTER_AND_MULTI_ATTACK_JUDGMENT_PLAN.md`
   - `POISONING_AWARE_SYSTEM_PROBLEM_STATEMENT.md`
+- Phase R-NOISE-0 obvious noise separability audit 文档：
+  - `R_NOISE_0_OBVIOUS_NOISE_SEPARABILITY_AUDIT.md`
 - Phase R architecture lock 文档：
   - `ARCHITECTURE_MINIMALITY_AND_ABLATION_PLAN.md`
   - `SYSTEM_OUTPUT_SCHEMA_SIMPLIFIED.md`
@@ -65,7 +67,7 @@
 
 ## Current Phase Guardrail
 
-Current phase: Phase R-RESET-1 has pivoted the mainline based on R-AGG / R-EVID stop-loss evidence. `full candidate-entry incident aggregation stopped` as the paper-facing mainline. The project now follows a `noise-filtered multi-attack judgment pipeline`: raw BGP / candidate events -> obvious noise suppression / foreground extraction -> multi-attack judgment layer -> incident aggregation after judgment -> evidence explanation -> poisoning/evasion robustness evaluation.
+Current phase: Phase R-NOISE-0 has completed the first obvious noise separability audit after the R-RESET-1 pivot. `full candidate-entry incident aggregation stopped` remains the paper-facing mainline. The project now follows a `noise-filtered multi-attack judgment pipeline`: raw BGP / candidate events -> obvious noise suppression / foreground extraction -> multi-attack judgment layer -> incident aggregation after judgment -> evidence explanation -> poisoning/evasion robustness evaluation.
 
 R-AGG-ENTRY-0 locks the following guardrail: final labels are weak workflow signals, not truth labels. The old final layer can provide context, but direct final-level 21w aggregation must not become the paper's main incident口径 without entry-point justification. R-AGG-3 keeps this boundary: it does not modify aggregation logic, does not implement background suppression, does not implement safe merge, and does not produce any truth label.
 
@@ -73,7 +75,7 @@ R-AGG-1/R-AGG-2/R-AGG-3/R-EVID-0 are preserved as stop-loss evidence. R-AGG-2 pr
 
 The new `PROJECT_DECISION_REGISTER.md` remains the project-level decision table. R-RESET-1 supersedes the ranker-first reading of the learning layer: the next learning target is a `multi-attack judgment layer`, not semantic ranking and not a single attack/benign classifier. Expected operational outputs include `suspicious_forged_origin`, `suspicious_route_leak`, `suspicious_path_manipulation`, `suspicious_stealth_visibility`, `poisoning_or_evasion_suspected`, `background_noise`, and `uncertain_need_evidence`. `background is not ranked` in the primary human-facing output, but background is still not confirmed benign. Final main experiments must report low false positive behavior, false-negative / must-keep miss risk, background compression, evidence explanation, and poisoning/evasion robustness.
 
-Poisoning benchmark retained and elevated: `poisoning/evasion robustness is core`, not an appendix. R-2D-0 still matters because NO_EXPORT / communities affect monitor evasion, but communities are not incident-ready yet. RPKI invalid is not attack truth. AS-rel diagnostic is not route leak truth. background-like is not benign. Next default step is `R-NOISE-0 obvious noise audit`, not learning training and not suppression implementation.
+Poisoning benchmark retained and elevated: `poisoning/evasion robustness is core`, not an appendix. R-2D-0 still matters because NO_EXPORT / communities affect monitor evasion, but communities are not incident-ready yet. RPKI invalid is not attack truth. AS-rel diagnostic is not route leak truth. background-like is not benign. R-NOISE-0 found that `policy_A_very_conservative` can counterfactually suppress `1614840` candidate-entry rows (`0.470647`) with `0` must-keep, legacy-high/needs, or poisoning/evasion-like proxy suppressions. Next default step is `R-NOISE-1 conservative foreground extraction smoke`, not learning training and not final suppression.
 
 维护规则：
 
@@ -109,4 +111,5 @@ Poisoning benchmark retained and elevated: `poisoning/evasion robustness is core
 23. `project_docs/R_AGG_2_RAW_INCIDENT_PROTOTYPE_AGGREGATION.md`
 24. `project_docs/CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`
 25. `project_docs/LEARNING_LAYER_POSITIONING.md`
-26. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`
+26. `project_docs/R_NOISE_0_OBVIOUS_NOISE_SEPARABILITY_AUDIT.md`
+27. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`

@@ -151,10 +151,34 @@ Only suspicious / attack-like / poisoning-suspected events should become analyst
 
 This avoids repeating the R-AGG-2 failure mode where nearly every candidate became a raw incident.
 
-## 10. Immediate Next Step
+## 10. R-NOISE-0 Result
+
+R-NOISE-0 completed the first obvious noise separability audit on `s2a_baseline_v01_pilot_6h_april16`.
+
+Core result:
+
+- candidate-entry rows: `3431103`;
+- multi-attack must-keep rows: `1812334` (`0.528207`);
+- `policy_A_very_conservative` would suppress `1614840` rows (`0.470647`);
+- policy_A estimated compression ratio: `1.889100`;
+- policy_A suppressed `0` must-keep rows;
+- policy_A suppressed `0` legacy high/needs workflow-reference rows;
+- policy_A suppressed `0` poisoning/evasion-like proxy rows.
+
+Interpretation:
+
+- R-NOISE-0 is an obvious noise separability audit, not a suppression implementation.
+- The objective is safe obvious background suppression, not maximum background count.
+- policy_A passes the first safety gate and is the only recommended R-NOISE-1 smoke candidate.
+- policy_C remains only an aggressive upper-bound stress test.
+- background-like is operational suppression candidate, not confirmed benign.
+- RPKI invalid is not attack truth.
+- AS-rel diagnostic is not route leak truth.
+
+## 11. Immediate Next Step
 
 Next:
 
-`R-NOISE-0 obvious noise audit`
+`R-NOISE-1 conservative foreground extraction smoke`
 
-R-NOISE-0 should be read-only. It should estimate must-keep, may-suppress, gray-zone, and poisoning/evasion-sensitive groups before any suppression implementation.
+R-NOISE-1 should implement only a smoke version of `policy_A_very_conservative` with hard must-keep guards. It should not delete source data, should not train learning, and should not use suppressed rows as benign labels.

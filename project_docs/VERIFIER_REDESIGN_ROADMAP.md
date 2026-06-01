@@ -20,6 +20,33 @@ BGP updates
 
 Monitor evidence starts the workflow. It does not close the case.
 
+## 1A. Current Mainline After R-NOISE-0
+
+R-RESET-1 and R-NOISE-0 refine how the verifier roadmap should be read.
+
+Current mainline:
+
+```text
+raw / candidate events
+  -> conservative obvious noise foreground extraction
+  -> multi-attack judgment layer
+  -> incident aggregation after judgment
+  -> evidence explanation / verifier support
+  -> poisoning/evasion robustness evaluation
+```
+
+R-NOISE-0 found that `policy_A_very_conservative` can be used for the next smoke: it counterfactually suppresses `1614840` candidate-entry rows (`0.470647`) while suppressing `0` must-keep rows, `0` legacy high/needs workflow-reference rows, and `0` poisoning/evasion-like proxy rows.
+
+Verifier/evidence layers should therefore support the judgment layer and attack-like incident explanation after foreground extraction. They must not be used to turn obvious noise suppression into benign truth.
+
+Guardrails:
+
+- final/high/needs/low remain workflow references, not truth.
+- RPKI invalid is not attack truth.
+- AS-rel diagnostic is not route leak truth.
+- background_noise is not confirmed benign.
+- poisoning/evasion-like proxies must be retained until robustness benchmarks test them.
+
 ## 2. Evidence Types
 
 Every evidence type must carry `strength`, `provenance`, `aligned / stale / unavailable`, `manipulability risk`, and whether it may be used as strong evidence.

@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-05-23
+Last updated: 2026-06-01
 
 Status: active project-level research decision register.
 
@@ -658,3 +658,30 @@ Consequence:
 - Poisoning benchmark must be designed before final model claims.
 - Evaluation must include low false positive behavior, false-negative / must-keep miss risk, background compression, per-family coverage, and poisoning/evasion robustness.
 - R-NOISE-0 is the next step before learning or incident aggregation implementation.
+
+## R-NOISE-0 Obvious Noise Separability Decision
+
+Status: active.
+
+Decision:
+
+- Before implementing foreground extraction, run an obvious noise separability audit with counterfactual suppression policies.
+- R-NOISE-0 must prove that obvious background-like rows can be suppressed without suppressing multi-attack must-keep signals.
+- The recommended first smoke policy is `policy_A_very_conservative`, not the most aggressive policy.
+
+Rationale:
+
+- R-EVID-0 showed that lightweight evidence pre-triage failed stop-loss when applied after candidate-first Raw Incident aggregation.
+- R-NOISE-0 moves back to candidate-entry event rows and tests separability before aggregation.
+- The audit found `3431103` candidate-entry rows, `1812334` must-keep rows (`0.528207`), and `1614840` policy_A suppressible rows (`0.470647`).
+- policy_A suppresses `0` must-keep rows, `0` poisoning/evasion-like proxy rows, `0` legacy high rows, and `0` legacy needs rows.
+
+Consequence:
+
+- The next step is `R-NOISE-1 conservative foreground extraction smoke using policy_A_very_conservative with must-keep guards`.
+- policy_C remains an upper-bound stress test only.
+- Suppressed rows are operational background candidates, not confirmed benign.
+- final/high/needs/low remain workflow references, not truth.
+- RPKI invalid is not attack truth.
+- AS-rel diagnostic is not route leak truth.
+- poisoning/evasion-like proxy rows must be retained until a dedicated poisoning benchmark clarifies robustness behavior.
