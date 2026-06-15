@@ -23,24 +23,12 @@ Read only these by default:
 
 ## Current Active State
 
-Current active phase:
+Do not store dynamic current-state details in this README.
+
+For the current phase, current blocker, paper goal, and next recommended action, read:
 
 ```text
-R-CLEAN-0 documentation governance and clean data/evidence contract locked.
-```
-
-Current next recommended action:
-
-```text
-R-ASREL-CLEAN-0:
-Build a 2024-aligned AS-rel sidecar for candidate/event rows.
-```
-
-Current paper goal:
-
-```text
-low-false-positive multi-attack BGP judgment under incomplete,
-evasive, and poisonable public BGP monitors
+project_docs/MAINLINE_STATE.md
 ```
 
 ## Maintenance Rule
