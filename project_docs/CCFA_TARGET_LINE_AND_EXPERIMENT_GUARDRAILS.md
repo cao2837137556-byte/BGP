@@ -310,7 +310,37 @@ CCF-A red lines:
 - poisoning/evasion-like proxies must be retained until the poisoning benchmark is designed.
 - foreground extraction must report compression and must-keep miss risk together.
 
-## 12. Minimal Architecture and Ablation Defense
+## 12. R-NOISE-1 Foreground Smoke Guardrail
+
+R-NOISE-1 adds the first implementation-level guardrail for foreground extraction:
+
+```text
+clean-window foreground smoke is not attack recall evaluation
+```
+
+R-NOISE-1 result on `s2a_baseline_v01_pilot_6h_april16`:
+
+- candidate-entry rows: `3431103`;
+- foreground view rows: `1816263`;
+- suppressible operational-background rows: `1614840` (`0.470647`);
+- estimated compression ratio: `1.889100`;
+- `guardrail_failed=false`;
+- suppressed multi-attack must-keep rows: `0`;
+- suppressed legacy high/needs workflow-reference rows: `0`;
+- suppressed poisoning/evasion proxy rows: `0`;
+- explicit poisoning/evasion tokens: `0` / unavailable;
+- available poisoning/evasion proxy rows: `1542485`, retained.
+
+CCF-A red lines:
+
+- `guardrail_violation_count=0` must not be written as `false_negative_count=0`.
+- `suppressed_background` is operational pressure, not confirmed benign.
+- `foreground_candidates` are not confirmed attacks.
+- Clean-window smoke cannot prove poisoning/evasion recall.
+- R-NOISE-1 outputs must not become learning labels.
+- Production suppression requires known-incident replay and controlled benchmark evidence.
+
+## 13. Minimal Architecture and Ablation Defense
 
 R-LOCK-1 freezes the final paper-facing system as a minimal three-stage architecture:
 
@@ -341,7 +371,7 @@ The CCF-A evaluation must therefore include ablations that remove the verifier, 
 
 R-RESET-1 updates the interpretation: Stage 3 is no longer primarily a semantic ranker. It is a low false positive multi-attack judgment layer, with any ranking or Top-K budget downstream of foreground judgment.
 
-## 13. Fallback Policy
+## 14. Fallback Policy
 
 If the poisoning benchmark or learning ranker is weak, the project can fall back to a strong SCI version.
 

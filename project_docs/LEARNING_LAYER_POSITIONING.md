@@ -1,6 +1,6 @@
 # Learning Layer Positioning
 
-Last updated: 2026-06-01
+Last updated: 2026-06-15
 
 ## 1. Core Judgment
 
@@ -10,7 +10,7 @@ Before reliable foreground/explanation targets exist, do not train an attack/ben
 
 For the current CCF-A target line, the learning layer is a `multi-attack judgment layer`, not semantic ranking. It should make low false positive foreground judgments across multiple BGP attack families, preserve uncertainty, and produce evidence explanations.
 
-Current R-NOISE-0 decision: do not train the learning layer yet. R-NOISE-0 completed a separability audit and recommends only a conservative R-NOISE-1 foreground extraction smoke using `policy_A_very_conservative` with must-keep guards. Learning must wait for R-NOISE-1 evidence, poisoning/evasion benchmark design, and evidence-grounded feature stability.
+Current R-NOISE-1 decision: do not train the learning layer yet. R-NOISE-1 completed a conservative foreground extraction smoke using `policy_A_very_conservative`: `3431103` candidate rows became `1816263` foreground-view rows and `1614840` suppressible operational-background rows, with `0` must-keep / legacy-high / legacy-needs / poisoning-evasion proxy guardrail violations. This is clean-window guardrail evidence, not attack false-negative evidence. Learning must wait for R-LEARN-0 design, R-POISON-0 benchmark design, and evidence-grounded feature stability.
 
 ## 2. Why Not Train Now
 
@@ -93,6 +93,7 @@ Short form: multi-attack judgment first; ranking is optional and downstream, not
 Train only after these conditions are met:
 - R-NOISE-0 obvious noise separability audit is complete
 - R-NOISE-1 foreground extraction smoke preserves must-keep signals
+- R-NOISE-1 outputs are treated as foreground/suppression views, not truth labels
 - multi-attack operational labels or weak supervision targets are defined without truth leakage
 - poisoning and evasion scenarios exist
 - held-out windows exist

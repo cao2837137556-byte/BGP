@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-06-01
+Last updated: 2026-06-15
 
 Status: active project-level research decision register.
 
@@ -685,3 +685,28 @@ Consequence:
 - RPKI invalid is not attack truth.
 - AS-rel diagnostic is not route leak truth.
 - poisoning/evasion-like proxy rows must be retained until a dedicated poisoning benchmark clarifies robustness behavior.
+
+## R-NOISE-1 Conservative Foreground Extraction Smoke Decision
+
+Status: active.
+
+Decision:
+
+- Convert only `policy_A_very_conservative` into auditable foreground / suppressible / gray views.
+- Treat R-NOISE-1 as a clean-window smoke, not a production suppression policy.
+- Report `guardrail_violation_count`, not attack `false_negative_count`.
+
+Rationale:
+
+- R-NOISE-0 showed policy_A can counterfactually suppress `1614840` candidate-entry rows without hitting must-keep, legacy high/needs, or poisoning/evasion-like proxy guards.
+- The 6h baseline window has no confirmed attack labels, so it cannot validate real attack recall or poisoning/evasion detection.
+- A reproducible foreground view is still useful as a prerequisite for multi-attack judgment design, as long as the truth boundary is explicit.
+
+Consequence:
+
+- R-NOISE-1 generated `foreground_candidates.parquet`, `suppressed_background_candidates.parquet`, `gray_zone_retained_candidates.parquet`, and full `candidate_noise_policy_assignment.parquet` under `outputs/r_noise_1/s2a_baseline_v01_pilot_6h_april16/`.
+- Candidate rows `3431103` become `1816263` foreground-view rows and `1614840` suppressible operational-background rows, estimated compression `1.889100`.
+- `guardrail_failed=false`; suppressed rows contain `0` multi-attack must-keep rows, `0` legacy high rows, `0` legacy needs rows, and `0` poisoning/evasion proxy rows.
+- Explicit poisoning/evasion token availability is `unavailable` (`0` rows); available proxy rows are retained, but this is not poisoning/evasion recall.
+- `suppressed_background` remains operational background pressure only, not confirmed benign.
+- The next steps may be R-LEARN-0 design and R-POISON-0 benchmark design, but no learning training or production suppression claim is allowed before benchmark-backed miss-risk evaluation.

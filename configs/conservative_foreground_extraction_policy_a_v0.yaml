@@ -1,0 +1,67 @@
+schema_version: conservative_foreground_extraction_policy_a_v0
+phase: R-NOISE-1
+status: smoke_only
+
+purpose:
+  - Convert the R-NOISE-0 policy_A_very_conservative counterfactual into auditable foreground/suppressible/gray views.
+  - Keep the step as a clean-window smoke, not a production suppression policy.
+  - Report guardrail violations instead of claiming attack false-negative results.
+
+primary_input:
+  entry: candidate-entry
+  default_run_id: s2a_baseline_v01_pilot_6h_april16
+
+policy:
+  policy_id: policy_A_very_conservative
+  source_phase: R-NOISE-0
+  allowed_use:
+    - foreground extraction smoke
+    - operational background pressure view
+    - safety guardrail audit
+  forbidden_use:
+    - attack/benign truth labeling
+    - production deletion
+    - learning labels
+    - incident aggregation
+
+assignment_states:
+  foreground_protected:
+    meaning: retained for downstream multi-attack judgment because a must-keep or hard guard signal is present
+    forbidden_claim: confirmed attack
+  suppressible_background:
+    meaning: operationally suppressible background-like candidate under conservative policy_A and hard guards
+    forbidden_claim: confirmed benign
+  gray_retained:
+    meaning: not protected by current must-keep signals but not safe to suppress under policy_A
+    forbidden_claim: benign or attack truth
+
+hard_guards:
+  - multi_attack_must_keep
+  - legacy_high_workflow_reference
+  - legacy_needs_workflow_reference
+  - poisoning_evasion_relevant_proxy
+
+multi_attack_must_keep_families:
+  - suspicious_forged_origin
+  - suspicious_route_leak
+  - suspicious_path_manipulation
+  - suspicious_stealth_visibility
+  - poisoning_or_evasion_suspected
+
+clean_window_limitations:
+  - The 6h baseline window has no confirmed attack labels.
+  - R-NOISE-1 cannot evaluate true attack false negatives.
+  - Guardrail violation count is not a false-negative count.
+  - Poisoning/evasion proxy retention is not poisoning/evasion recall.
+
+pass_conditions:
+  - must_keep_suppressed_count == 0
+  - legacy_high_reference_suppressed_count == 0
+  - legacy_needs_reference_suppressed_count == 0
+  - available_poisoning_evasion_proxy_suppressed_count == 0
+  - foreground and suppressed views are written with provenance columns
+
+next_step_if_pass:
+  - R-LEARN-0 multi-attack judgment layer design
+  - R-POISON-0 controlled poisoning/evasion benchmark design
+  - no production suppression claim before benchmark-backed recall is available

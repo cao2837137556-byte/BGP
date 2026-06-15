@@ -1,6 +1,6 @@
 # Verifier Redesign Roadmap
 
-Last updated: 2026-05-22
+Last updated: 2026-06-15
 
 ## 1. Architecture
 
@@ -20,9 +20,9 @@ BGP updates
 
 Monitor evidence starts the workflow. It does not close the case.
 
-## 1A. Current Mainline After R-NOISE-0
+## 1A. Current Mainline After R-NOISE-1
 
-R-RESET-1 and R-NOISE-0 refine how the verifier roadmap should be read.
+R-RESET-1, R-NOISE-0, and R-NOISE-1 refine how the verifier roadmap should be read.
 
 Current mainline:
 
@@ -35,9 +35,9 @@ raw / candidate events
   -> poisoning/evasion robustness evaluation
 ```
 
-R-NOISE-0 found that `policy_A_very_conservative` can be used for the next smoke: it counterfactually suppresses `1614840` candidate-entry rows (`0.470647`) while suppressing `0` must-keep rows, `0` legacy high/needs workflow-reference rows, and `0` poisoning/evasion-like proxy rows.
+R-NOISE-1 has now run that smoke: `policy_A_very_conservative` produced `1816263` foreground-view rows and `1614840` suppressible operational-background rows from `3431103` candidate-entry rows, with `guardrail_failed=false`. Suppressed rows contained `0` must-keep rows, `0` legacy high/needs workflow-reference rows, and `0` poisoning/evasion-like proxy rows.
 
-Verifier/evidence layers should therefore support the judgment layer and attack-like incident explanation after foreground extraction. They must not be used to turn obvious noise suppression into benign truth.
+Verifier/evidence layers should therefore support the judgment layer and attack-like incident explanation after foreground extraction. They must not be used to turn obvious noise suppression into benign truth, and R-NOISE-1 guardrail success must not be reported as attack false-negative success because the clean 6h window has no confirmed attack labels.
 
 Guardrails:
 
@@ -1132,8 +1132,10 @@ Updated near-term route:
 ```text
 R-RESET-1 mainline pivot
   -> R-NOISE-0 obvious noise audit
-  -> R-NOISE-1 foreground extraction smoke
+  -> R-NOISE-1 conservative foreground extraction smoke
   -> R-LEARN-0 multi-attack judgment layer design
   -> R-POISON-0 poisoning benchmark design
   -> R-INC-0 attack-like incident aggregation after judgment
 ```
+
+R-NOISE-1 is complete as a smoke and guardrail check. It does not provide attack recall or poisoning/evasion recall; those require known-incident replay and controlled benchmark design.

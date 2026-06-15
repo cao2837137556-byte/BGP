@@ -1,11 +1,20 @@
 ﻿# BGP Platform Handoff
 
-最后更新：2026-06-01
+最后更新：2026-06-15
 定位：项目唯一长期维护的交接总览文件。
 
 ## Current Strategic State
 
 - Current Raw Incident Entry State:
+  - Phase R-NOISE-1 conservative foreground extraction smoke has completed on `s2a_baseline_v01_pilot_6h_april16`.
+  - Implementation: `scripts/run_r_noise1_conservative_foreground_extraction_smoke.py`.
+  - Config: `configs/conservative_foreground_extraction_policy_a_v0.yaml`.
+  - Outputs: `outputs/r_noise_1/s2a_baseline_v01_pilot_6h_april16/r_noise_1_summary.json`, full assignment parquet, foreground view, suppressible background view, gray retained view, safety audit, family guardrail audit, legacy reference audit, poisoning/evasion proxy audit, sample CSV, and markdown report.
+  - R-NOISE-1 is a clean-window smoke only: no row deletion, no production suppression, no incident aggregation, no learning training, no old pipeline modification, and no attack/benign truth label.
+  - R-NOISE-1 result: candidate-entry rows `3431103`; foreground_protected `1812334` (`0.528207`); suppressible_background `1614840` (`0.470647`); gray_retained `3929` (`0.001145`); foreground_view_total `1816263`; estimated compression `1.889100`.
+  - Safety result: `guardrail_failed=false`; suppressed rows include `0` multi-attack must-keep rows, `0` legacy high rows, `0` legacy needs rows, and `0` poisoning/evasion proxy rows.
+  - Scientific boundary: this is `guardrail_violation_count=0`, not `false_negative_count=0`. The 6h clean window has no confirmed attack labels, explicit poisoning/evasion token count is `0`, and proxy retention is not poisoning/evasion recall.
+  - Current next steps are R-LEARN-0 multi-attack judgment layer design and R-POISON-0 controlled poisoning/evasion benchmark design. Do not train learning or make production suppression claims before benchmark-backed recall/miss-risk evaluation exists.
   - Phase R-NOISE-0 obvious noise separability audit has completed on `s2a_baseline_v01_pilot_6h_april16`.
   - Implementation: `scripts/audit_obvious_noise_separability.py`.
   - Config: `configs/obvious_noise_separability_v0.yaml`.
@@ -15,7 +24,7 @@
   - Safety result: policy_A suppressed `0` must-keep rows, `0` legacy high rows, `0` legacy needs rows, and `0` poisoning/evasion-like proxy rows. policy_C is only an upper-bound stress test, not the recommended implementation policy.
   - Clean-window diagnosis: candidate-entry explosion is driven by single-collector/short rows, repeated prefix-origin/path signatures, and low-information reasons; this is operational background pressure, not confirmed benign traffic.
   - Decision: `eligible_for_R_NOISE_1_conservative_smoke`.
-  - Current next step is R-NOISE-1 foreground extraction smoke using `policy_A_very_conservative` with must-keep guards. Do not implement aggressive suppression, do not train learning, and do not treat suppressed rows as benign.
+  - Historical R-NOISE-0 next step was R-NOISE-1 foreground extraction smoke using `policy_A_very_conservative` with must-keep guards; R-NOISE-1 is now completed.
   - Phase R-RESET-1 has pivoted the mainline from candidate-first full incident aggregation to a noise-filtered multi-attack judgment pipeline.
   - `full candidate-entry incident aggregation stopped` as the paper-facing mainline.
   - New mainline: raw BGP / candidate events -> obvious noise suppression / foreground extraction -> multi-attack judgment layer -> incident aggregation after judgment -> evidence explanation -> poisoning/evasion robustness evaluation.
@@ -25,7 +34,7 @@
   - Learning is repositioned as a `multi-attack judgment layer`, not semantic ranking and not a single attack/benign classifier.
   - Expected operational outputs: `suspicious_forged_origin`, `suspicious_route_leak`, `suspicious_path_manipulation`, `suspicious_stealth_visibility`, `poisoning_or_evasion_suspected`, `background_noise`, and `uncertain_need_evidence`.
   - `poisoning/evasion robustness is core`; final experiments must report low false positive behavior, false-negative / must-keep miss risk, background compression, and robustness under incomplete / poisonable public monitors.
-  - R-NOISE-0 has now completed; the next mainline step is R-NOISE-1 conservative foreground extraction smoke, not R-AGG-4, R-EVID-1, or learning training unless explicitly redirected.
+  - R-NOISE-1 has now completed; the next mainline step is design work for R-LEARN-0 and R-POISON-0, not R-AGG-4, R-EVID-1, learning training, or production suppression unless explicitly redirected.
   - Phase R-EVID-0 lightweight evidence pre-triage design and feasibility audit has completed on `s2a_baseline_v01_pilot_6h_april16`.
   - Implementation: `scripts/audit_lightweight_evidence_pretriage.py`.
   - Config: `configs/lightweight_evidence_pretriage_v0.yaml`.
@@ -122,7 +131,7 @@
 - Phase R-2C-P1 path relation lookup smoke has completed on fixed S2: expanded AS-pair rows `421989`, row-level AS-pair match rate `0.947510`, triplet rows `205067`, full-path rows `217162`, incident path evidence rows `217165`; path states `aligned_medium=161992`, `diagnostic_only=34192`, `evidence_insufficient=18084`, `unavailable=2897`; route-leak-like diagnostic candidates `34555`; path-manipulation-like diagnostic candidates `44189`; no route-leak verdict generated and no R-2B verifier verdict modified.
 - Phase R-2C-P2 path-legality verifier smoke has completed on fixed S2: processed incidents `217165`; verdict smoke distribution `background_like_but_unconfirmed=127889`, `evidence_insufficient=78324`, `abstain=10822`, `evidence_conflict=86`, `evidence_supported_suspicious=44`; route-leak-like review candidates `34555`; path-manipulation-like review candidates `44189`; `strongly_supported_suspicious=0`; hard safety violations `0`; no confirmed route-leak label generated and no R-2B verifier verdict modified.
 - Phase R-LOCK-1 architecture minimality and ablation plan has completed: old seven-layer pipeline compressed into Stage 1, verifier locked as Stage 2, learning ranker locked as Stage 3 before Top-K, output card schema simplified, and ablation plan A0-A9 defined for reviewer defense.
-- Next default steps are R-NOISE-1 conservative foreground extraction smoke, R-LEARN-0 multi-attack judgment layer design after foreground evidence is stable, R-POISON-0 poisoning benchmark design, and R-INC-0 attack-like incident aggregation after judgment; do not return to candidate-first full incident aggregation or legacy detector-score tuning unless explicitly requested.
+- Next default steps are R-LEARN-0 multi-attack judgment layer design and R-POISON-0 poisoning benchmark design after the R-NOISE-1 foreground smoke. R-INC-0 attack-like incident aggregation comes after judgment design. Do not return to candidate-first full incident aggregation, production background suppression, or legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
 

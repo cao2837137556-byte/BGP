@@ -59,6 +59,8 @@
   - `POISONING_AWARE_SYSTEM_PROBLEM_STATEMENT.md`
 - Phase R-NOISE-0 obvious noise separability audit 文档：
   - `R_NOISE_0_OBVIOUS_NOISE_SEPARABILITY_AUDIT.md`
+- Phase R-NOISE-1 conservative foreground extraction smoke 文档：
+  - `R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md`
 - Phase R architecture lock 文档：
   - `ARCHITECTURE_MINIMALITY_AND_ABLATION_PLAN.md`
   - `SYSTEM_OUTPUT_SCHEMA_SIMPLIFIED.md`
@@ -67,7 +69,7 @@
 
 ## Current Phase Guardrail
 
-Current phase: Phase R-NOISE-0 has completed the first obvious noise separability audit after the R-RESET-1 pivot. `full candidate-entry incident aggregation stopped` remains the paper-facing mainline. The project now follows a `noise-filtered multi-attack judgment pipeline`: raw BGP / candidate events -> obvious noise suppression / foreground extraction -> multi-attack judgment layer -> incident aggregation after judgment -> evidence explanation -> poisoning/evasion robustness evaluation.
+Current phase: Phase R-NOISE-1 has completed the conservative foreground extraction smoke after the R-NOISE-0 separability audit. `full candidate-entry incident aggregation stopped` remains the paper-facing mainline. The project now follows a `noise-filtered multi-attack judgment pipeline`: raw BGP / candidate events -> obvious noise suppression / foreground extraction -> multi-attack judgment layer -> incident aggregation after judgment -> evidence explanation -> poisoning/evasion robustness evaluation.
 
 R-AGG-ENTRY-0 locks the following guardrail: final labels are weak workflow signals, not truth labels. The old final layer can provide context, but direct final-level 21w aggregation must not become the paper's main incident口径 without entry-point justification. R-AGG-3 keeps this boundary: it does not modify aggregation logic, does not implement background suppression, does not implement safe merge, and does not produce any truth label.
 
@@ -75,7 +77,7 @@ R-AGG-1/R-AGG-2/R-AGG-3/R-EVID-0 are preserved as stop-loss evidence. R-AGG-2 pr
 
 The new `PROJECT_DECISION_REGISTER.md` remains the project-level decision table. R-RESET-1 supersedes the ranker-first reading of the learning layer: the next learning target is a `multi-attack judgment layer`, not semantic ranking and not a single attack/benign classifier. Expected operational outputs include `suspicious_forged_origin`, `suspicious_route_leak`, `suspicious_path_manipulation`, `suspicious_stealth_visibility`, `poisoning_or_evasion_suspected`, `background_noise`, and `uncertain_need_evidence`. `background is not ranked` in the primary human-facing output, but background is still not confirmed benign. Final main experiments must report low false positive behavior, false-negative / must-keep miss risk, background compression, evidence explanation, and poisoning/evasion robustness.
 
-Poisoning benchmark retained and elevated: `poisoning/evasion robustness is core`, not an appendix. R-2D-0 still matters because NO_EXPORT / communities affect monitor evasion, but communities are not incident-ready yet. RPKI invalid is not attack truth. AS-rel diagnostic is not route leak truth. background-like is not benign. R-NOISE-0 found that `policy_A_very_conservative` can counterfactually suppress `1614840` candidate-entry rows (`0.470647`) with `0` must-keep, legacy-high/needs, or poisoning/evasion-like proxy suppressions. Next default step is `R-NOISE-1 conservative foreground extraction smoke`, not learning training and not final suppression.
+Poisoning benchmark retained and elevated: `poisoning/evasion robustness is core`, not an appendix. R-2D-0 still matters because NO_EXPORT / communities affect monitor evasion, but communities are not incident-ready yet. RPKI invalid is not attack truth. AS-rel diagnostic is not route leak truth. background-like is not benign. R-NOISE-1 used only `policy_A_very_conservative`: `3431103` candidate rows -> `1816263` foreground-view rows and `1614840` suppressible operational-background rows, compression `1.889100`, with `0` must-keep, legacy-high/needs, or poisoning/evasion proxy guardrail violations. This is clean-window guardrail evidence, not attack false-negative evidence. Next default steps are R-LEARN-0 multi-attack judgment layer design and R-POISON-0 controlled poisoning/evasion benchmark design, not learning training and not final suppression.
 
 维护规则：
 
@@ -112,4 +114,5 @@ Poisoning benchmark retained and elevated: `poisoning/evasion robustness is core
 24. `project_docs/CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`
 25. `project_docs/LEARNING_LAYER_POSITIONING.md`
 26. `project_docs/R_NOISE_0_OBVIOUS_NOISE_SEPARABILITY_AUDIT.md`
-27. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`
+27. `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md`
+28. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`
