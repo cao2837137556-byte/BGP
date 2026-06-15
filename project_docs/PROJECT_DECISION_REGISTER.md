@@ -736,3 +736,30 @@ Consequence:
 - Legacy final/high/needs/low and P1/P2/P3 are audit references only, not labels, hard guards, or learning targets.
 - The next dependency order is R-ASREL-CLEAN-0 -> R-COMM-CLEAN-0 -> R-LABEL-0 -> R-ATTACK-0 -> R-NOISE-CLEAN-1 -> R-LEARN-0 -> R-LEARN-1 -> R-INC-0.
 - No learning, production suppression, recall claim, or poisoning/evasion robustness claim is allowed before the relevant sidecar and benchmark gates pass.
+
+## R-DOC-GOV-1 Lightweight Mainline Documentation Decision
+
+Status: active.
+
+Decision:
+
+- Maintain only one active mainline state document: `project_docs/MAINLINE_STATE.md`.
+- Maintain this file, `project_docs/PROJECT_DECISION_REGISTER.md`, only for major route decisions.
+- Keep phase-specific experiment documents as evidence archives.
+- Stop updating README, HANDOFF, EXPERIMENT_MAINLINE, CCFA, LEARNING, and VERIFIER documents after every experiment.
+
+Rationale:
+
+- Previous documentation practice spread the same state across too many files.
+- That made old experiments contaminate current experiment planning and made it easy for humans or agents to follow superseded routes.
+- The project now needs a cockpit-style current state file plus an explicit decision log, not multiple competing mainline summaries.
+
+Consequence:
+
+- Normal experiment maintenance is limited to:
+  1. the experiment's own phase document;
+  2. `MAINLINE_STATE.md`.
+- Major route changes additionally update `PROJECT_DECISION_REGISTER.md`.
+- README is a navigation pointer only.
+- HANDOFF / EXPERIMENT_MAINLINE / CCFA / LEARNING / VERIFIER remain useful historical or topical references, but are not authoritative if they conflict with `MAINLINE_STATE.md`.
+- If future work needs to revive or revise an archived document, that must be an explicit task, not a default side effect of every experiment.
