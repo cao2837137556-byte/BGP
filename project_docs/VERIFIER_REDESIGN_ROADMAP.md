@@ -20,24 +20,27 @@ BGP updates
 
 Monitor evidence starts the workflow. It does not close the case.
 
-## 1A. Current Mainline After R-NOISE-1
+## 1A. Current Mainline After R-CLEAN-0
 
-R-RESET-1, R-NOISE-0, and R-NOISE-1 refine how the verifier roadmap should be read.
+R-CLEAN-0 supersedes the immediate post-R-NOISE-1 interpretation. R-RESET-1, R-NOISE-0, and R-NOISE-1 remain useful, but R-NOISE-1 is now treated as a provisional clean-window smoke rather than a clean final experiment.
 
-Current mainline:
+Current clean mainline:
 
 ```text
-raw / candidate events
-  -> conservative obvious noise foreground extraction
+clean data/evidence contract
+  -> aligned AS-rel sidecar
+  -> community / NO_EXPORT sidecar or propagation
+  -> benchmark / label protocol
+  -> controlled attack / evasion scenarios
+  -> clean foreground validation
   -> multi-attack judgment layer
-  -> incident aggregation after judgment
+  -> attack-like incident aggregation
   -> evidence explanation / verifier support
-  -> poisoning/evasion robustness evaluation
 ```
 
-R-NOISE-1 has now run that smoke: `policy_A_very_conservative` produced `1816263` foreground-view rows and `1614840` suppressible operational-background rows from `3431103` candidate-entry rows, with `guardrail_failed=false`. Suppressed rows contained `0` must-keep rows, `0` legacy high/needs workflow-reference rows, and `0` poisoning/evasion-like proxy rows.
+R-NOISE-1 has run a conservative smoke: `policy_A_very_conservative` produced `1816263` foreground-view rows and `1614840` suppressible operational-background rows from `3431103` candidate-entry rows, with `guardrail_failed=false`. Suppressed rows contained `0` must-keep rows, `0` legacy high/needs workflow-reference rows, and `0` poisoning/evasion-like proxy rows.
 
-Verifier/evidence layers should therefore support the judgment layer and attack-like incident explanation after foreground extraction. They must not be used to turn obvious noise suppression into benign truth, and R-NOISE-1 guardrail success must not be reported as attack false-negative success because the clean 6h window has no confirmed attack labels.
+Verifier/evidence layers should support the judgment layer and attack-like incident explanation after foreground extraction. However, the next verifier-adjacent work is not learning: it is cleaning provenance. Stale Stage 1 AS-rel-derived fields must be replaced by a `2024-04-01` sidecar if path diagnostics are used, and raw communities / NO_EXPORT must be exposed through a sidecar or propagation path before stealth evidence is used. R-NOISE-1 guardrail success must not be reported as attack false-negative success because the clean 6h window has no confirmed attack labels.
 
 Guardrails:
 
@@ -46,6 +49,8 @@ Guardrails:
 - AS-rel diagnostic is not route leak truth.
 - background_noise is not confirmed benign.
 - poisoning/evasion-like proxies must be retained until robustness benchmarks test them.
+- old `rel_seq`, `rel_unknown_cnt`, and `rel_has_unknown` fields are forbidden in new decision logic unless regenerated from the aligned `2024-04-01` AS-rel cache.
+- raw NO_EXPORT / communities availability is not enough for incident-level stealth evidence until join-ready sidecars or propagation are built.
 
 ## 2. Evidence Types
 

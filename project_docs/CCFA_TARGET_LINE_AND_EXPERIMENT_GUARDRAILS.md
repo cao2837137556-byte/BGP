@@ -77,17 +77,16 @@ Contribution 3: Component-aware semantic learning ranker
 ## 6. Experiment Roadmap Toward CCF-A
 
 ```text
-R-DOC-1: decision register and mainline documentation lock
-R-OUT-1: unified incident output taxonomy design
-R-CONSIST-2: aligned AS-rel reannotation / impact analysis if Stage 1 fields are used
-R-2D-P0: communities propagation schema and repair before stealth verifier use
-R-2B: VRP-aware verifier smoke + incident purity audit
-R-2C: path evidence branch / route-leak legality refinement
-R-3: monitor poisoning / evasion benchmark
-L1: component-aware semantic learner
-L2: evidence-constrained ranker / calibrator
-R-4: multi-evidence robustness evaluation
-Paper stage: CCF-A claim consolidation
+R-CLEAN-0: clean data/evidence contract and dependency lock
+R-ASREL-CLEAN-0: 2024-aligned AS-rel sidecar if path diagnostics are used
+R-COMM-CLEAN-0: community / NO_EXPORT sidecar or propagation before stealth evidence use
+R-LABEL-0: benchmark / label protocol without legacy truth leakage
+R-ATTACK-0: controlled multi-attack / poisoning / evasion scenarios
+R-NOISE-CLEAN-1: clean foreground validation with must-keep miss accounting
+R-LEARN-0: multi-attack judgment layer design
+R-LEARN-1: minimal low-false-positive judgment smoke
+R-INC-0: attack-like incident aggregation after judgment
+Paper stage: CCF-A claim consolidation and robustness evaluation
 ```
 
 R-2B is the first evidence-backed verifier smoke on this path. Its value is not only RPKI lookup coverage; it is the component-aware constraint that prevents mixed incidents from being forced into suspicious or background verdicts.
@@ -340,7 +339,45 @@ CCF-A red lines:
 - R-NOISE-1 outputs must not become learning labels.
 - Production suppression requires known-incident replay and controlled benchmark evidence.
 
-## 13. Minimal Architecture and Ablation Defense
+## 13. R-CLEAN-0 Clean Evidence Contract Guardrail
+
+R-CLEAN-0 resets the next experiments around a clean data/evidence contract before any new model, suppression, or robustness claim.
+
+Paper-facing experiments must follow:
+
+```text
+clean data/evidence contract
+  -> aligned evidence sidecars
+  -> benchmark / label protocol
+  -> attack-retention foreground validation
+  -> multi-attack judgment
+  -> attack-like incident explanation
+```
+
+CCF-A red lines:
+
+- R-NOISE-1 is a provisional clean-window foreground smoke, not a final clean experiment result.
+- The 2017-derived Stage 1 `rel_seq`, `rel_unknown_cnt`, and `rel_has_unknown` fields must not enter new decision logic.
+- CAIDA AS-rel must enter through a new `2024-04-01` sidecar before route-leak/path claims are made.
+- RPKI `2024-04-16` is aligned and usable as origin evidence, but `invalid` is not attack truth and `valid` is not benign truth.
+- Raw communities / NO_EXPORT are available, but not event/candidate-ready; missing communities are not safe/normal.
+- Legacy final/high/needs/low and P1/P2/P3 are audit references only, not hard guards, learning labels, or truth.
+- No recall, false-negative, poisoning/evasion robustness, or low false positive claim is allowed before the benchmark/label protocol exists.
+- No learning model should train until clean sidecars, labels/benchmarks, and attack-retention validation are explicit.
+
+Immediate dependency order:
+
+```text
+R-ASREL-CLEAN-0
+  -> R-COMM-CLEAN-0
+  -> R-LABEL-0
+  -> R-ATTACK-0
+  -> R-NOISE-CLEAN-1
+  -> R-LEARN-0 / R-LEARN-1
+  -> R-INC-0
+```
+
+## 14. Minimal Architecture and Ablation Defense
 
 R-LOCK-1 freezes the final paper-facing system as a minimal three-stage architecture:
 
@@ -371,7 +408,9 @@ The CCF-A evaluation must therefore include ablations that remove the verifier, 
 
 R-RESET-1 updates the interpretation: Stage 3 is no longer primarily a semantic ranker. It is a low false positive multi-attack judgment layer, with any ranking or Top-K budget downstream of foreground judgment.
 
-## 14. Fallback Policy
+R-CLEAN-0 adds a stricter prerequisite: this architecture cannot use stale Stage 1 AS-rel fields, raw-only community hints, or legacy final labels as clean decision inputs. Those must be replaced by aligned sidecars and explicit benchmark/label protocols before final paper claims.
+
+## 15. Fallback Policy
 
 If the poisoning benchmark or learning ranker is weak, the project can fall back to a strong SCI version.
 

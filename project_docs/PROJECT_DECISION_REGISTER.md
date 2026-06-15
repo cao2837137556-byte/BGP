@@ -710,3 +710,29 @@ Consequence:
 - Explicit poisoning/evasion token availability is `unavailable` (`0` rows); available proxy rows are retained, but this is not poisoning/evasion recall.
 - `suppressed_background` remains operational background pressure only, not confirmed benign.
 - The next steps may be R-LEARN-0 design and R-POISON-0 benchmark design, but no learning training or production suppression claim is allowed before benchmark-backed miss-risk evaluation.
+
+## R-CLEAN-0 Data / Evidence Clean Contract Decision
+
+Status: active.
+
+Decision:
+
+- Establish a clean mainline before any further experiment implementation.
+- Future paper-facing experiments must follow `CLEAN_MAINLINE_EXPERIMENT_PLAN.md` and `R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md`.
+- R-NOISE-1 is preserved as a provisional clean-window smoke, not a final clean result.
+
+Rationale:
+
+- The paper goal requires low-false-positive multi-attack judgment under incomplete, evasive, and poisonable public monitors.
+- That goal cannot be supported if new experiments silently mix aligned RPKI, 2024-near AS-rel, stale 2017 AS-rel-derived fields, raw-only communities, and legacy final labels.
+- R-CONSIST-1 showed old Stage 1 AS-rel fields likely use CAIDA `2017-07-01`, while the aligned cache is `2024-04-01`.
+- R-2D-0 showed NO_EXPORT/community evidence exists in raw updates but is not retained in event/candidate/incident layers.
+
+Consequence:
+
+- RPKI `2024-04-16` is allowed with truth boundaries: RPKI invalid is not attack truth and RPKI valid is not benign.
+- CAIDA AS-rel `2024-04-01` is allowed only through a new clean sidecar; old `rel_seq`, `rel_unknown_cnt`, and `rel_has_unknown` are forbidden in new decisions.
+- Raw communities / NO_EXPORT are evidence-available at raw layer but decision-unavailable until sidecar or propagation exists.
+- Legacy final/high/needs/low and P1/P2/P3 are audit references only, not labels, hard guards, or learning targets.
+- The next dependency order is R-ASREL-CLEAN-0 -> R-COMM-CLEAN-0 -> R-LABEL-0 -> R-ATTACK-0 -> R-NOISE-CLEAN-1 -> R-LEARN-0 -> R-LEARN-1 -> R-INC-0.
+- No learning, production suppression, recall claim, or poisoning/evasion robustness claim is allowed before the relevant sidecar and benchmark gates pass.

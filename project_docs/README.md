@@ -18,6 +18,9 @@
   - `PAPER_PROBLEM_STATEMENT.md`
 - 项目级决策总表：
   - `PROJECT_DECISION_REGISTER.md`
+- Clean mainline control 文档：
+  - `CLEAN_MAINLINE_EXPERIMENT_PLAN.md`
+  - `R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md`
 - Phase R-1 设计文档：
   - `R1_VERIFIER_STATE_MACHINE.md`
   - `R1_EVIDENCE_TYPES_AND_VERDICTS.md`
@@ -69,7 +72,7 @@
 
 ## Current Phase Guardrail
 
-Current phase: Phase R-NOISE-1 has completed the conservative foreground extraction smoke after the R-NOISE-0 separability audit. `full candidate-entry incident aggregation stopped` remains the paper-facing mainline. The project now follows a `noise-filtered multi-attack judgment pipeline`: raw BGP / candidate events -> obvious noise suppression / foreground extraction -> multi-attack judgment layer -> incident aggregation after judgment -> evidence explanation -> poisoning/evasion robustness evaluation.
+Current phase: Phase R-CLEAN-0 has locked the clean mainline experiment plan and data/evidence clean contract. R-NOISE-1 remains a completed provisional foreground smoke, not a final clean experiment result. `full candidate-entry incident aggregation stopped` remains the paper-facing mainline. The project now follows a clean dependency chain: clean data/evidence contract -> aligned sidecars -> benchmark/label protocol -> foreground validation -> multi-attack judgment -> attack-like incident explanation.
 
 R-AGG-ENTRY-0 locks the following guardrail: final labels are weak workflow signals, not truth labels. The old final layer can provide context, but direct final-level 21w aggregation must not become the paper's main incident口径 without entry-point justification. R-AGG-3 keeps this boundary: it does not modify aggregation logic, does not implement background suppression, does not implement safe merge, and does not produce any truth label.
 
@@ -77,7 +80,7 @@ R-AGG-1/R-AGG-2/R-AGG-3/R-EVID-0 are preserved as stop-loss evidence. R-AGG-2 pr
 
 The new `PROJECT_DECISION_REGISTER.md` remains the project-level decision table. R-RESET-1 supersedes the ranker-first reading of the learning layer: the next learning target is a `multi-attack judgment layer`, not semantic ranking and not a single attack/benign classifier. Expected operational outputs include `suspicious_forged_origin`, `suspicious_route_leak`, `suspicious_path_manipulation`, `suspicious_stealth_visibility`, `poisoning_or_evasion_suspected`, `background_noise`, and `uncertain_need_evidence`. `background is not ranked` in the primary human-facing output, but background is still not confirmed benign. Final main experiments must report low false positive behavior, false-negative / must-keep miss risk, background compression, evidence explanation, and poisoning/evasion robustness.
 
-Poisoning benchmark retained and elevated: `poisoning/evasion robustness is core`, not an appendix. R-2D-0 still matters because NO_EXPORT / communities affect monitor evasion, but communities are not incident-ready yet. RPKI invalid is not attack truth. AS-rel diagnostic is not route leak truth. background-like is not benign. R-NOISE-1 used only `policy_A_very_conservative`: `3431103` candidate rows -> `1816263` foreground-view rows and `1614840` suppressible operational-background rows, compression `1.889100`, with `0` must-keep, legacy-high/needs, or poisoning/evasion proxy guardrail violations. This is clean-window guardrail evidence, not attack false-negative evidence. Next default steps are R-LEARN-0 multi-attack judgment layer design and R-POISON-0 controlled poisoning/evasion benchmark design, not learning training and not final suppression.
+Poisoning benchmark retained and elevated: `poisoning/evasion robustness is core`, not an appendix. R-2D-0 still matters because NO_EXPORT / communities affect monitor evasion, but communities are not incident-ready yet. RPKI invalid is not attack truth. AS-rel diagnostic is not route leak truth. background-like is not benign. R-CLEAN-0 fixes the current data contract: RPKI `2024-04-16` is aligned and allowed with truth boundaries; CAIDA AS-rel `2024-04-01` is available but must enter through a new 2024-aligned sidecar; old 2017-derived `rel_*` fields are forbidden in new decisions; raw NO_EXPORT exists but is not event/candidate-ready; legacy final/high/needs are audit references only. Next default step is R-ASREL-CLEAN-0 aligned AS-rel sidecar, not learning training and not production suppression.
 
 维护规则：
 
@@ -115,4 +118,6 @@ Poisoning benchmark retained and elevated: `poisoning/evasion robustness is core
 25. `project_docs/LEARNING_LAYER_POSITIONING.md`
 26. `project_docs/R_NOISE_0_OBVIOUS_NOISE_SEPARABILITY_AUDIT.md`
 27. `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md`
-28. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`
+28. `project_docs/CLEAN_MAINLINE_EXPERIMENT_PLAN.md`
+29. `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md`
+30. 如需更细的正式资产定位，再看 `论文/实验资产索引_v01.md`

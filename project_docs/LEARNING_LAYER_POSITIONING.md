@@ -10,7 +10,21 @@ Before reliable foreground/explanation targets exist, do not train an attack/ben
 
 For the current CCF-A target line, the learning layer is a `multi-attack judgment layer`, not semantic ranking. It should make low false positive foreground judgments across multiple BGP attack families, preserve uncertainty, and produce evidence explanations.
 
-Current R-NOISE-1 decision: do not train the learning layer yet. R-NOISE-1 completed a conservative foreground extraction smoke using `policy_A_very_conservative`: `3431103` candidate rows became `1816263` foreground-view rows and `1614840` suppressible operational-background rows, with `0` must-keep / legacy-high / legacy-needs / poisoning-evasion proxy guardrail violations. This is clean-window guardrail evidence, not attack false-negative evidence. Learning must wait for R-LEARN-0 design, R-POISON-0 benchmark design, and evidence-grounded feature stability.
+Current R-CLEAN-0 decision: do not train the learning layer yet. R-NOISE-1 completed a conservative foreground extraction smoke using `policy_A_very_conservative`: `3431103` candidate rows became `1816263` foreground-view rows and `1614840` suppressible operational-background rows, with `0` must-keep / legacy-high / legacy-needs / poisoning-evasion proxy guardrail violations. This is provisional clean-window guardrail evidence, not attack false-negative evidence, because it still depends on fields that must be cleaned before final experiments. Learning must wait for aligned evidence sidecars, benchmark/label protocol, attack-retention foreground validation, R-LEARN-0 design, R-POISON-0 benchmark design, and evidence-grounded feature stability.
+
+## 1A. R-CLEAN-0 Training Blocker
+
+R-CLEAN-0 blocks any learning training until the input contract is clean.
+
+Required before training:
+
+- R-ASREL-CLEAN-0: replace stale Stage 1 `rel_seq`, `rel_unknown_cnt`, and `rel_has_unknown` with a `2024-04-01` AS-rel sidecar if path diagnostics are used.
+- R-COMM-CLEAN-0: expose raw communities / NO_EXPORT through an auditable sidecar or propagation path before stealth features are used.
+- R-LABEL-0: define benchmark / label protocol without using final/high/needs/low, P1/P2/P3, RPKI status, AS-rel diagnostics, or background-like states as truth.
+- R-ATTACK-0: create controlled or literature-grounded attack / evasion scenarios before recall or poisoning-robustness claims.
+- R-NOISE-CLEAN-1: rerun foreground validation under the clean contract and report must-keep misses, background compression, gray-zone rate, and per-family retention.
+
+Until these are complete, learning outputs may be designed on paper, but not trained or reported as model results.
 
 ## 2. Why Not Train Now
 
@@ -91,16 +105,22 @@ Short form: multi-attack judgment first; ranking is optional and downstream, not
 ## 4. When To Train
 
 Train only after these conditions are met:
+- R-CLEAN-0 data/evidence contract is followed
+- R-ASREL-CLEAN-0 aligned AS-rel sidecar is available if path evidence is used
+- R-COMM-CLEAN-0 community / NO_EXPORT sidecar or propagation exists if stealth evidence is used
+- R-LABEL-0 benchmark / label protocol is defined
+- R-ATTACK-0 controlled attack / evasion scenarios exist for recall and robustness claims
+- R-NOISE-CLEAN-1 foreground validation is rerun under clean evidence inputs
 - R-NOISE-0 obvious noise separability audit is complete
 - R-NOISE-1 foreground extraction smoke preserves must-keep signals
-- R-NOISE-1 outputs are treated as foreground/suppression views, not truth labels
+- R-NOISE-1 outputs are treated as provisional foreground/suppression views, not truth labels
 - multi-attack operational labels or weak supervision targets are defined without truth leakage
 - poisoning and evasion scenarios exist
 - held-out windows exist
 - evidence provenance is attached
 - unavailable evidence is not treated as normal
-- R-CONSIST evidence-cache risks are handled or explicitly documented
-- R-2D-P0 communities propagation schema is designed if stealth evidence is included
+- R-CONSIST evidence-cache risks are resolved by aligned sidecars or explicitly documented
+- communities / NO_EXPORT are not inferred from absence or low visibility
 
 Minimum trainable unit:
 

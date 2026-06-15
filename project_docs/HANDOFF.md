@@ -6,6 +6,11 @@
 ## Current Strategic State
 
 - Current Raw Incident Entry State:
+  - Phase R-CLEAN-0 data / evidence clean contract has completed as the new mainline control step.
+  - New active control docs: `project_docs/CLEAN_MAINLINE_EXPERIMENT_PLAN.md`, `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md`, and `configs/clean_evidence_contract_v0.yaml`.
+  - R-CLEAN-0 locks the dependency order: R-ASREL-CLEAN-0 aligned AS-rel sidecar -> R-COMM-CLEAN-0 community/NO_EXPORT sidecar or propagation -> R-LABEL-0 benchmark/label protocol -> R-ATTACK-0 controlled injection smoke -> R-NOISE-CLEAN-1 attack-retention foreground validation -> R-LEARN-0 design -> R-LEARN-1 minimal training -> R-INC-0 attack-like incident aggregation.
+  - Clean evidence contract: RPKI `2024-04-16` is aligned and allowed with truth boundaries; CAIDA AS-rel `2024-04-01` is available but must be used through a new sidecar; old 2017-derived `rel_seq` / `rel_unknown_cnt` / `rel_has_unknown` are forbidden in new decision logic; raw communities / NO_EXPORT exist but are not candidate/event-ready; final/high/needs/low and P1/P2/P3 are audit references only.
+  - Current next step is R-ASREL-CLEAN-0, not learning, not production foreground suppression, and not another candidate-first incident aggregation.
   - Phase R-NOISE-1 conservative foreground extraction smoke has completed on `s2a_baseline_v01_pilot_6h_april16`.
   - Implementation: `scripts/run_r_noise1_conservative_foreground_extraction_smoke.py`.
   - Config: `configs/conservative_foreground_extraction_policy_a_v0.yaml`.
@@ -131,7 +136,7 @@
 - Phase R-2C-P1 path relation lookup smoke has completed on fixed S2: expanded AS-pair rows `421989`, row-level AS-pair match rate `0.947510`, triplet rows `205067`, full-path rows `217162`, incident path evidence rows `217165`; path states `aligned_medium=161992`, `diagnostic_only=34192`, `evidence_insufficient=18084`, `unavailable=2897`; route-leak-like diagnostic candidates `34555`; path-manipulation-like diagnostic candidates `44189`; no route-leak verdict generated and no R-2B verifier verdict modified.
 - Phase R-2C-P2 path-legality verifier smoke has completed on fixed S2: processed incidents `217165`; verdict smoke distribution `background_like_but_unconfirmed=127889`, `evidence_insufficient=78324`, `abstain=10822`, `evidence_conflict=86`, `evidence_supported_suspicious=44`; route-leak-like review candidates `34555`; path-manipulation-like review candidates `44189`; `strongly_supported_suspicious=0`; hard safety violations `0`; no confirmed route-leak label generated and no R-2B verifier verdict modified.
 - Phase R-LOCK-1 architecture minimality and ablation plan has completed: old seven-layer pipeline compressed into Stage 1, verifier locked as Stage 2, learning ranker locked as Stage 3 before Top-K, output card schema simplified, and ablation plan A0-A9 defined for reviewer defense.
-- Next default steps are R-LEARN-0 multi-attack judgment layer design and R-POISON-0 poisoning benchmark design after the R-NOISE-1 foreground smoke. R-INC-0 attack-like incident aggregation comes after judgment design. Do not return to candidate-first full incident aggregation, production background suppression, or legacy detector-score tuning unless explicitly requested.
+- Next default step is R-ASREL-CLEAN-0 aligned AS-rel sidecar, followed by R-COMM-CLEAN-0 community/NO_EXPORT sidecar or propagation and R-LABEL-0 benchmark/label protocol. R-LEARN-0 is design-only and comes after clean sidecars / benchmark protocol. Do not return to candidate-first full incident aggregation, production background suppression, or legacy detector-score tuning unless explicitly requested.
 
 ## 1. 固定工作边界
 

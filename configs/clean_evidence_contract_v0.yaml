@@ -1,0 +1,160 @@
+schema_version: clean_evidence_contract_v0
+phase: R-CLEAN-0
+status: active_contract
+last_updated: 2026-06-15
+
+paper_goal: >
+  Low-false-positive multi-attack BGP judgment under incomplete,
+  evasive, and poisonable public BGP monitors.
+
+fixed_dates:
+  run_date: "2024-04-16"
+  rpki_snapshot_date: "2024-04-16"
+  asrel_snapshot_date: "2024-04-01"
+  old_stage1_asrel_snapshot_date: "2017-07-01"
+
+runs:
+  clean_background:
+    run_id: s2a_baseline_v01_pilot_6h_april16
+    allowed_use:
+      - clean-window background pressure audit
+      - foreground smoke input
+    forbidden_claims:
+      - attack recall
+      - poisoning/evasion recall
+      - benign truth
+  expanded_evidence:
+    run_id: s2a_expanded_v01_pilot_6h_april16
+    allowed_use:
+      - evidence field availability audit
+      - provenance checks
+    forbidden_claims:
+      - direct paper main result without clean contract
+
+allowed_native_fields:
+  candidate_event:
+    fields:
+      - event_id
+      - prefix
+      - origin_as
+      - as_path_clean
+      - collector
+      - collector_set
+      - collector_count
+      - visibility_count
+      - first_seen
+      - last_seen
+      - duration_sec
+      - candidate_reasons
+      - candidate_flag
+    allowed_use:
+      - feature construction
+      - lookup keys
+      - weak-signal provenance
+    forbidden_claims:
+      - truth label
+      - attack/benign decision by itself
+
+external_evidence:
+  rpki_vrp_2024_04_16:
+    path: data/evidence/rpki/vrp_2024-04-16.parquet
+    metadata: data/evidence/rpki/vrp_2024-04-16.metadata.json
+    aligned_to_run_date: true
+    record_count: 530187
+    allowed_use:
+      - origin authorization evidence
+      - protective evidence feature
+    forbidden_claims:
+      - RPKI invalid is attack truth
+      - RPKI valid is benign
+      - RPKI unknown is normal
+  caida_asrel_2024_04_01:
+    path: data/evidence/as_relationships/as_rel_2024-04-01.parquet
+    metadata: data/evidence/as_relationships/as_rel_2024-04-01.metadata.json
+    provider: CAIDA
+    aligned_to_run_date: true
+    alignment_delta_days: 15
+    record_count: 1142660
+    allowed_use:
+      - clean AS-rel sidecar construction
+      - path relation diagnostic with provenance
+    forbidden_claims:
+      - AS-rel violation is confirmed route leak
+      - AS-rel matched path is benign
+      - AS-rel unknown is suspicious by itself
+
+sidecar_required:
+  asrel_2024_sidecar:
+    reason: old Stage 1 rel fields likely use 2017 CAIDA AS-rel
+    forbidden_legacy_fields:
+      - rel_seq
+      - rel_unknown_cnt
+      - rel_has_unknown
+      - path_plausibility_score
+      - plausibility_bucket
+      - relation_support_score
+      - triplet_signature
+    required_fields:
+      - event_id
+      - as_path_clean
+      - asrel_snapshot_date
+      - run_date
+      - alignment_delta_days
+      - rel_seq_2024
+      - rel_unknown_cnt_2024
+      - rel_has_unknown_2024
+      - path_relation_diagnostic_2024
+      - asrel_provenance
+  community_noexport_sidecar:
+    reason: raw communities exist but are not retained at event/candidate/incident layers
+    raw_findings:
+      raw_rows_scanned: 39039005
+      non_empty_community_rows: 35657850
+      parse_success_rows: 27843441
+      no_export_rows: 223410
+      no_advertise_rows: 1240
+      nopeer_rows: 5634
+      retained_layers:
+        - raw_updates
+      incident_join_ready: false
+    required_fields:
+      - event_id_or_join_key
+      - has_no_export
+      - has_no_advertise
+      - has_nopeer
+      - community_count
+      - community_parse_status
+      - community_provenance
+
+audit_reference_only:
+  - final_alert_label
+  - high_priority_alert
+  - needs_review
+  - low_priority_or_background
+  - P1
+  - P2
+  - P3
+  - R-NOISE-1 foreground/suppressed outputs
+  - R-AGG raw incident outputs
+
+forbidden_in_new_decisions:
+  - 2017 AS-rel-derived event fields
+  - legacy final/high/needs/low as hard guards
+  - P1/P2/P3 as labels
+  - suppressed background as negative training labels
+  - RPKI valid as benign labels
+  - RPKI invalid as attack labels
+  - AS-rel violation as route-leak labels
+  - missing communities as NO_EXPORT absent
+  - low visibility as confirmed NO_EXPORT or stealth attack
+  - unavailable evidence as safe or normal
+
+next_dependency_order:
+  - R-ASREL-CLEAN-0 aligned AS-rel sidecar
+  - R-COMM-CLEAN-0 community/NO_EXPORT sidecar or propagation
+  - R-LABEL-0 multi-attack benchmark and label protocol
+  - R-ATTACK-0 controlled injection smoke
+  - R-NOISE-CLEAN-1 attack-retention foreground validation
+  - R-LEARN-0 multi-attack judgment layer design
+  - R-LEARN-1 minimal training/replay experiment
+  - R-INC-0 attack-like incident aggregation

@@ -2,7 +2,7 @@
 
 Last updated: 2026-06-15
 
-Status: R-NOISE-1 foreground smoke complete; R-LEARN-0 / R-POISON-0 design next.
+Status: R-NOISE-1 foreground smoke complete as a provisional result; R-CLEAN-0 now requires aligned evidence sidecars and benchmark/label protocol before any clean R-NOISE or learning claim.
 
 ## 1. Goal
 
@@ -17,6 +17,8 @@ obvious noise suppression / foreground extraction
 ```
 
 The objective is low false positive, deployable BGP attack judgment under incomplete and poisonable public monitors.
+
+R-CLEAN-0 adds a stricter prerequisite: the foreground extraction path must use clean, provenance-aligned inputs. R-NOISE-1 is useful evidence that conservative foregrounding may reduce pressure, but it is not the final experiment because old Stage 1 AS-rel-derived fields, raw-only community evidence, and legacy workflow labels cannot be mixed into final paper-facing decisions.
 
 ## 2. Stage 1: Obvious Noise Suppression / Foreground Extraction
 
@@ -204,8 +206,11 @@ Scientific boundary:
 Next:
 
 ```text
-R-LEARN-0 multi-attack judgment layer design
-R-POISON-0 controlled poisoning/evasion benchmark design
+R-ASREL-CLEAN-0 aligned AS-rel sidecar
+R-COMM-CLEAN-0 community / NO_EXPORT sidecar or propagation
+R-LABEL-0 benchmark / label protocol
+R-ATTACK-0 controlled attack / evasion scenarios
+R-NOISE-CLEAN-1 clean foreground validation
 ```
 
-No learning training, production suppression claim, or attack-like incident aggregation should proceed before the benchmark/miss-risk design is explicit.
+No learning training, production suppression claim, or attack-like incident aggregation should proceed before these clean prerequisites are explicit. R-LEARN-0 and R-POISON-0 remain important, but they should consume the clean contract rather than inherit provisional R-NOISE-1 artifacts as labels.
