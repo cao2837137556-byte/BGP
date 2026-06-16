@@ -61,13 +61,31 @@ external_evidence:
     metadata: data/evidence/rpki/vrp_2024-04-16.metadata.json
     aligned_to_run_date: true
     record_count: 530187
+    clean_baseline_sidecar:
+      status: built_r_rpki_clean_0
+      event_sidecar: outputs/r_rpki_clean_0/s2a_baseline_v01_pilot_6h_april16/rpki_event_sidecar.parquet
+      candidate_sidecar: outputs/r_rpki_clean_0/s2a_baseline_v01_pilot_6h_april16/rpki_candidate_sidecar.parquet
+      event_rows: 3431103
+      candidate_rows: 3431103
+      candidate_sidecar_join_rate: 1.0
+      unique_prefix_origin_checked: 351104
+      rpki_status_distribution:
+        valid: 1860464
+        unknown: 1413696
+        missing: 149491
+        invalid_length: 4854
+        invalid_asn: 2598
+      rpki_evidence_state_distribution:
+        aligned_medium: 1867916
+        aligned_weak: 1413696
+        unavailable: 149491
     allowed_use:
       - origin authorization evidence
       - protective evidence feature
     forbidden_claims:
-      - RPKI invalid is attack truth
-      - RPKI valid is benign
-      - RPKI unknown is normal
+      - Do not claim RPKI invalid is attack truth
+      - Do not claim RPKI valid is benign
+      - Do not claim RPKI unknown is normal
   caida_asrel_2024_04_01:
     path: data/evidence/as_relationships/as_rel_2024-04-01.parquet
     metadata: data/evidence/as_relationships/as_rel_2024-04-01.metadata.json
@@ -174,6 +192,7 @@ forbidden_in_new_decisions:
   - unavailable evidence as safe or normal
 
 next_dependency_order:
+  - R-RPKI-CLEAN-0 aligned RPKI sidecar
   - R-ASREL-CLEAN-0 aligned AS-rel sidecar
   - R-COMM-CLEAN-0 community/NO_EXPORT sidecar or propagation
   - R-LABEL-0 multi-attack benchmark and label protocol

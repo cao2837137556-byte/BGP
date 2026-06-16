@@ -58,7 +58,7 @@ Attack families that must remain visible:
 | Paper target | low-FP multi-attack judgment under poisonable/incomplete monitors | R-RESET-1 / R-CLEAN-0 | active | Not ordinary detector, not legacy ranking |
 | Candidate-first raw incident aggregation | stopped as mainline | R-AGG-2 / R-AGG-3 / R-EVID-0 | high | Useful stop-loss evidence only |
 | R-NOISE-1 foreground smoke | provisional smoke only | R-NOISE-1 / R-CLEAN-0 | medium | Not recall proof, not benign proof |
-| RPKI evidence | usable as aligned origin evidence | R-2B-P0b / R-CLEAN-0 | high | `2024-04-16`; invalid is not attack; valid is not benign |
+| RPKI evidence | clean sidecar built | R-RPKI-CLEAN-0 | high | `2024-04-16`; event/candidate-ready; invalid is not attack; valid is not benign |
 | CAIDA AS-rel evidence | clean 2024 sidecar built | R-ASREL-CLEAN-0 | high | `2024-04-01`; event join rate `1.0`; old 2017 `rel_*` remains forbidden |
 | Old Stage 1 `rel_*` fields | forbidden in new decisions | R-CONSIST-1 / R-CLEAN-0 | high | Likely `2017-07-01` CAIDA-derived |
 | Raw communities / NO_EXPORT | clean sidecar built | R-COMM-CLEAN-0 | high | Candidate/event-ready with provenance; positive hits usable as evidence, absence remains caveated |
@@ -82,6 +82,10 @@ Allowed now:
 
 Allowed through clean sidecar:
 
+- RPKI / VRP `2024-04-16` origin evidence through `outputs/r_rpki_clean_0/s2a_baseline_v01_pilot_6h_april16/rpki_event_sidecar.parquet` and `rpki_candidate_sidecar.parquet`.
+  - candidate sidecar join rate: `1.0`;
+  - status counts: `valid=1860464`, `unknown=1413696`, `missing=149491`, `invalid_length=4854`, `invalid_asn=2598`;
+  - `valid` is not benign; `invalid_*` is not attack truth; `unknown` is not normal.
 - CAIDA AS-rel `2024-04-01` path diagnostics through `outputs/r_asrel_clean_0/s2a_baseline_v01_pilot_6h_april16/asrel_2024_event_sidecar.parquet`.
 - raw communities / NO_EXPORT through `outputs/r_comm_clean_0/s2a_baseline_v01_pilot_6h_april16/community_event_sidecar.parquet` and `community_candidate_sidecar.parquet`.
   - source mode: raw counterpart of event source files;
@@ -149,6 +153,7 @@ Forbidden scope:
 
 ```text
 R-CLEAN-0
+  -> R-RPKI-CLEAN-0 [done]
   -> R-ASREL-CLEAN-0 [done]
   -> R-COMM-CLEAN-0 [done]
   -> R-LABEL-0 [next]
@@ -165,7 +170,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 
 | Phase | Purpose | Current Verdict | Status | Key Artifact |
 |---|---|---|---|---|
-| R-2B-P0b | build aligned RPKI cache | usable aligned origin evidence | active fact | `data/evidence/rpki/vrp_2024-04-16.parquet` |
+| R-2B-P0b | build aligned RPKI cache | usable aligned origin evidence cache | active fact | `data/evidence/rpki/vrp_2024-04-16.parquet` |
+| R-RPKI-CLEAN-0 | build clean RPKI event/candidate sidecar | baseline 6h RPKI sidecar built | completed | `project_docs/R_RPKI_CLEAN_0_EVENT_RPKI_SIDECAR.md` |
 | R-2C-P0b/P1/P2 | build and test 2024 AS-rel evidence | useful prototype, but new decisions need sidecar | active fact | `data/evidence/as_relationships/as_rel_2024-04-01.parquet` |
 | R-2D-0 | audit communities / NO_EXPORT availability | raw available, not candidate-ready | active blocker | `project_docs/R2D0_COMMUNITIES_FIELD_AVAILABILITY_AUDIT.md` |
 | R-CONSIST-1 | audit Stage 1 AS-rel provenance | old Stage 1 likely 2017 AS-rel | active blocker | `project_docs/R_CONSIST1_STAGE1_ASREL_PROVENANCE_AUDIT.md` |
