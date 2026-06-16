@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-06-15
+Last updated: 2026-06-16
 
 Status: active authoritative mainline state.
 
@@ -61,7 +61,7 @@ Attack families that must remain visible:
 | RPKI evidence | usable as aligned origin evidence | R-2B-P0b / R-CLEAN-0 | high | `2024-04-16`; invalid is not attack; valid is not benign |
 | CAIDA AS-rel evidence | clean 2024 sidecar built | R-ASREL-CLEAN-0 | high | `2024-04-01`; event join rate `1.0`; old 2017 `rel_*` remains forbidden |
 | Old Stage 1 `rel_*` fields | forbidden in new decisions | R-CONSIST-1 / R-CLEAN-0 | high | Likely `2017-07-01` CAIDA-derived |
-| Raw communities / NO_EXPORT | available at raw layer only | R-2D-0 / R-CLEAN-0 | high | Not candidate/event-ready; absence is not safe |
+| Raw communities / NO_EXPORT | clean sidecar built | R-COMM-CLEAN-0 | high | Candidate/event-ready with provenance; positive hits usable as evidence, absence remains caveated |
 | Legacy final/high/needs/low | audit reference only | R-AGG-ENTRY-0 / R-CLEAN-0 | high | Not truth, not labels, not hard guards |
 | P1/P2/P3 | audit reference only | R-CLEAN-0 | high | Not truth, not labels |
 | Learning | blocked from training | R-CLEAN-0 | high | Design may happen later, training waits for clean sidecars + labels |
@@ -83,10 +83,12 @@ Allowed now:
 Allowed through clean sidecar:
 
 - CAIDA AS-rel `2024-04-01` path diagnostics through `outputs/r_asrel_clean_0/s2a_baseline_v01_pilot_6h_april16/asrel_2024_event_sidecar.parquet`.
-
-Allowed only after sidecar / propagation:
-
-- communities / NO_EXPORT through raw-to-event/candidate sidecar or propagation.
+- raw communities / NO_EXPORT through `outputs/r_comm_clean_0/s2a_baseline_v01_pilot_6h_april16/community_event_sidecar.parquet` and `community_candidate_sidecar.parquet`.
+  - source mode: raw counterpart of event source files;
+  - event raw-match rate: `0.9999997085`;
+  - exact record-count match rate: `0.9970056276`;
+  - `NO_EXPORT` event hits: `1045`;
+  - absence or unavailable states are not safe/benign evidence.
 
 Audit reference only:
 
@@ -108,37 +110,38 @@ Forbidden in new decision logic:
 
 ## 5. Current Blockers
 
-1. Communities / NO_EXPORT are not candidate-ready.
-   - Raw data has communities and NO_EXPORT rows.
-   - Event/candidate/incident layers do not currently retain join-ready community evidence.
-
-2. Benchmark / label protocol is missing.
+1. Benchmark / label protocol is missing.
    - No recall, false-negative, or poisoning robustness claim is allowed before this exists.
 
-3. Controlled attack / evasion samples are missing.
+2. Controlled attack / evasion samples are missing.
    - The 6h clean window cannot prove attack recall.
+
+3. Community sidecar has a small join-quality caveat.
+   - `partial_record_count_match=10273`;
+   - `raw_join_unavailable=1`;
+   - these rows must not be used for absence claims without extra QA.
 
 ## 6. Next Single Recommended Action
 
 ```text
-R-COMM-CLEAN-0:
-Build a raw-to-event/candidate communities / NO_EXPORT sidecar or propagation design.
+R-LABEL-0:
+Define the multi-attack benchmark / label protocol before foreground validation or learning.
 ```
 
 Allowed scope:
 
-- read raw update community fields;
-- read event/candidate keys;
-- design or build a sidecar that makes community availability explicit;
-- preserve parse status and provenance;
-- keep NO_EXPORT present / absent / unavailable separate.
+- define attack families and allowed labels;
+- define clean-window background/OOD semantics;
+- define controlled attack / evasion requirements;
+- define what can and cannot be claimed from the 6h data;
+- specify how clean sidecars are used as evidence, not truth.
 
 Forbidden scope:
 
 - do not modify old seven-layer pipeline;
 - do not use legacy final/high/needs/low as truth or guard;
 - do not train learning;
-- do not claim NO_EXPORT attack;
+- do not claim NO_EXPORT attack or route-leak truth;
 - do not run production suppression;
 - do not treat R-NOISE-1 as final.
 
@@ -147,8 +150,8 @@ Forbidden scope:
 ```text
 R-CLEAN-0
   -> R-ASREL-CLEAN-0 [done]
-  -> R-COMM-CLEAN-0 [next]
-  -> R-LABEL-0
+  -> R-COMM-CLEAN-0 [done]
+  -> R-LABEL-0 [next]
   -> R-ATTACK-0
   -> R-NOISE-CLEAN-1
   -> R-LEARN-0
@@ -172,7 +175,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
 | R-ASREL-CLEAN-0 | build clean AS-rel sidecar | 2024 sidecar built; old-vs-2024 drift high | completed | `project_docs/R_ASREL_CLEAN_0_2024_ASREL_SIDECAR.md` |
-| R-COMM-CLEAN-0 | build communities / NO_EXPORT sidecar or propagation design | next step | pending | new phase doc |
+| R-COMM-CLEAN-0 | build communities / NO_EXPORT sidecar | candidate/event-ready sidecar built; absence caveated | completed | `project_docs/R_COMM_CLEAN_0_COMMUNITY_NOEXPORT_SIDECAR.md` |
+| R-LABEL-0 | define multi-attack benchmark / label protocol | next step | pending | new phase doc |
 
 Older phase documents remain available as archive, but this table is the active navigation surface.
 

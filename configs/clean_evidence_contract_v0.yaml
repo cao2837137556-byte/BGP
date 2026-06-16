@@ -1,7 +1,7 @@
 schema_version: clean_evidence_contract_v0
 phase: R-CLEAN-0
 status: active_contract
-last_updated: 2026-06-15
+last_updated: 2026-06-16
 
 paper_goal: >
   Low-false-positive multi-attack BGP judgment under incomplete,
@@ -117,6 +117,30 @@ sidecar_required:
       retained_layers:
         - raw_updates
       incident_join_ready: false
+    clean_baseline_sidecar:
+      status: built_r_comm_clean_0
+      event_sidecar: outputs/r_comm_clean_0/s2a_baseline_v01_pilot_6h_april16/community_event_sidecar.parquet
+      candidate_sidecar: outputs/r_comm_clean_0/s2a_baseline_v01_pilot_6h_april16/community_candidate_sidecar.parquet
+      source_mode: raw_counterpart
+      source_files_processed: 144
+      event_rows: 3431103
+      candidate_rows: 3431103
+      candidate_sidecar_join_rate: 1.0
+      event_raw_match_rate: 0.9999997085
+      exact_record_count_match_rate: 0.9970056276
+      community_evidence_state_distribution:
+        present_parsed: 2350715
+        present_unparsed: 930897
+        observed_no_community_tokens: 149490
+        raw_join_unavailable: 1
+      well_known_event_counts:
+        no_export: 1045
+        no_advertise: 988
+        no_export_subconfed: 0
+        nopeer: 780
+      caveat:
+        - partial_record_count_match rows cannot support absence claims without extra QA
+        - raw_join_unavailable is unavailable evidence, not benign evidence
     required_fields:
       - event_id_or_join_key
       - has_no_export
