@@ -1,0 +1,299 @@
+schema_version: multi_attack_benchmark_protocol_v0
+phase: R-LABEL-0
+status: active_protocol
+last_updated: 2026-06-17
+
+paper_goal: >
+  Low-false-positive multi-attack BGP judgment under incomplete,
+  evasive, and poisonable public BGP monitors.
+
+truth_boundary:
+  evidence_is_not_truth:
+    - RPKI invalid is not attack truth
+    - RPKI valid is not benign truth
+    - AS-rel diagnostic is not route leak truth
+    - NO_EXPORT present is not attack truth
+    - NO_EXPORT absent is not safe
+    - low visibility is not confirmed stealth or NO_EXPORT
+    - legacy high/needs/low and final labels are not truth
+  allowed_truth_sources:
+    - controlled injection metadata
+    - controlled experiment logs
+    - curated historical incident registry
+    - public operator-confirmed incident reports
+    - independently documented public incident timelines
+  forbidden_truth_sources:
+    - rpki_status
+    - asrel_path_diagnostic
+    - no_export_present
+    - low_visibility
+    - legacy_final_alert_label
+    - legacy_high_needs_low
+    - p1_p2_p3
+    - foreground_policy_output
+    - model_output
+
+benchmark_tracks:
+  reference_background:
+    track_id: A
+    default_run_id: s2a_baseline_v01_pilot_6h_april16
+    date: "2024-04-16"
+    allowed_claims:
+      - background pressure reference
+      - foreground load estimate
+      - operational compression estimate
+    forbidden_claims:
+      - confirmed benign truth
+      - attack recall
+      - poisoning/evasion recall
+  controlled_injection:
+    track_id: B
+    official_injection_level: raw_update_before_event_construction
+    smoke_injection_level: candidate_level_diagnostic_only
+    allowed_claims:
+      - controlled attack retention
+      - family retention under specified scenarios
+    forbidden_claims:
+      - real-world generality without historical replay
+      - paper-grade result from candidate-level injection only
+  historical_replay:
+    track_id: C
+    requirement: original_time_window_with_date_aligned_evidence
+    forbidden_operations:
+      - paste historical incident records into 2024-04-16 baseline
+  paired_poisoning_evasion:
+    track_id: D
+    requirement: compare adversarial variant against same clean base scenario
+    required_metrics:
+      - clean_attack_recall
+      - poisoned_attack_recall
+      - recall_drop_under_poisoning
+      - evasion_success_rate
+      - foreground_load_change
+      - gray_zone_shift
+
+base_attack_families:
+  origin_hijack:
+    subtypes:
+      - forged_origin
+      - unauthorized_origin
+      - subprefix_hijack
+    minimum_label_source:
+      - controlled injection metadata
+      - verified historical report
+    legacy_semantic_mapping:
+      - forged_origin_like
+  route_leak:
+    subtypes:
+      - provider_customer_leak
+      - peer_leak
+      - valley_like_propagation
+    minimum_label_source:
+      - controlled AS-path construction
+      - verified historical report
+    legacy_semantic_mapping:
+      - route_leak_like
+  path_manipulation:
+    subtypes:
+      - suspicious_path_change
+      - crafted_path_pattern
+      - abnormal_path_length
+    minimum_label_source:
+      - controlled path template
+      - verified historical report
+    legacy_semantic_mapping:
+      - path_manipulation_like
+  stealth_propagation:
+    subtypes:
+      - low_visibility
+      - monitor_evasion
+      - no_export_assisted_visibility_limit
+      - collector_asymmetry
+    minimum_label_source:
+      - controlled visibility/community manipulation
+      - verified historical report
+    legacy_semantic_mapping:
+      - stealth_visibility_like
+
+adversarial_variants:
+  allowed_values:
+    - none
+    - history_poisoning
+    - visibility_evasion
+    - no_export_evasion
+    - collector_asymmetry_evasion
+    - combined_poisoning_evasion
+  role: variant_axis_not_base_family
+
+label_layers:
+  scenario:
+    required_fields:
+      - scenario_id
+      - benchmark_track
+      - primary_family
+      - attack_subtype
+      - adversarial_variant
+      - victim_prefix
+      - legitimate_origin_as
+      - attacker_as
+      - start_time
+      - end_time
+      - label_source
+      - label_confidence
+      - evidence_snapshot_requirements
+      - split_group_id
+      - notes
+  raw_record:
+    required_for:
+      - controlled_injection
+    required_fields:
+      - raw_record_id
+      - scenario_id
+      - is_injected
+      - injection_role
+      - attack_phase
+      - raw_label_source
+    attack_phase_values:
+      - pre_attack
+      - pre_poison
+      - attack
+      - evasion
+      - withdrawal
+      - recovery
+      - background_context
+  event:
+    derivation: derived_from_raw_membership_only
+    required_fields:
+      - event_id
+      - scenario_id_set
+      - contains_attack_member
+      - attack_member_count
+      - attack_member_share
+      - family_set
+      - variant_set
+      - is_mixed_event
+      - event_label_confidence
+      - label_derivation_method
+  candidate:
+    derivation: derived_from_event_membership_only
+    required_fields:
+      - event_id
+      - candidate_contains_attack
+      - source_attack_event_ids
+      - candidate_attack_family_set
+      - candidate_attack_variant_set
+      - candidate_generation_recall_eligible
+      - candidate_label_confidence
+  foreground_outcome:
+    role: policy_outcome_not_truth
+    required_fields:
+      - foreground_policy_id
+      - foreground_assignment
+      - attack_retained
+      - attack_suppressed
+      - attack_gray_retained
+      - suppression_reason
+      - guardrail_violation
+    allowed_assignments:
+      - foreground_retained
+      - gray_zone_retained
+      - operational_background_suppressed
+
+evidence_features:
+  allowed_groups:
+    - rpki_vrp_2024_04_16_sidecar
+    - caida_asrel_2024_04_01_sidecar
+    - community_noexport_sidecar
+    - native_event_candidate_routing_fields
+    - candidate_reasons_as_weak_context
+  boundary_statement: >
+    Label source defines benchmark truth. Evidence features support decision,
+    explanation, ablation, and learning after labels are fixed.
+
+foreground_validation_metrics:
+  required:
+    - background_suppression_rate
+    - attack_retention_rate
+    - family_retention_rate
+    - suppressed_attack_count
+    - gray_attack_rate
+    - candidate_generation_recall
+    - foreground_load
+    - compression_ratio
+    - raw_to_event_attack_retention
+    - event_to_candidate_attack_retention
+    - candidate_to_foreground_attack_retention
+  smoke_stop_loss:
+    suppressed_attack_count: 0
+
+split_guardrails:
+  forbidden:
+    - random_row_split
+  split_by:
+    - scenario_id
+    - victim_prefix
+    - legitimate_origin_as
+    - attacker_as
+    - time_window
+    - historical_incident_id
+    - injection_template_id
+    - adversarial_variant
+  no_leakage_rules:
+    - same controlled scenario cannot appear in both train and test
+    - near-duplicate injected rows cannot be split across train and test
+    - same historical incident cannot be split across train and test
+    - paired clean and poisoned variants must be intentionally split and reported
+
+controlled_injection_requirements:
+  record_fields:
+    - source_background_window
+    - raw_update_generation_method
+    - expected_collector_visibility
+    - expected_rpki_relation
+    - expected_asrel_assumptions
+    - expected_community_behavior
+    - expected_pipeline_path
+    - exact_attack_onset
+    - exact_attack_end
+
+historical_replay_requirements:
+  record_fields:
+    - incident_source
+    - incident_time_window
+    - victim_prefix
+    - legitimate_origin_as
+    - attacker_or_leaker_as
+    - raw_collection_plan
+    - date_aligned_rpki_evidence
+    - date_near_asrel_evidence
+    - community_availability_audit
+    - uncertainty_notes
+
+paired_poisoning_evasion_requirements:
+  record_fields:
+    - base_scenario_id
+    - variant_scenario_id
+    - adversarial_variant
+    - manipulated_feature_family
+    - expected_failure_mode
+    - poisoning_budget
+    - visibility_budget
+    - expected_recall_drop_direction
+
+stop_loss_rules:
+  - benchmark labels missing for controlled attack scenarios
+  - any attack family lacks at least one controlled smoke scenario
+  - historical replay uses misaligned evidence snapshots without caveat
+  - candidate-level injection promoted as paper-grade main result
+  - foreground smoke suppresses any labeled attack in initial conservative policy
+  - poisoning/evasion evaluated without paired clean baseline
+  - labels derived from RPKI/AS-rel/NO_EXPORT/legacy final outputs
+
+next_sequence:
+  - R-ATTACK-0A controlled origin hijack / forged-origin raw-level injection smoke
+  - R-ATTACK-0B route leak / path manipulation / stealth generator design
+  - R-ATTACK-QA-0 injection realism and evidence consistency audit
+  - R-NOISE-CLEAN-1 attack-retention foreground validation with labels
+  - R-HIST-0 curated historical incident replay protocol and first replay
+  - R-POISON-0 paired poisoning/evasion benchmark design
+  - R-LEARN-0 multi-attack judgment learning design after retention proof

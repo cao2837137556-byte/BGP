@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-06-16
+Last updated: 2026-06-17
 
 Status: active authoritative mainline state.
 
@@ -66,6 +66,7 @@ Attack families that must remain visible:
 | P1/P2/P3 | audit reference only | R-CLEAN-0 | high | Not truth, not labels |
 | Learning | blocked from training | R-CLEAN-0 | high | Design may happen later, training waits for clean sidecars + labels |
 | Poisoning/evasion robustness | core goal, not yet proven | R-RESET-1 / R-CLEAN-0 | active blocker | Needs benchmark / controlled scenarios |
+| Multi-attack benchmark / label protocol | protocol fixed | R-LABEL-0 | high | Controlled injection, historical replay, and paired poisoning/evasion are separate tracks |
 
 ## 4. Active Data / Evidence Contract
 
@@ -114,8 +115,9 @@ Forbidden in new decision logic:
 
 ## 5. Current Blockers
 
-1. Benchmark / label protocol is missing.
-   - No recall, false-negative, or poisoning robustness claim is allowed before this exists.
+1. Labeled controlled attack / evasion scenarios are missing.
+   - The benchmark / label protocol is now fixed by R-LABEL-0.
+   - No recall, false-negative, or poisoning robustness claim is allowed until labeled scenarios are generated and validated under this protocol.
 
 2. Controlled attack / evasion samples are missing.
    - The 6h clean window cannot prove attack recall.
@@ -128,17 +130,16 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-LABEL-0:
-Define the multi-attack benchmark / label protocol before foreground validation or learning.
+R-ATTACK-0A:
+Build the first controlled origin-hijack / forged-origin raw-level injection smoke under the R-LABEL-0 protocol.
 ```
 
 Allowed scope:
 
-- define attack families and allowed labels;
-- define clean-window background/OOD semantics;
-- define controlled attack / evasion requirements;
-- define what can and cannot be claimed from the 6h data;
-- specify how clean sidecars are used as evidence, not truth.
+- design and generate a small controlled raw-level origin-hijack smoke scenario;
+- preserve scenario-level, raw-record-level, event-level, and candidate-level label provenance;
+- use the clean 6h baseline as reference background only;
+- evaluate whether the attack survives raw-to-event and event-to-candidate construction.
 
 Forbidden scope:
 
@@ -147,7 +148,8 @@ Forbidden scope:
 - do not train learning;
 - do not claim NO_EXPORT attack or route-leak truth;
 - do not run production suppression;
-- do not treat R-NOISE-1 as final.
+- do not treat R-NOISE-1 as final;
+- do not promote candidate-level injection smoke to paper-grade result.
 
 ## 7. Active Experiment Order
 
@@ -156,9 +158,13 @@ R-CLEAN-0
   -> R-RPKI-CLEAN-0 [done]
   -> R-ASREL-CLEAN-0 [done]
   -> R-COMM-CLEAN-0 [done]
-  -> R-LABEL-0 [next]
-  -> R-ATTACK-0
+  -> R-LABEL-0 [done]
+  -> R-ATTACK-0A [next]
+  -> R-ATTACK-0B
+  -> R-ATTACK-QA-0
   -> R-NOISE-CLEAN-1
+  -> R-HIST-0
+  -> R-POISON-0
   -> R-LEARN-0
   -> R-LEARN-1
   -> R-INC-0
@@ -182,7 +188,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
 | R-ASREL-CLEAN-0 | build clean AS-rel sidecar | 2024 sidecar built; old-vs-2024 drift high | completed | `project_docs/R_ASREL_CLEAN_0_2024_ASREL_SIDECAR.md` |
 | R-COMM-CLEAN-0 | build communities / NO_EXPORT sidecar | candidate/event-ready sidecar built; absence caveated | completed | `project_docs/R_COMM_CLEAN_0_COMMUNITY_NOEXPORT_SIDECAR.md` |
-| R-LABEL-0 | define multi-attack benchmark / label protocol | next step | pending | new phase doc |
+| R-LABEL-0 | define multi-attack benchmark / label protocol | controlled / historical / poisoning tracks separated; labels isolated from evidence | completed | `project_docs/R_LABEL_0_MULTI_ATTACK_BENCHMARK_PROTOCOL.md` |
+| R-ATTACK-0A | first controlled origin-hijack / forged-origin raw-level injection smoke | next step | pending | new phase doc |
 
 Older phase documents remain available as archive, but this table is the active navigation surface.
 

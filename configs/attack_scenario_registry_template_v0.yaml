@@ -1,0 +1,201 @@
+schema_version: attack_scenario_registry_template_v0
+phase: R-LABEL-0
+status: template
+last_updated: 2026-06-17
+
+description: >
+  Template for controlled injection and historical replay scenarios. This file is
+  a schema-like template, not a real scenario registry and not an experiment output.
+
+scenario_record:
+  scenario_id:
+    type: string
+    required: true
+    description: Stable scenario identifier.
+  benchmark_track:
+    type: enum
+    required: true
+    allowed:
+      - reference_background
+      - controlled_injection
+      - historical_replay
+      - paired_poisoning_evasion
+  primary_family:
+    type: enum
+    required: true
+    allowed:
+      - origin_hijack
+      - route_leak
+      - path_manipulation
+      - stealth_propagation
+  attack_subtype:
+    type: string
+    required: true
+  adversarial_variant:
+    type: enum
+    required: true
+    allowed:
+      - none
+      - history_poisoning
+      - visibility_evasion
+      - no_export_evasion
+      - collector_asymmetry_evasion
+      - combined_poisoning_evasion
+  base_scenario_id:
+    type: string_or_null
+    required: false
+    description: Required for paired poisoning/evasion variants.
+  victim_prefix:
+    type: string
+    required: true
+  legitimate_origin_as:
+    type: integer_or_null
+    required: false
+  attacker_as:
+    type: integer_or_null
+    required: false
+  start_time:
+    type: timestamp
+    required: true
+  end_time:
+    type: timestamp
+    required: true
+  label_source:
+    type: enum
+    required: true
+    allowed:
+      - controlled_injection_metadata
+      - controlled_experiment_log
+      - curated_historical_registry
+      - operator_confirmed_report
+      - independently_documented_timeline
+  label_confidence:
+    type: enum
+    required: true
+    allowed:
+      - exact
+      - high
+      - medium
+      - low
+  evidence_snapshot_requirements:
+    type: object
+    required: true
+    fields:
+      rpki_snapshot_date:
+        type: date_or_null
+      asrel_snapshot_date:
+        type: date_or_null
+      community_source_window:
+        type: string_or_null
+      collector_scope:
+        type: string_or_null
+  split_group_id:
+    type: string
+    required: true
+    description: Unit that must not be split across train/dev/test leakage boundaries.
+  injection_template_id:
+    type: string_or_null
+    required: false
+  expected_collector_visibility:
+    type: string_or_null
+    required: false
+  expected_failure_mode:
+    type: string_or_null
+    required: false
+  notes:
+    type: string
+    required: false
+
+raw_record_label_record:
+  raw_record_id:
+    type: string
+    required: true
+  scenario_id:
+    type: string
+    required: true
+  is_injected:
+    type: boolean
+    required: true
+  injection_role:
+    type: enum
+    required: true
+    allowed:
+      - attack_announcement
+      - poisoning_announcement
+      - withdrawal
+      - background_context
+  attack_phase:
+    type: enum
+    required: true
+    allowed:
+      - pre_attack
+      - pre_poison
+      - attack
+      - evasion
+      - withdrawal
+      - recovery
+      - background_context
+  raw_label_source:
+    type: string
+    required: true
+
+event_label_record:
+  event_id:
+    type: string
+    required: true
+  scenario_id_set:
+    type: list_string
+    required: true
+  contains_attack_member:
+    type: boolean
+    required: true
+  attack_member_count:
+    type: integer
+    required: true
+  attack_member_share:
+    type: float
+    required: true
+  family_set:
+    type: list_string
+    required: true
+  variant_set:
+    type: list_string
+    required: true
+  is_mixed_event:
+    type: boolean
+    required: true
+  event_label_confidence:
+    type: enum
+    required: true
+    allowed:
+      - exact
+      - high
+      - medium
+      - low
+candidate_label_record:
+  event_id:
+    type: string
+    required: true
+  candidate_contains_attack:
+    type: boolean
+    required: true
+  source_attack_event_ids:
+    type: list_string
+    required: true
+  candidate_attack_family_set:
+    type: list_string
+    required: true
+  candidate_attack_variant_set:
+    type: list_string
+    required: true
+  candidate_generation_recall_eligible:
+    type: boolean
+    required: true
+  candidate_label_confidence:
+    type: enum
+    required: true
+    allowed:
+      - exact
+      - high
+      - medium
+      - low

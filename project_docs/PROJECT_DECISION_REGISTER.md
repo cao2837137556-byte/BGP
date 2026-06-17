@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-06-15
+Last updated: 2026-06-17
 
 Status: active project-level research decision register.
 
@@ -763,3 +763,29 @@ Consequence:
 - README is a navigation pointer only.
 - HANDOFF / EXPERIMENT_MAINLINE / CCFA / LEARNING / VERIFIER remain useful historical or topical references, but are not authoritative if they conflict with `MAINLINE_STATE.md`.
 - If future work needs to revive or revise an archived document, that must be an explicit task, not a default side effect of every experiment.
+
+## R-LABEL-0 Multi-Attack Benchmark / Label Protocol Decision
+
+Status: active.
+
+Decision:
+
+- Fix the benchmark and label protocol before any attack generation, foreground validation, or learning.
+- Keep `reference_background`, `controlled_injection`, `historical_replay`, and `paired_poisoning_evasion` as separate benchmark tracks.
+- Use controlled injection metadata and curated historical reports as label sources.
+- Use RPKI, AS-rel, communities / NO_EXPORT, low visibility, candidate reasons, and legacy workflow labels only as evidence or audit references, never as truth.
+
+Rationale:
+
+- The 6h clean window can characterize background pressure, but it cannot prove attack recall or benign truth by itself.
+- Controlled injection provides exact labels and per-family coverage.
+- Historical replay provides external realism in original time windows with date-aligned evidence.
+- Poisoning/evasion must be evaluated as paired adversarial variants against the same clean base scenario.
+
+Consequence:
+
+- Paper-grade attack experiments should inject at raw-update level before event/candidate construction.
+- Candidate-level injection is allowed only as a diagnostic smoke.
+- Foreground policies are judged as high-recall retention / compression stages, not final detectors.
+- The first smoke stop-loss is strict: `suppressed_attack_count` must be `0`.
+- Learning remains blocked until labeled scenarios prove raw-to-event, event-to-candidate, and candidate-to-foreground retention.

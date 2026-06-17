@@ -1,7 +1,7 @@
 schema_version: clean_evidence_contract_v0
 phase: R-CLEAN-0
 status: active_contract
-last_updated: 2026-06-16
+last_updated: 2026-06-17
 
 paper_goal: >
   Low-false-positive multi-attack BGP judgment under incomplete,
@@ -201,3 +201,30 @@ next_dependency_order:
   - R-LEARN-0 multi-attack judgment layer design
   - R-LEARN-1 minimal training/replay experiment
   - R-INC-0 attack-like incident aggregation
+
+benchmark_protocol:
+  status: built_r_label_0
+  protocol_doc: project_docs/R_LABEL_0_MULTI_ATTACK_BENCHMARK_PROTOCOL.md
+  config: configs/multi_attack_benchmark_protocol_v0.yaml
+  scenario_registry_template: configs/attack_scenario_registry_template_v0.yaml
+  track_separation:
+    - reference_background
+    - controlled_injection
+    - historical_replay
+    - paired_poisoning_evasion
+  official_injection_level: raw_update_before_event_construction
+  candidate_level_injection_role: diagnostic_smoke_only
+  first_foreground_stop_loss:
+    suppressed_attack_count: 0
+  label_source_boundary:
+    allowed:
+      - controlled injection metadata
+      - controlled experiment logs
+      - curated historical incident registry
+      - public operator-confirmed incident reports
+    forbidden:
+      - RPKI status as truth
+      - AS-rel diagnostic as truth
+      - NO_EXPORT presence as truth
+      - legacy final/high/needs/low as truth
+      - model output as truth
