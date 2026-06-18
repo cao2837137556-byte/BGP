@@ -1,0 +1,364 @@
+schema_version: multi_attack_benchmark_protocol_v1
+phase: R-LABEL-1
+status: frozen_for_r_attack_0a
+last_updated: 2026-06-18
+supersedes:
+  - configs/multi_attack_benchmark_protocol_v0.yaml
+  - configs/attack_scenario_registry_template_v0.yaml
+
+paper_goal: >
+  Low-false-positive multi-attack BGP judgment under incomplete,
+  evasive, and poisonable public BGP monitors.
+
+truth_boundary:
+  reference_background_semantics: reference_not_confirmed_benign
+  allowed_truth_sources:
+    - controlled_injection_metadata
+    - controlled_experiment_log
+    - curated_historical_incident_registry
+    - operator_confirmed_report
+    - independently_documented_public_timeline
+  forbidden_truth_sources:
+    - rpki_status
+    - asrel_path_diagnostic
+    - no_export_present_or_absent
+    - low_visibility
+    - candidate_flag
+    - legacy_final_alert_label
+    - legacy_high_needs_low
+    - p1_p2_p3
+    - foreground_policy_output
+    - model_output
+  evidence_is_not_truth:
+    - RPKI invalid is not attack truth
+    - RPKI valid is not benign truth
+    - AS-rel diagnostic is not route leak truth
+    - NO_EXPORT present is not attack truth
+    - NO_EXPORT absent is not safe
+    - low visibility is not confirmed stealth or NO_EXPORT
+
+benchmark_tracks:
+  reference_background:
+    track_id: A
+    default_run_id: s2a_baseline_v01_pilot_6h_april16
+    date: "2024-04-16"
+    allowed_claims:
+      - background pressure reference
+      - foreground workload estimate
+      - operational compression estimate
+    forbidden_claims:
+      - confirmed benign truth
+      - attack recall
+      - poisoning_or_evasion_recall
+  controlled_injection:
+    track_id: B
+    official_injection_level: raw_update_before_event_construction
+    candidate_level_role: diagnostic_smoke_only
+    truth_source: scenario_registry_and_raw_label_sidecar
+  historical_replay:
+    track_id: C
+    requirement: original_time_window_with_period_correct_evidence
+    evidence_missing_values:
+      - unavailable
+      - not_applicable
+    forbidden_operations:
+      - paste historical incidents into the 2024-04-16 reference window
+      - backfill modern RPKI or AS-rel evidence without justification
+  paired_poisoning_evasion:
+    track_id: D
+    requirement: same_base_scenario_with_held_constant_and_changed_variables
+
+base_attack_families:
+  origin_hijack:
+    subtypes:
+      - exact_prefix_origin_hijack
+      - forged_origin_hijack
+      - subprefix_hijack
+    r_attack_0a_scope:
+      required:
+        - exact_prefix_origin_hijack
+        - forged_origin_hijack
+      optional_after_required_pass:
+        - subprefix_hijack
+  route_leak:
+    r_attack_0a_status: deferred_requires_policy_aware_propagation_contract
+  path_manipulation:
+    r_attack_0a_status: deferred_requires_path_semantics_contract
+  stealth_propagation:
+    r_attack_0a_status: deferred_requires_visibility_contract
+
+adversarial_variant_axis:
+  allowed_values:
+    - clean
+    - detection_data_poisoned
+    - visibility_evasive
+    - noexport_evasive
+    - collector_asymmetry_evasive
+    - combined_poisoning_evasion
+  role: paired_variant_not_base_attack_family
+  concept_separation:
+    as_path_poisoning: routing_path_selection_manipulation
+    detection_data_poisoning: detector_history_or_knowledge_contamination
+
+scenario_phase_contract:
+  ordered_values:
+    - stable_baseline
+    - poisoning_preparation
+    - attack_launch
+    - mitigation_or_counterannounce
+    - recovery
+  required_for_r_attack_0a:
+    - stable_baseline
+    - attack_launch
+    - recovery
+
+raw_attack_role_contract:
+  allowed_values:
+    - background
+    - legitimate_announce
+    - attacker_announce
+    - attacker_withdraw
+    - victim_counterannounce
+    - victim_withdraw
+    - poison_announce
+    - recovery_announce
+    - recovery_withdraw
+
+observability_contract:
+  expected_visibility_classes:
+    - public_visible
+    - partial_public_visible
+    - public_invisible
+    - unavailable
+  r_attack_0a_default: public_visible
+  required_fields:
+    - expected_visibility_class
+    - collector_set_id
+    - expected_public_collectors_seen
+    - expected_public_collectors_not_seen
+    - visibility_expectation_source
+  interpretation_boundary: >
+    Public-invisible attacks are unobservable to a public control-plane-only
+    detector unless another operator-local, BMP, or data-plane signal is added.
+
+mixed_membership_contract:
+  states:
+    - attack_only
+    - mixed
+    - background_only
+    - unavailable
+  required_fields:
+    - total_member_count
+    - attack_member_count
+    - attack_member_share
+    - membership_state
+  truth_boundary: mixed containers inherit member provenance, not attack-only truth
+
+layer_outcome_contract:
+  drop_stage_values:
+    - none
+    - raw_parser
+    - event_builder
+    - candidate_builder
+    - foreground
+    - unavailable
+    - not_applicable
+  foreground_bucket_values:
+    - foreground_high
+    - foreground_gray
+    - operational_background_suppressed
+    - not_reached
+    - unavailable
+  required_fields:
+    - raw_parser_admitted
+    - raw_event_eligible
+    - event_id_set
+    - candidate_event_id_set
+    - drop_stage
+    - drop_reason_code
+    - foreground_bucket
+    - attack_retained
+    - guardrail_violation
+
+label_layers:
+  scenario_truth:
+    source: scenario_registry
+    required_fields:
+      - scenario_id
+      - benchmark_track
+      - primary_family
+      - attack_subtype
+      - adversarial_variant
+      - phase_schedule
+      - victim_prefix_group
+      - victim_prefixes
+      - legitimate_origin_as
+      - attacker_as
+      - label_source
+      - truth_confidence_tier
+      - observability_contract
+      - evidence_snapshot_binding
+      - scenario_split_group
+      - template_id
+  raw_truth:
+    source: separate_raw_label_sidecar
+    required_fields:
+      - raw_record_id
+      - scenario_id
+      - phase_id
+      - attack_role
+      - is_injected
+      - raw_event_eligible
+      - raw_label_source
+    forbidden:
+      - inject truth-only columns into production-like raw parser input
+  event_derived:
+    derivation: raw_membership_join
+    required_fields:
+      - event_id
+      - scenario_id_set
+      - total_member_count
+      - attack_member_count
+      - attack_member_share
+      - event_membership_state
+      - family_set
+      - variant_set
+      - label_derivation_method
+  candidate_derived:
+    derivation: event_membership_join
+    required_fields:
+      - event_id
+      - candidate_flag
+      - candidate_contains_attack
+      - candidate_attack_member_count
+      - candidate_attack_member_share
+      - candidate_membership_state
+      - candidate_attack_family_set
+      - candidate_attack_variant_set
+  foreground_outcome:
+    role: policy_outcome_not_truth
+    required_fields:
+      - foreground_policy_id
+      - foreground_bucket
+      - attack_retained
+      - attack_suppressed
+      - attack_gray_retained
+      - drop_stage
+      - drop_reason_code
+      - guardrail_violation
+
+evidence_snapshot_binding:
+  required_fields:
+    - rpki_snapshot_id
+    - asrel_snapshot_id
+    - collector_set_id
+    - community_extraction_version
+    - evidence_recomputed
+  controlled_injection_requirement:
+    evidence_recomputed: true
+    recompute:
+      - event_and_candidate_ids
+      - rpki_sidecar
+      - asrel_sidecar
+      - community_noexport_sidecar
+      - foreground_outcomes
+  historical_replay_boundary:
+    missing_period_correct_evidence:
+      - unavailable
+      - not_applicable
+
+hard_negative_contract:
+  categories:
+    - legitimate_moas
+    - legitimate_origin_transition
+    - traffic_engineering
+    - as_path_prepending
+    - prefix_deaggregation
+    - normal_community_use
+    - planned_maintenance
+    - link_failure_or_route_churn
+    - operator_typo_or_prepending_mistake
+  truth_boundary: hard_negative_requires_provenance_and_is_not_assumed_benign
+  r_attack_0a_requirement: do_not_claim_low_false_positive_from_attack_only_smoke
+
+split_guardrails:
+  forbidden:
+    - random_row_split
+  required_group_fields:
+    - template_id
+    - scenario_split_group
+    - victim_prefix_group
+    - legitimate_origin_group
+    - attacker_as_group
+    - base_scenario_id
+  historical_required_group_field:
+    - incident_group
+  no_leakage_rules:
+    - same scenario cannot cross incompatible train/dev/test partitions
+    - same template cannot leak into unseen-template test
+    - same victim prefix group cannot leak into unseen-victim test
+    - same attacker group cannot leak into unseen-attacker test
+    - same historical incident cannot be split across train and test
+
+r_attack_0a_realism_requirements:
+  - raw-level syntactically valid update or withdrawal records
+  - same parser and event/candidate path as reference background
+  - explicit stable attack and recovery phases
+  - no truth-only columns in parser input
+  - no single fixed timing duration victim attacker or template fingerprint
+  - public-visible observability contract for first required scenarios
+  - scenario registry is the truth source
+  - all clean evidence sidecars are recomputed for the derived run
+  - unavailable evidence remains unavailable
+
+foreground_validation_metrics:
+  required:
+    - raw_parser_admission_rate
+    - raw_to_event_attack_propagation_recall
+    - event_to_candidate_recall
+    - candidate_to_foreground_retention
+    - overall_scenario_retention
+    - family_wise_retention
+    - suppressed_attack_count
+    - gray_zone_attack_rate
+    - reference_background_suppression_rate
+    - foreground_workload
+    - compression_ratio
+  confidence_interval_resampling_unit: scenario
+
+r_attack_0a_stop_loss:
+  raw_parser_admission_rate: 1.0
+  suppressed_attack_count: 0
+  attack_supporting_provenance_completeness: 1.0
+  evidence_recomputed: true
+  on_failure:
+    - stop_before_learning
+    - report_drop_stage
+    - report_drop_reason_code
+
+paired_variant_contract:
+  required_fields:
+    - base_scenario_id
+    - variant_scenario_id
+    - held_constant
+    - changed_variables
+    - adversarial_variant
+    - poisoning_budget
+    - visibility_budget
+    - expected_failure_mode
+  required_metrics:
+    - clean_attack_recall
+    - adversarial_attack_recall
+    - recall_drop_under_poisoning
+    - retention_drop_under_evasion
+    - evasion_success_rate
+    - foreground_workload_change
+
+next_sequence:
+  - R-ATTACK-0A exact-prefix and forged-origin raw-level injection smoke
+  - R-ATTACK-QA-0 injection realism and evidence recomputation audit
+  - R-NOISE-CLEAN-1 labeled foreground retention validation
+  - R-ATTACK-0B additional family contract design
+  - R-HIST-0 historical replay
+  - R-POISON-0 paired poisoning/evasion benchmark
+  - R-LEARN-0 after retention proof

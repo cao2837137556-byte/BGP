@@ -58,6 +58,7 @@ The following files are still useful, but they are no longer every-round mainten
 - `CLEAN_MAINLINE_EXPERIMENT_PLAN.md`
 - `R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md`
 - phase-specific reports such as `R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md`, `R_RPKI_CLEAN_0_EVENT_RPKI_SIDECAR.md`, `R_ASREL_CLEAN_0_2024_ASREL_SIDECAR.md`, `R_COMM_CLEAN_0_COMMUNITY_NOEXPORT_SIDECAR.md`, `R_CONSIST1_STAGE1_ASREL_PROVENANCE_AUDIT.md`, and `R2D0_COMMUNITIES_FIELD_AVAILABILITY_AUDIT.md`
-- current benchmark protocol: `R_LABEL_0_MULTI_ATTACK_BENCHMARK_PROTOCOL.md`
+- current benchmark protocol: `R_LABEL_1_BENCHMARK_PROTOCOL_V1_FREEZE.md`
+- archived benchmark protocol v0: `R_LABEL_0_MULTI_ATTACK_BENCHMARK_PROTOCOL.md`
 
 If an old document conflicts with `MAINLINE_STATE.md`, trust `MAINLINE_STATE.md` unless a newer decision entry explicitly says otherwise.

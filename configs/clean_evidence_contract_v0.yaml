@@ -1,7 +1,7 @@
 schema_version: clean_evidence_contract_v0
 phase: R-CLEAN-0
 status: active_contract
-last_updated: 2026-06-17
+last_updated: 2026-06-18
 
 paper_goal: >
   Low-false-positive multi-attack BGP judgment under incomplete,
@@ -203,10 +203,14 @@ next_dependency_order:
   - R-INC-0 attack-like incident aggregation
 
 benchmark_protocol:
-  status: built_r_label_0
-  protocol_doc: project_docs/R_LABEL_0_MULTI_ATTACK_BENCHMARK_PROTOCOL.md
-  config: configs/multi_attack_benchmark_protocol_v0.yaml
-  scenario_registry_template: configs/attack_scenario_registry_template_v0.yaml
+  status: frozen_r_label_1_v1
+  protocol_doc: project_docs/R_LABEL_1_BENCHMARK_PROTOCOL_V1_FREEZE.md
+  config: configs/multi_attack_benchmark_protocol_v1.yaml
+  scenario_registry_template: configs/attack_scenario_registry_template_v1.yaml
+  superseded_protocol:
+    protocol_doc: project_docs/R_LABEL_0_MULTI_ATTACK_BENCHMARK_PROTOCOL.md
+    config: configs/multi_attack_benchmark_protocol_v0.yaml
+    scenario_registry_template: configs/attack_scenario_registry_template_v0.yaml
   track_separation:
     - reference_background
     - controlled_injection
@@ -214,8 +218,18 @@ benchmark_protocol:
     - paired_poisoning_evasion
   official_injection_level: raw_update_before_event_construction
   candidate_level_injection_role: diagnostic_smoke_only
+  required_label_contracts:
+    - phase_and_attack_role_provenance
+    - expected_visibility_contract
+    - mixed_event_and_candidate_membership
+    - layer_drop_stage_and_reason
+    - split_and_template_guardrails
+    - versioned_evidence_snapshot_binding
   first_foreground_stop_loss:
     suppressed_attack_count: 0
+    raw_parser_admission_rate: 1.0
+    attack_supporting_provenance_completeness: 1.0
+    evidence_recomputed: true
   label_source_boundary:
     allowed:
       - controlled injection metadata

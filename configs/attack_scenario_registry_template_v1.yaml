@@ -1,0 +1,379 @@
+schema_version: attack_scenario_registry_template_v1
+phase: R-LABEL-1
+status: frozen_template_for_r_attack_0a
+last_updated: 2026-06-18
+
+description: >
+  Schema-like template for controlled injection, historical replay, and paired
+  poisoning/evasion scenarios. This is not a populated scenario registry.
+
+scenario_record:
+  scenario_id:
+    type: string
+    required: true
+  benchmark_track:
+    type: enum
+    required: true
+    allowed:
+      - reference_background
+      - controlled_injection
+      - historical_replay
+      - paired_poisoning_evasion
+  primary_family:
+    type: enum
+    required: true
+    allowed:
+      - origin_hijack
+      - route_leak
+      - path_manipulation
+      - stealth_propagation
+      - hard_negative
+  attack_subtype:
+    type: string
+    required: true
+  adversarial_variant:
+    type: enum
+    required: true
+    allowed:
+      - clean
+      - detection_data_poisoned
+      - visibility_evasive
+      - noexport_evasive
+      - collector_asymmetry_evasive
+      - combined_poisoning_evasion
+  base_scenario_id:
+    type: string_or_null
+    required: false
+    required_when:
+      - benchmark_track_is_paired_poisoning_evasion
+  template_id:
+    type: string
+    required: true
+  scenario_split_group:
+    type: string
+    required: true
+  victim_prefix_group:
+    type: string
+    required: true
+  victim_prefixes:
+    type: list_string
+    required: true
+  legitimate_origin_as:
+    type: integer_or_null
+    required: true
+  legitimate_origin_group:
+    type: string
+    required: true
+  attacker_as:
+    type: integer_or_null
+    required: true
+  attacker_as_group:
+    type: string
+    required: true
+  incident_group:
+    type: string_or_null
+    required: false
+    required_when:
+      - benchmark_track_is_historical_replay
+  source_background_window_id:
+    type: string
+    required: true
+  phase_schedule:
+    type: list_object
+    required: true
+    item_fields:
+      phase_id:
+        type: enum
+        allowed:
+          - stable_baseline
+          - poisoning_preparation
+          - attack_launch
+          - mitigation_or_counterannounce
+          - recovery
+      phase_start:
+        type: timestamp
+      phase_end:
+        type: timestamp
+      enabled:
+        type: boolean
+  label_source:
+    type: enum
+    required: true
+    allowed:
+      - controlled_injection_metadata
+      - controlled_experiment_log
+      - curated_historical_incident_registry
+      - operator_confirmed_report
+      - rir_or_collector_case_study
+      - multi_source_public_reports
+      - single_source_public_report
+  truth_confidence_tier:
+    type: enum
+    required: true
+    allowed:
+      - exact
+      - tier1
+      - tier2
+      - tier3
+  observability_contract:
+    type: object
+    required: true
+    fields:
+      expected_visibility_class:
+        type: enum
+        allowed:
+          - public_visible
+          - partial_public_visible
+          - public_invisible
+          - unavailable
+      collector_set_id:
+        type: string
+      expected_public_collectors_seen:
+        type: list_string
+      expected_public_collectors_not_seen:
+        type: list_string
+      visibility_expectation_source:
+        type: string
+      expected_monitor_count:
+        type: integer_or_null
+      expected_public_observability_ratio:
+        type: float_or_null
+  evidence_snapshot_binding:
+    type: object
+    required: true
+    fields:
+      rpki_snapshot_id:
+        type: string_or_null
+      asrel_snapshot_id:
+        type: string_or_null
+      collector_set_id:
+        type: string
+      community_extraction_version:
+        type: string_or_null
+      evidence_recomputed:
+        type: boolean
+  held_constant:
+    type: object
+    required: false
+    required_when:
+      - benchmark_track_is_paired_poisoning_evasion
+    fields:
+      victim_prefix_group:
+        type: string
+      legitimate_origin_as:
+        type: integer_or_null
+      attacker_as:
+        type: integer_or_null
+      background_window_id:
+        type: string
+      collector_set_id:
+        type: string
+      evidence_snapshot_binding:
+        type: object
+      core_objective:
+        type: string
+  changed_variables:
+    type: object
+    required: false
+    required_when:
+      - benchmark_track_is_paired_poisoning_evasion
+    fields:
+      path_manipulation_mode:
+        type: string
+      prefix_specificity:
+        type: enum
+        allowed:
+          - exact
+          - subprefix
+      poisoning_phase_enabled:
+        type: boolean
+      visibility_constraint:
+        type: enum
+        allowed:
+          - none
+          - partial_public
+          - zero_public
+          - no_export
+      poisoning_budget:
+        type: number_or_null
+      visibility_budget:
+        type: number_or_null
+  interpretation_limits:
+    type: list_string
+    required: true
+  notes:
+    type: string
+    required: false
+
+raw_record_label_record:
+  raw_record_id:
+    type: string
+    required: true
+  scenario_id:
+    type: string
+    required: true
+  phase_id:
+    type: enum
+    required: true
+    allowed:
+      - stable_baseline
+      - poisoning_preparation
+      - attack_launch
+      - mitigation_or_counterannounce
+      - recovery
+  attack_role:
+    type: enum
+    required: true
+    allowed:
+      - background
+      - legitimate_announce
+      - attacker_announce
+      - attacker_withdraw
+      - victim_counterannounce
+      - victim_withdraw
+      - poison_announce
+      - recovery_announce
+      - recovery_withdraw
+  is_injected:
+    type: boolean
+    required: true
+  raw_event_eligible:
+    type: boolean
+    required: true
+  raw_parser_admitted:
+    type: boolean_or_null
+    required: false
+    description: Filled after the derived run is parsed.
+  raw_label_source:
+    type: string
+    required: true
+  event_id_set:
+    type: list_string
+    required: false
+    description: Filled after raw-to-event membership reconstruction.
+
+event_label_record:
+  event_id:
+    type: string
+    required: true
+  scenario_id_set:
+    type: list_string
+    required: true
+  total_member_count:
+    type: integer
+    required: true
+  attack_member_count:
+    type: integer
+    required: true
+  attack_member_share:
+    type: float
+    required: true
+  event_membership_state:
+    type: enum
+    required: true
+    allowed:
+      - attack_only
+      - mixed
+      - background_only
+      - unavailable
+  family_set:
+    type: list_string
+    required: true
+  variant_set:
+    type: list_string
+    required: true
+  label_derivation_method:
+    type: string
+    required: true
+
+candidate_label_record:
+  event_id:
+    type: string
+    required: true
+  candidate_flag:
+    type: boolean
+    required: true
+  candidate_contains_attack:
+    type: boolean
+    required: true
+  candidate_attack_member_count:
+    type: integer
+    required: true
+  candidate_attack_member_share:
+    type: float
+    required: true
+  candidate_membership_state:
+    type: enum
+    required: true
+    allowed:
+      - attack_only
+      - mixed
+      - background_only
+      - unavailable
+  candidate_attack_family_set:
+    type: list_string
+    required: true
+  candidate_attack_variant_set:
+    type: list_string
+    required: true
+
+layer_outcome_record:
+  scenario_id:
+    type: string
+    required: true
+  raw_parser_admitted:
+    type: boolean
+    required: true
+  raw_event_eligible:
+    type: boolean
+    required: true
+  event_id_set:
+    type: list_string
+    required: true
+  candidate_event_id_set:
+    type: list_string
+    required: true
+  drop_stage:
+    type: enum
+    required: true
+    allowed:
+      - none
+      - raw_parser
+      - event_builder
+      - candidate_builder
+      - foreground
+      - unavailable
+      - not_applicable
+  drop_reason_code:
+    type: string
+    required: true
+  foreground_policy_id:
+    type: string_or_null
+    required: true
+  foreground_bucket:
+    type: enum
+    required: true
+    allowed:
+      - foreground_high
+      - foreground_gray
+      - operational_background_suppressed
+      - not_reached
+      - unavailable
+  attack_retained:
+    type: boolean
+    required: true
+  attack_suppressed:
+    type: boolean
+    required: true
+  attack_gray_retained:
+    type: boolean
+    required: true
+  guardrail_violation:
+    type: boolean
+    required: true
+  evidence_recomputed:
+    type: boolean
+    required: true
+  unavailable_signals:
+    type: list_string
+    required: true
