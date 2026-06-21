@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-06-18
+Last updated: 2026-06-21
 
 Status: active authoritative mainline state.
 
@@ -67,6 +67,7 @@ Attack families that must remain visible:
 | Learning | blocked from training | R-CLEAN-0 | high | Design may happen later, training waits for clean sidecars + labels |
 | Poisoning/evasion robustness | core goal, not yet proven | R-RESET-1 / R-CLEAN-0 | active blocker | Needs benchmark / controlled scenarios |
 | Multi-attack benchmark / label protocol | v1 frozen for controlled injection | R-LABEL-0 / R-LABEL-1 | high | Five label layers plus phase, visibility, mixed membership, drop localization, split, and evidence-binding contracts |
+| Controlled origin injection smoke | raw/event/candidate/evidence plumbing passed on 12 rewritten chunks | R-ATTACK-0A | development smoke only | 16 attack records; 4 attack events; candidate retention and three evidence joins all `1.0`; no foreground or full-window claim |
 
 ## 4. Active Data / Evidence Contract
 
@@ -115,9 +116,12 @@ Forbidden in new decision logic:
 
 ## 5. Current Blockers
 
-1. Labeled controlled origin-family scenarios are missing.
-   - The benchmark structure was defined by R-LABEL-0 and frozen as protocol v1 by R-LABEL-1.
-   - No attack-retention or false-negative claim is allowed until R-ATTACK-0A generates and validates these scenarios.
+1. The first labeled origin-family smoke exists, but it is not yet a qualified
+   benchmark result.
+   - R-ATTACK-0A used two documentation-AS scenarios and only the 12 rewritten
+     raw chunks for the accepted smoke.
+   - Full-window replay, scenario-realism QA, clean foreground retention, hard
+     negatives, and broader attack families remain missing.
 
 2. Historical replay and paired poisoning/evasion scenarios are missing.
    - The 6h reference window cannot prove real-world attack recall or poisoning/evasion robustness.
@@ -130,18 +134,19 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-ATTACK-0A:
-Build the first controlled exact-prefix and forged-origin raw-level injection smoke under the R-LABEL-1 protocol v1.
+R-ATTACK-QA-0:
+Qualify the first controlled origin smoke before using it to design or validate
+the clean foreground extractor.
 ```
 
 Allowed scope:
 
-- design and generate a small controlled raw-level origin-hijack smoke scenario;
-- preserve scenario, raw, event, candidate, and foreground-outcome provenance;
-- include stable, attack, and recovery phases;
-- declare expected public visibility and evidence snapshot binding;
-- use the clean 6h baseline as reference background only;
-- evaluate whether the attack survives raw parser, event construction, candidate marking, and foreground extraction.
+- audit whether documentation ASNs create overly easy shortcuts;
+- verify phase, role, visibility, and mixed-membership semantics;
+- verify raw schema and source immutability;
+- verify mechanism-specific RPKI, AS-rel, and community responses;
+- define the qualified full-window execution strategy;
+- state whether scenario templates require repair before clean foreground work.
 
 Forbidden scope:
 
@@ -151,7 +156,8 @@ Forbidden scope:
 - do not claim NO_EXPORT attack or route-leak truth;
 - do not run production suppression;
 - do not treat R-NOISE-1 as final;
-- do not promote candidate-level injection smoke to paper-grade result.
+- do not promote the 12-chunk smoke to paper-grade recall or low-FP evidence;
+- do not enter R-NOISE-CLEAN-1 until attack QA passes.
 
 ## 7. Active Experiment Order
 
@@ -162,8 +168,8 @@ R-CLEAN-0
   -> R-COMM-CLEAN-0 [done]
   -> R-LABEL-0 [done]
   -> R-LABEL-1 [done]
-  -> R-ATTACK-0A [next]
-  -> R-ATTACK-QA-0
+  -> R-ATTACK-0A [done: development smoke]
+  -> R-ATTACK-QA-0 [next]
   -> R-NOISE-CLEAN-1
   -> R-ATTACK-0B
   -> R-HIST-0
@@ -193,7 +199,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-COMM-CLEAN-0 | build communities / NO_EXPORT sidecar | candidate/event-ready sidecar built; absence caveated | completed | `project_docs/R_COMM_CLEAN_0_COMMUNITY_NOEXPORT_SIDECAR.md` |
 | R-LABEL-0 | define multi-attack benchmark / label protocol | controlled / historical / poisoning tracks separated; labels isolated from evidence | completed, superseded by v1 for new experiments | `project_docs/R_LABEL_0_MULTI_ATTACK_BENCHMARK_PROTOCOL.md` |
 | R-LABEL-1 | patch and freeze benchmark protocol v1 | phase, visibility, mixed membership, drop localization, split, and evidence binding fixed | completed | `project_docs/R_LABEL_1_BENCHMARK_PROTOCOL_V1_FREEZE.md` |
-| R-ATTACK-0A | first controlled origin-hijack / forged-origin raw-level injection smoke | next step | pending | new phase doc |
+| R-ATTACK-0A | first controlled exact-prefix / forged-origin raw-level injection smoke | parser/event/candidate/evidence plumbing passed on bounded smoke; no foreground/full-window claim | completed development smoke | `project_docs/R_ATTACK_0A_ORIGIN_INJECTION_SMOKE.md` |
+| R-ATTACK-QA-0 | qualify scenario realism and full-window replay plan | next step | pending | new phase doc |
 
 Older phase documents remain available as archive, but this table is the active navigation surface.
 

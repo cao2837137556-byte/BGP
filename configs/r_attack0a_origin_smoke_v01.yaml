@@ -1,0 +1,100 @@
+{
+  "schema_version": "r_attack0a_origin_smoke_v01",
+  "phase": "R-ATTACK-0A",
+  "status": "controlled_smoke",
+  "source_background_run_id": "s2a_baseline_v01_pilot_6h_april16",
+  "derived_run_id": "s2a_attack0a_origin_smoke_6h_april16_v01",
+  "run_date": "2024-04-16",
+  "event_window_sec": 300,
+  "collector_set_id": "route_views_sg_plus_rrc00_v1",
+  "expected_collectors": [
+    "route-views.sg",
+    "rrc00"
+  ],
+  "evidence_snapshot_binding": {
+    "rpki_snapshot_id": "vrp_2024-04-16",
+    "asrel_snapshot_id": "caida_serial2_2024-04-01",
+    "collector_set_id": "route_views_sg_plus_rrc00_v1",
+    "community_extraction_version": "r_comm_clean_0",
+    "evidence_recomputed": true
+  },
+  "scientific_limits": [
+    "The source 6h window is reference background, not confirmed benign truth.",
+    "Documentation ASNs are synthetic attacker roles and do not implicate real networks.",
+    "This smoke validates parser, event, candidate, provenance, and evidence plumbing.",
+    "This smoke does not establish real-world attack recall or low false-positive performance.",
+    "RPKI, AS-rel, and community states are evidence, not attack or benign truth."
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "r_attack0a_exact_origin_001",
+      "template_id": "exact_origin_public_visible_v1",
+      "scenario_split_group": "origin_smoke_exact_001",
+      "victim_prefix_group": "victim_192_67_68_0_24",
+      "benchmark_track": "controlled_injection",
+      "primary_family": "origin_hijack",
+      "attack_subtype": "exact_prefix_origin_hijack",
+      "adversarial_variant": "clean",
+      "victim_prefix": "192.67.68.0/24",
+      "legitimate_origin_as": 30382,
+      "attacker_as": 64496,
+      "attacker_as_semantics": "RFC5398_documentation_ASN_synthetic_role",
+      "expected_visibility_class": "public_visible",
+      "phase_schedule": {
+        "stable_baseline": {
+          "timestamps": [
+            "2024-04-16T02:20:00Z"
+          ]
+        },
+        "attack_launch": {
+          "timestamps": [
+            "2024-04-16T02:40:00Z",
+            "2024-04-16T02:41:00Z",
+            "2024-04-16T02:42:00Z",
+            "2024-04-16T02:44:00Z"
+          ]
+        },
+        "recovery": {
+          "timestamps": [
+            "2024-04-16T02:55:00Z"
+          ]
+        }
+      }
+    },
+    {
+      "scenario_id": "r_attack0a_forged_origin_001",
+      "template_id": "forged_origin_public_visible_v1",
+      "scenario_split_group": "origin_smoke_forged_001",
+      "victim_prefix_group": "victim_64_7_160_0_19",
+      "benchmark_track": "controlled_injection",
+      "primary_family": "origin_hijack",
+      "attack_subtype": "forged_origin_hijack",
+      "adversarial_variant": "clean",
+      "victim_prefix": "64.7.160.0/19",
+      "legitimate_origin_as": 13549,
+      "attacker_as": 64497,
+      "attacker_as_semantics": "RFC5398_documentation_ASN_synthetic_role",
+      "expected_visibility_class": "public_visible",
+      "phase_schedule": {
+        "stable_baseline": {
+          "timestamps": [
+            "2024-04-16T03:20:00Z"
+          ]
+        },
+        "attack_launch": {
+          "timestamps": [
+            "2024-04-16T03:40:00Z",
+            "2024-04-16T03:41:00Z",
+            "2024-04-16T03:42:00Z",
+            "2024-04-16T03:44:00Z"
+          ]
+        },
+        "recovery": {
+          "timestamps": [
+            "2024-04-16T03:55:00Z"
+          ]
+        }
+      }
+    }
+  ]
+}
