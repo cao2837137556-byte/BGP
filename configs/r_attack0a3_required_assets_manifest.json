@@ -1,0 +1,943 @@
+{
+  "phase": "R-ATTACK-0A-3",
+  "source_run_id": "s2a_baseline_v01_pilot_6h_april16",
+  "run_date": "2024-04-16",
+  "asset_count": 154,
+  "pack_summary": {
+    "background_assets": {
+      "file_count": 150,
+      "total_bytes": 163453086
+    },
+    "evidence_assets": {
+      "file_count": 4,
+      "total_bytes": 177946015
+    }
+  },
+  "container_expected_path": "/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/containers/bgpstream-py-e9a.sif",
+  "assets": [
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-00-00__00-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 496183,
+      "sha256": "c2af2fff79aa18b81b83f9cf160af2b42ac64a9b52fa94aed8025c4614d88fc4"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-05-00__00-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 447365,
+      "sha256": "3c8b3344146303486339ee38a37c036a16772e98c1abe86e3a31208319041919"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-10-00__00-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 452568,
+      "sha256": "e5dda96a76c467510068f1d870158f130aad0da9c9b5a9180499992947c6c2b1"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-15-00__00-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 455839,
+      "sha256": "f2b1f14743bbb0ca8bf59bdbb3b351de99dc24c94bc1c600a63a6d2bb298bdcd"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-20-00__00-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 416191,
+      "sha256": "a7ebc180fece9842ae61a7d36aa8db8d510f3aea531fdbc87fa7312d07e8a45b"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-25-00__00-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 420615,
+      "sha256": "dccb5669ed2f654762092ed3fa84a5653c91e399a069014c0e924db46d7d14c6"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-30-00__00-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 415650,
+      "sha256": "88d58a49c3c199653661b93f8086296ad10b87fa525b33263a0ab4f779290ee4"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-35-00__00-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 441313,
+      "sha256": "d502fcd04fe9c63463a5c35a5602f39acb6eb8472790adc9672646c32a8c1fd1"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-40-00__00-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 391912,
+      "sha256": "48d7b392cd4d0f2456459684268e6b066e042e0688872d81716bf3aabc720810"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-45-00__00-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 407073,
+      "sha256": "ed5f46a67fb3c8a8ba78e3c848f34e47ed34f4a3a802b5b00b251501ddfd9cb5"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-50-00__00-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 432340,
+      "sha256": "dc33a182b421e2f133765e9adc5ccddc0b645d01bd3cf743b680de6d86736cbf"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__00-55-00__01-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 453416,
+      "sha256": "7a4f87dcbbe227eb5362de092f59017a544e497af35cb5da864926860e5c9eae"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-00-00__01-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 514968,
+      "sha256": "31ff991f1d63c2885a0590392e5f5e06d8d118c086208df98961a0cee8b9a63c"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-05-00__01-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 405364,
+      "sha256": "c565c1f6dcf8f3cb51fb5a40f15d2f8ec3de3bc70765ed56d9936593b2bebcaf"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-10-00__01-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 489259,
+      "sha256": "bf8e1770389137a284e365054c8aadd25b40ca8ff96072dcd6751ae01254fe38"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-15-00__01-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 446317,
+      "sha256": "26ed832457ef4100f16250ad06edc545e2b755386474ba34414dd2127bf2c0de"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-20-00__01-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 416478,
+      "sha256": "383ee78287cadafb9bb2aea051dfa4b2bca12690c0b544a20ae17f3010cac08d"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-25-00__01-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 429340,
+      "sha256": "6bcd021588b865ae5e8cc76f450fe0c6ef23fb8d159ea60da53303e4b997d4e2"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-30-00__01-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 472496,
+      "sha256": "cde00c13a4de387039c26c7838bfcf33fcbf83c246d5c3e3f80e1a5330d88760"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-35-00__01-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 380675,
+      "sha256": "c41577bd61898dc3cf95a9e7d9950ede3284c356124b48c25d716ffe5e57eec9"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-40-00__01-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 379270,
+      "sha256": "bcb740c4729a951d267d9eb8a6483e45f5ca76f150e493573e511ce68216ef02"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-45-00__01-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 464613,
+      "sha256": "605b2be65090b7af8c6275e2ef6995b47962772e9c43f785c1c11517fc10063a"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-50-00__01-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 376194,
+      "sha256": "a2ac484f26c87e9cec336f23c530b8c7c5fbfe7eff69fd340bde9d8402c35cda"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__01-55-00__02-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 358279,
+      "sha256": "5b407ce8fcb49cbf84b88f79b0408fcb1322d4caa27d875c75de8c25236b4f73"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-00-00__02-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 480996,
+      "sha256": "5368f60d3c4f28b6b56a73d0a8c122010e4783a22ead520fbece5da57a315dae"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-05-00__02-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 426615,
+      "sha256": "c3fbea001a5d8712759e0e252f46eca05e0eeb3497309f9b9334f60069420919"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-10-00__02-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 439404,
+      "sha256": "3c36d2b08c1be0e9ea22b17f8644b6a7b1a45411e3f77cf72c04d7a71a8027be"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-15-00__02-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 439610,
+      "sha256": "2e5e31ecdc902938a4b10f63179a1efd28e725d139077922bd17610b477cac97"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-20-00__02-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 409797,
+      "sha256": "6abbdab686a649e7d9c847882312145beb98ebb05709d32edec3d0bfd9ece8d8"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-25-00__02-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 421960,
+      "sha256": "e83cd9a3ff6eaa12148bebb4fd90d8ac69a0c711a2828dbf90b992856e1ca0c4"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-30-00__02-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 437027,
+      "sha256": "d34e5b43a7ffa882ab3f703940e8fd3f9ad0793765902d2e834e4a23c7012d55"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-35-00__02-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 409601,
+      "sha256": "57c01168b325fc37012f0a98e5cf3b0603d0ef6765df5a099df823a17f6e8ff1"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-40-00__02-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 489568,
+      "sha256": "006a3a5ee13e574091e8c9475fdaa01dd6773adbb2f465ec199e3691be4d1afe"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-45-00__02-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 399803,
+      "sha256": "ca30ccf22ae76e6972f59c94dc3c885f33b9e090aa25a51612cb96daa99b7358"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-50-00__02-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 414163,
+      "sha256": "d4bccf5e83482ba0708afba2a76c5e6ff635d2828513bad700526b8744ccfe20"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__02-55-00__03-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 392969,
+      "sha256": "bf740a836dae03cec674a2b26ff0ceec5884b8390e88cf630af901d5fa05ab73"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-00-00__03-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 471388,
+      "sha256": "87d2344ebc2a18c2d29829d70800fe7608eea65d07682598ed137a88be672364"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-05-00__03-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 431564,
+      "sha256": "82c34d372f854730843edbf691e13932485aa71ac87dba8127d2c1261dcfa8cc"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-10-00__03-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 468420,
+      "sha256": "d0c72a607b32e9775be4b6e098849428289d8fc988ef27d73da033b386ecf5c6"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-15-00__03-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 570126,
+      "sha256": "9aa5d332a13ab37027de8f9bfeaccf72fdb564d2f09c05d6d02a9e6cdfa06eb8"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-20-00__03-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 499288,
+      "sha256": "afe948eb0fdd413f095a6d4f3326ff9b7061e71571ef00380aaed28d8154ff6f"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-25-00__03-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 431686,
+      "sha256": "3b24e69e3d074e7c7ca8578171e48006ca8d33bd5b32936484f6fde97528d69c"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-30-00__03-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 430667,
+      "sha256": "1920d40dbe2a912da73c3758dd716647ad6ceb1adeb7de45a815e929fa3ba356"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-35-00__03-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 436429,
+      "sha256": "4ccc454e862b925dd119b2aae4db70d9deeb0003510f0e77099857e32c508acb"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-40-00__03-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 457014,
+      "sha256": "3b6dd638e268ab5d9dbae2ed9120cce4ea2b5c3227a0109b0102cf3b624e0ed0"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-45-00__03-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 412633,
+      "sha256": "385870294e488f4418307d00200051948d8391992d50873bba26bd56e7774ad0"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-50-00__03-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 387401,
+      "sha256": "0200451cadfd0a5e59b7765d552340cbd8d7d33c98c1715f15c9674594182798"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__03-55-00__04-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 419393,
+      "sha256": "e851e4932607c863a2d89a0720d995cfa105ad65bca82345f60a0feaa7b1b27c"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-00-00__04-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 456559,
+      "sha256": "ed71a6e89a58409e6481a8de560aea7c50af3c19739daa0591e4720fa697c384"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-05-00__04-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 418350,
+      "sha256": "4f924549bab75ec437f49371ba92b61307effda57c93bf5c0df45219f61bd8cf"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-10-00__04-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 413581,
+      "sha256": "1c680e092286cccbff01f2175f683f3793b6bc3fe17dc161d197626a311aa9f5"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-15-00__04-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 413367,
+      "sha256": "c4742454f5fc5bec16953fa7618a2f0a78c3fd7435c6cad2290d5f537566a541"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-20-00__04-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 399453,
+      "sha256": "adb3db8c95f9fc4b4f5975fd737aa4a788febbdd53c6caceebc3f558c8bbb92e"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-25-00__04-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 398563,
+      "sha256": "404e25a4c6645ec2842b31cfd2914045c93147f71e06423bc05008e7ba046321"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-30-00__04-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 419684,
+      "sha256": "bb8788228b3a87f298fea3ab47a159ed6f4fc4ab90c662bc6b5258bfbe049791"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-35-00__04-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 322554,
+      "sha256": "8a228f95e010d1bf158af7e3521fb0ecf8f1496b2a0fe2f663adf5c15498f335"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-40-00__04-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 428321,
+      "sha256": "bc364673f5b034dff172ffa9ba2de92a9b8d6051f178fd054a7e605ada83c441"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-45-00__04-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 380357,
+      "sha256": "87015f37c5d699d5ae624b41c87b3af9090953161b3bab07e541a7d81c6c9839"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-50-00__04-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 395211,
+      "sha256": "faa36ac08908b4b0f817ac9be8748a1a1abef467c87ec733fefc928bf0ec12da"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__04-55-00__05-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 372620,
+      "sha256": "826275d7036bb9c170ac3ac9fcbc5953ead638043f64e90060179ff46191f56e"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-00-00__05-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 452862,
+      "sha256": "2ae91d5ff385de4abf44a2eca3e2cf8835d7692064d1d66157a370524c4ddde8"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-05-00__05-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 462067,
+      "sha256": "d90b8e42dbe3c685e7c4848621e83654b0d444c0c5dd3fb738f9416b6720fe9d"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-10-00__05-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 427790,
+      "sha256": "2e338fdd6a324e929e6709089079e65eb92fbdd95afd516f62980732d72670bc"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-15-00__05-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 441548,
+      "sha256": "a41e7eb6ba47fa35a232238c0a85ec47819a1921c6fff1a7f551b2317d9a540e"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-20-00__05-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 436480,
+      "sha256": "417211337a0213c7bb732c69d60cf6393998a2ccf301cd11959db1b9cfd3c5f3"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-25-00__05-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 391855,
+      "sha256": "0d0072da366d55c30c17b4bb55219c64ff0b9141bac35c22333cc40acdae08ea"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-30-00__05-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 423275,
+      "sha256": "940b4714ad41f3a13409ff93d6bc932620739b21b8e797b950a0c0a0b86c667e"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-35-00__05-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 383701,
+      "sha256": "328ce89ec1d49e383eec3d8c856b416ca15c7fec9cace62c4286db9ebb064033"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-40-00__05-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 413791,
+      "sha256": "9ae460d633b5bd12965e512d7e08e54fe57c8868c568d7256203ec6715dda53b"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-45-00__05-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 401585,
+      "sha256": "efef27cebc176f07940f5da337e1682aa82a464349fcd8836c7c8481ec1c41b4"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-50-00__05-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 395805,
+      "sha256": "555254cfef54c8186635055e857b93b0d5ef48a0a7a99745ddd61b0b512af9cb"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=route-views.sg/date=2024-04-16/updates__05-55-00__06-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 402916,
+      "sha256": "f6c4e49270c1b4f1839f888128613dffc121a5d36e5e356bd75966f51ade613a"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-00-00__00-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 590836,
+      "sha256": "a3bb8d9b7d8f77d96f8395bf22003554d74ed20da4ad201cc726a67e7850391e"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-05-00__00-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 490392,
+      "sha256": "33407bf5a49114b8c08f4d03b9270ac7b4f1b6b7523ebce3e013bfce8c684476"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-10-00__00-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 543815,
+      "sha256": "3ca6f133dc185c9ca65a55063a3b561c9a2ecc0f21a2ee3e46dafd6ea5866bb4"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-15-00__00-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 478282,
+      "sha256": "fa14569060277b2b85f56ecbe441d222aac98859a4994da350839c4507f4e401"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-20-00__00-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 439874,
+      "sha256": "c09293dc3c91327fcb2df2df7d5c2f1436f3f50e360d008d9fd04139ce732f7c"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-25-00__00-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 426065,
+      "sha256": "f6d81f4a90a513e5d0955c59bc454f416eef31d72fa286e00559224100fc5f81"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-30-00__00-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 445173,
+      "sha256": "83202cf9711c2fd4414c722e9f9929b42f99ca9721067997468e021e2c24a52c"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-35-00__00-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 471042,
+      "sha256": "41c8c6688be2aab7425c44db0c05295ab758ab9d42a64f8fefc0cbf229c128a8"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-40-00__00-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 396954,
+      "sha256": "42af8c872f7a55582f98054c53013d4c6c3b641fbdac46f2f992184972b15eb3"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-45-00__00-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 472226,
+      "sha256": "060977508df89c62258da7c0f3a21f4c98cc1ff77c82dc87ef857b959cd6fed1"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-50-00__00-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 471024,
+      "sha256": "747a1aff53826178e54411def7875b5b843bc1726bdf9eb3a4c0420af4cf4d62"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__00-55-00__01-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 491129,
+      "sha256": "fa117c17efcbb9091f15925e8e80dc07bd05fef0ab82763493783b9ed7ab1961"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-00-00__01-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 560705,
+      "sha256": "b6e4569207025481cebea7310e383ee91d5b05b37508a51b198628dcf234402a"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-05-00__01-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 430133,
+      "sha256": "e1bcce561c2c69ecf6b4bef351f376f7343e903286e2748eb7569eb5f883abde"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-10-00__01-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 432451,
+      "sha256": "c63b12c36812c4c80403aab64e9b4e5051e3aa532483654f9ace048832f42e3b"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-15-00__01-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 272977,
+      "sha256": "d2c71e0b1ab350f30caebb9912dce2a8a93e7fabfc2b007c2550fc0b1988c89b"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-20-00__01-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 465787,
+      "sha256": "7d6d10a84dfe0ef54650411f6a6599d6dfa956c3313b47893cd0f5ec94a3999c"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-25-00__01-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 409916,
+      "sha256": "eba66aef2095cfd822c00807afd1297abc22fceb907995f1e32574a28c052dba"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-30-00__01-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 489256,
+      "sha256": "a67d503321376e5e18aef885925cdfd096c00f441f0b98c425abff7897ef161c"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-35-00__01-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 424408,
+      "sha256": "7684a651df4796d52c1264dde106ae9c1722cf43f1d20150855cbc4d48018a2e"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-40-00__01-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 444634,
+      "sha256": "79b7b434d25e54fb7c8c7f8febf8ab5b814e8fcd862960ceec1c986dc6f58cc1"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-45-00__01-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 469974,
+      "sha256": "ab01f53835c78aa3e275e0698ee16a20f8a0df85051c9da5c9677f07e0a4aeec"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-50-00__01-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 445136,
+      "sha256": "0e4d8816d83c258645c45fcebf608f07c8fe97e6606dc4f45eb13696d934c01c"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__01-55-00__02-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 421698,
+      "sha256": "47a85f87d53e234b263e254e192809ae3ecfc2a14e2c4b3c48e33da2d7d8f082"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-00-00__02-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 489243,
+      "sha256": "e5dace41497abbfe6728658a6b7e24beaf84ff0f223052f9448e2a4038335bda"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-05-00__02-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 463302,
+      "sha256": "878a307e1e0299ce126fd6f0bb8a922878bfc8e20070f2f95e808724b52e9209"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-10-00__02-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 449191,
+      "sha256": "06afc09b728115f067da4148f295643b8fb11c1775725249bcc7ed21d994c818"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-15-00__02-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 416650,
+      "sha256": "e5335c99a01aca6cf4eaf1243146a79c4dca13b0cc0f02f06845cdedad4be8aa"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-20-00__02-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 403999,
+      "sha256": "1f068824035c381d1eb99572d1a29f6802045be7b596d2719e1287ca2393d78e"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-25-00__02-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 415765,
+      "sha256": "8ac7fdd8b93e27e2048ec68d3c5b7dd31b5795e3ac20819ecf2c80a5b2dcb173"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-30-00__02-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 465981,
+      "sha256": "011fbd32c8c7adbe8ffa6768e92260f7bbf609112941b6d4f51d796b33ac4a62"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-35-00__02-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 478576,
+      "sha256": "112a2a1809a578f89366d59e27d220ab7e02cce4bd5f3c8344b6872bc3235e65"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-40-00__02-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 500804,
+      "sha256": "c1d28153d651a30f520f5b2a397a82ae480bfe72293a07c92d44a69256a29386"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-45-00__02-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 454665,
+      "sha256": "ee331d48a823c0e45416a8108933cc0d47d49a9fe8ed8c95924673d9f25eb14d"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-50-00__02-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 428582,
+      "sha256": "854d29b9e4537a674cb90cc5f3108b19a211304f5c14432f51b4bc7ecad02a46"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__02-55-00__03-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 425372,
+      "sha256": "41ab14aec477730d3cc73428164f22623f3086ade7083fb64df7575900076a13"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-00-00__03-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 434367,
+      "sha256": "51699424bc26fc978f9ad488d594575300ad88372d779b8de5c712ac8b433f82"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-05-00__03-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 509300,
+      "sha256": "8c21f8d614c0af63ef0bf9d2e7e7add9b85657ae73c4d085f1e34da5916469bc"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-10-00__03-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 488647,
+      "sha256": "334f2354e2dd7c508721690db6d63a05f2c5d114bf90c67e8be141b38ed38803"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-15-00__03-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 375840,
+      "sha256": "61a2eb19e66337a009bce56cf14a47bd9480dbf51920599226e3614edf1599df"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-20-00__03-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 464809,
+      "sha256": "6820f9cd390ff6038ecbe748c86f8c7c49bb5ac3b97f98f6d964358426349856"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-25-00__03-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 451978,
+      "sha256": "4e2ae9743139d4128ad8147a25e9be4a7ba226eaedf20dd36bffb94aa8c03612"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-30-00__03-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 453222,
+      "sha256": "4c57b5af331003d7bd32a71625954eda992077a0b95e5e21a3a12f55b8660733"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-35-00__03-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 451789,
+      "sha256": "0d1f6b2216c356044357def30f891d813a01f32ed6f4872f21a3291b6fb0efed"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-40-00__03-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 407018,
+      "sha256": "b36990f9f656c884f199e69bf2ad310499dfeac913025ce84db3d107cf8c89f5"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-45-00__03-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 392756,
+      "sha256": "3b7f0c8b4c31931b69b2dd3fbabdb7dba375de954087cc768925810f6585eb0b"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-50-00__03-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 442683,
+      "sha256": "fe82f04511679bded48c30fbc1529c9d56ecb95417997e969f52a4aa02b217d5"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__03-55-00__04-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 441947,
+      "sha256": "913ed541a3e5e279e6c025d67bf34fcd28f8d35074c13312584165484212fc91"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-00-00__04-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 546658,
+      "sha256": "14ee6d3791834bdbe6faf60dd8389a466901194cc0328bb830fc6b6696c2d7b0"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-05-00__04-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 464040,
+      "sha256": "e2ea33162342f70404fddd27a10476d587ed135a50dec66db6e6b563039f077c"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-10-00__04-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 481653,
+      "sha256": "35b93349f0cbf68edaa96b82e7c6e03385fddc1f1f4136ef470520047656b50b"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-15-00__04-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 463775,
+      "sha256": "4e82b78a2d9370b502fc136cb35915bc721de1fbd2082263daf1c4586248f11c"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-20-00__04-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 425703,
+      "sha256": "5020718e62f8878bf0d0a3d73c10c5ee228f9e76fe9279b35fc12cf4939bed3b"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-25-00__04-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 451262,
+      "sha256": "8c6fc78590eb8e08d4d47e04dc3e054c3fd3a8076bb9c39cef3f71fb273f5302"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-30-00__04-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 451820,
+      "sha256": "52d78cb5da99cc0e858beeae8ced0bdc50b759b7b0a2228e871d33a49b756bc2"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-35-00__04-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 446838,
+      "sha256": "4ef882e57ec9d74cb191a976fef6b411a9184f7e99fb583e82b8a220c8aff87b"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-40-00__04-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 419833,
+      "sha256": "b7b2b3bae413672fdb615228665f0437c7e2bede9564ce09cee49598401d5a2e"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-45-00__04-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 467428,
+      "sha256": "1649a408a5652998e3a1a500109f4c49857cb4ae02ee83e919360ef48724b2b3"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-50-00__04-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 508737,
+      "sha256": "1f47c3e03576cae47f9c1b0b03fef1ee90f6546d800e4f9fc028083cd3a469f1"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__04-55-00__05-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 444720,
+      "sha256": "424b0344657ad75d9da5a0c6342d67c8616370d9a0e1631da50fbb6d6bd4e6fd"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-00-00__05-05-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 487265,
+      "sha256": "f2fa1ae94b067665fcba05820b9dbb703b1b3447d9602814fe34c3cd04675f4f"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-05-00__05-10-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 470912,
+      "sha256": "5c6a42674481cf31c3aa330d80925400b6a3ec1350ceb8640922d40606a361c9"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-10-00__05-15-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 443469,
+      "sha256": "9bb8d53933aa3af8cd1f6c63a126b339332623bd94be15d45819a9e278e577bd"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-15-00__05-20-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 299556,
+      "sha256": "7fff540a0b7384bd381747e6ae3721d4b72e221ac8ba2a9fc3afddbea6a99d91"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-20-00__05-25-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 506795,
+      "sha256": "d0bd7a2bfe039eec9a89697637937de8de7dc49d7af4925fd1a82740d06642d1"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-25-00__05-30-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 450562,
+      "sha256": "ca1a6b0480ac7c0263c27f1ad474ab2563fe04abe9a2bedf211f61f04a1ea454"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-30-00__05-35-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 441482,
+      "sha256": "66176524d5bf3d6716868ea36730489f3d585846f7bd651e461cbac881f2f71c"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-35-00__05-40-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 486319,
+      "sha256": "5754cb0de42534e5b75c9916261ed69e2498c6639fbd00a65f39c8c93a265812"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-40-00__05-45-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 427590,
+      "sha256": "6c045ec8243f1b1033be6100ad3d4bd1ede5477ccd6c552dd49b42dd368ac2fd"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-45-00__05-50-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 575358,
+      "sha256": "479a7c2537d2beba600eef82e5a1b79c37ed03b83c220ae5f1372da2b80a8c90"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-50-00__05-55-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 507872,
+      "sha256": "dc7557d2101be603959c1ad7a729aa46009a3a2c72855b2a8d30c79138f16aae"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/collector=rrc00/date=2024-04-16/updates__05-55-00__06-00-00.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 449017,
+      "sha256": "3d16d9f064725c5bd6893c67e4d13363a88da08fae8dcb0ea67cd8a1aa0452ce"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/baseline/baseline_prefix.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 4395405,
+      "sha256": "f421ae46e442d5c2f981a313a0ca83cf17cfc7ae3499fc2afb2af83ef57a8231"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/baseline/baseline_prefix_origin.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 9098705,
+      "sha256": "cbb9049c70a0306644cbc2745ab38ed0f9de4770fa153d017dfb69759acc1058"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/baseline/baseline_path.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 18605952,
+      "sha256": "d5905cb15a13499e01030b46f7d54074085c75747a6e84bba433987e6f783b97"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/baseline/baseline_summary.json",
+      "asset_pack": "background_assets",
+      "size_bytes": 544,
+      "sha256": "cbd5000d42832f0498ac6d5711b8524d2458f990dc219a6aa5b16fbd2f4c98ff"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/events/event_units.parquet",
+      "asset_pack": "background_assets",
+      "size_bytes": 67730967,
+      "sha256": "1f889564a1d10fea36d9c07227fbb888c3a648bec09078b01770260d1f661e7d"
+    },
+    {
+      "path": "data/runs/s2a_baseline_v01_pilot_6h_april16/events/event_units_summary.json",
+      "asset_pack": "background_assets",
+      "size_bytes": 18941,
+      "sha256": "395669d8bc51c2522bdcb0280a8d62be9e46f2cdae7e3a4e8165eb8ae18a2741"
+    },
+    {
+      "path": "data/evidence/rpki/vrp_2024-04-16.parquet",
+      "asset_pack": "evidence_assets",
+      "size_bytes": 68782099,
+      "sha256": "01aabe2e2ac629903dc3c0b26a74d640c29697e547e494ecd62d0a6e0020c7bc"
+    },
+    {
+      "path": "data/evidence/rpki/vrp_2024-04-16.metadata.json",
+      "asset_pack": "evidence_assets",
+      "size_bytes": 5244,
+      "sha256": "f9bc026c9b9379a8cbf15759ed06fbe7648027adc3552fe3fbc37fea1e59ed8a"
+    },
+    {
+      "path": "data/evidence/as_relationships/as_rel_2024-04-01.parquet",
+      "asset_pack": "evidence_assets",
+      "size_bytes": 109156659,
+      "sha256": "1f35ed1921492941664f873576ba3ceb42a0db3dc48fc23874c7d3a65f8a0b69"
+    },
+    {
+      "path": "data/evidence/as_relationships/as_rel_2024-04-01.metadata.json",
+      "asset_pack": "evidence_assets",
+      "size_bytes": 2013,
+      "sha256": "2674904fdd78c654909f51ef3419a138fe8ad313363064bae8cfe74b976b23a6"
+    }
+  ]
+}
