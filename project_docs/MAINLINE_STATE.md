@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-06-21
+Last updated: 2026-06-22
 
 Status: active authoritative mainline state.
 
@@ -69,6 +69,7 @@ Attack families that must remain visible:
 | Multi-attack benchmark / label protocol | v1 frozen for controlled injection | R-LABEL-0 / R-LABEL-1 | high | Five label layers plus phase, visibility, mixed membership, drop localization, split, and evidence-binding contracts |
 | Controlled origin injection smoke | raw/event/candidate/evidence plumbing passed on 12 rewritten chunks | R-ATTACK-0A | development smoke only | 16 attack records; 4 attack events; candidate retention and three evidence joins all `1.0`; no foreground or full-window claim |
 | Controlled origin scenario QA | plumbing smoke qualified; scenario v1 blocked from promotion | R-ATTACK-QA-0 | high | Documentation-AS shortcut, community phase leakage, event/scenario visibility mismatch, insufficient diversity, and no hard negatives |
+| Hardened controlled origin smoke | v2 bounded smoke passed all 16 QA checks | R-ATTACK-0A-2 | high | 4 attack + 4 hard-negative scenarios; attack retention `1.0`; hard-negative candidate rate `0.357143`; ready for full-window replay only |
 
 ## 4. Active Data / Evidence Contract
 
@@ -118,14 +119,14 @@ Forbidden in new decision logic:
 ## 5. Current Blockers
 
 1. The first labeled origin-family smoke exists, but it is not yet a qualified
-   benchmark result.
-   - R-ATTACK-QA-0 qualified its plumbing but blocked scenario v1 from
-     full-window replay, foreground evaluation, and learning.
-   - Documentation ASNs and phase-correlated empty communities create
-     synthetic shortcuts.
-   - Scenario-level public visibility must not be inferred from event-level
-     `collector_count=1`.
-   - Scenario diversity and controlled hard negatives remain missing.
+   full-window benchmark result.
+   - R-ATTACK-0A-2 removed the documentation-AS and empty-community shortcuts.
+   - The bounded v2 smoke passed `16/16` QA checks and is qualified for a full
+     6h replay.
+   - Full-window workload, background pressure, and clean foreground behavior
+     remain unmeasured.
+   - Scenario-level public visibility must still not be inferred from
+     event-level `collector_count=1`.
 
 2. Historical replay and paired poisoning/evasion scenarios are missing.
    - The 6h reference window cannot prove real-world attack recall or poisoning/evasion robustness.
@@ -138,21 +139,19 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-ATTACK-0A-2:
-Harden the controlled origin scenarios and rerun a bounded smoke before any
-full-window replay or clean foreground evaluation.
+R-ATTACK-0A-3:
+Package and execute the qualified full 6h replay before clean foreground
+evaluation.
 ```
 
 Allowed scope:
 
-- replace documentation-AS shortcuts with topology-consistent hypothetical
-  attacker roles without implying real-world wrongdoing;
-- preserve matched community distributions unless communities are the explicit
-  experimental variable;
-- add at least two independent templates per included subtype;
-- add a small controlled hard-negative set;
-- preserve scenario-level visibility separately from event path grouping;
-- repeat raw/event/candidate/evidence QA on a bounded smoke.
+- package the frozen v2 configuration and committed scripts for HPC;
+- rebuild the complete 7.2M-row derived event/candidate artifacts;
+- reuse the immutable clean baseline tables;
+- recompute RPKI, 2024-near AS-rel, and community sidecars;
+- validate attack and hard-negative membership end to end;
+- report full-window workload only, not learning or final detection claims.
 
 Forbidden scope:
 
@@ -164,7 +163,8 @@ Forbidden scope:
 - do not treat R-NOISE-1 as final;
 - do not promote the 12-chunk smoke to paper-grade recall or low-FP evidence;
 - do not run full 6h replay for scenario v1;
-- do not enter R-NOISE-CLEAN-1 until the hardened scenarios pass QA.
+- do not change the v2 scenario contract during full replay;
+- do not enter R-NOISE-CLEAN-1 until complete full-window artifacts pass QA.
 
 ## 7. Active Experiment Order
 
@@ -177,7 +177,8 @@ R-CLEAN-0
   -> R-LABEL-1 [done]
   -> R-ATTACK-0A [done: development smoke]
   -> R-ATTACK-QA-0 [done: stop-loss for scenario v1 promotion]
-  -> R-ATTACK-0A-2 [next: scenario hardening]
+  -> R-ATTACK-0A-2 [done: hardened bounded smoke]
+  -> R-ATTACK-0A-3 [next: qualified full-window replay]
   -> R-NOISE-CLEAN-1
   -> R-ATTACK-0B
   -> R-HIST-0
@@ -209,7 +210,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-LABEL-1 | patch and freeze benchmark protocol v1 | phase, visibility, mixed membership, drop localization, split, and evidence binding fixed | completed | `project_docs/R_LABEL_1_BENCHMARK_PROTOCOL_V1_FREEZE.md` |
 | R-ATTACK-0A | first controlled exact-prefix / forged-origin raw-level injection smoke | parser/event/candidate/evidence plumbing passed on bounded smoke; no foreground/full-window claim | completed development smoke | `project_docs/R_ATTACK_0A_ORIGIN_INJECTION_SMOKE.md` |
 | R-ATTACK-QA-0 | qualify scenario realism and full-window replay plan | plumbing qualified; scenario v1 blocked from promotion by synthetic shortcuts and missing hard negatives | completed | `project_docs/R_ATTACK_QA_0_ORIGIN_SCENARIO_QUALIFICATION.md` |
-| R-ATTACK-0A-2 | repair controlled origin scenarios and repeat bounded smoke | next step | pending | new phase artifact |
+| R-ATTACK-0A-2 | repair controlled origin scenarios and repeat bounded smoke | 16/16 QA passed; attack retention `1.0`; hard-negative candidate rate `0.357143`; no NO_EXPORT scenario | completed | `project_docs/R_ATTACK_0A_2_HARDENED_ORIGIN_SMOKE.md` |
+| R-ATTACK-0A-3 | execute qualified full 6h replay and validate artifacts | next step | pending | HPC run package |
 
 Older phase documents remain available as archive, but this table is the active navigation surface.
 
