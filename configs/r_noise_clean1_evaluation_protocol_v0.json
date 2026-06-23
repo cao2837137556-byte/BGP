@@ -1,0 +1,124 @@
+{
+  "schema_version": "r_noise_clean1_evaluation_protocol_v0",
+  "phase": "R-NOISE-CLEAN-1",
+  "status": "preregistered_not_executed",
+  "purpose": "Evaluate whether a clean foreground policy can reduce reference-background workload without suppressing labeled controlled attacks.",
+  "execution_prerequisites": {
+    "r_attack0a3_full_replay_validated": true,
+    "full_replay_validation_failed_checks": 0,
+    "raw_parser_admission_rate": 1.0,
+    "event_to_candidate_attack_retention": 1.0,
+    "attack_supporting_provenance_completeness": 1.0,
+    "evidence_recomputed": true
+  },
+  "allowed_feature_sources": [
+    "candidate native routing and weak-context fields",
+    "RPKI VRP snapshot 2024-04-16 sidecar",
+    "CAIDA AS-rel snapshot 2024-04-01 sidecar",
+    "raw-derived community sidecar with join status",
+    "time and collector observation fields"
+  ],
+  "forbidden_policy_features": [
+    "scenario_id",
+    "scenario_class",
+    "is_attack_member",
+    "is_hard_negative_member",
+    "attack_role",
+    "attack_subtype",
+    "truth_semantics",
+    "legacy final high needs low labels",
+    "P1 P2 P3",
+    "2017-derived rel_seq rel_unknown_cnt rel_has_unknown"
+  ],
+  "evaluation_populations": {
+    "active_attack": "Rows or events with controlled active attack membership.",
+    "scenario_control": "Injected stable or recovery controls, reported separately from attack truth.",
+    "hard_negative": "Provenance-backed plausible non-attack lookalikes; not confirmed benign.",
+    "reference_background": "Rows with no injected scenario membership; not confirmed benign.",
+    "mixed_membership": "Rows containing both scenario and non-scenario members; excluded from pure background denominators and audited separately."
+  },
+  "assignment_states": {
+    "protected_foreground": "Explicitly protected by the frozen clean foreground policy.",
+    "gray_retained": "Not protected but retained because suppression is not justified.",
+    "operational_background_suppressed": "Counterfactually suppressed from downstream workload; not a benign label."
+  },
+  "downstream_retained_states": [
+    "protected_foreground",
+    "gray_retained"
+  ],
+  "primary_safety_gates": {
+    "suppressed_attack_count": 0,
+    "candidate_to_downstream_attack_retention": 1.0,
+    "overall_scenario_retention": 1.0,
+    "exact_prefix_origin_scenario_retention": 1.0,
+    "forged_origin_scenario_retention": 1.0,
+    "truth_feature_leakage_count": 0,
+    "mixed_membership_in_background_denominator_count": 0
+  },
+  "feasibility_gates": {
+    "minimum_reference_background_suppression_rate": 0.05,
+    "maximum_gray_zone_rate": 0.5,
+    "interpretation": "Engineering feasibility gates only; they are not paper-level low-false-positive claims."
+  },
+  "required_metrics": [
+    "raw_to_event_attack_retention",
+    "event_to_candidate_attack_retention",
+    "candidate_to_protected_attack_rate",
+    "candidate_to_gray_attack_rate",
+    "candidate_to_downstream_attack_retention",
+    "suppressed_attack_count",
+    "overall_scenario_retention",
+    "per_subtype_retention",
+    "reference_background_suppression_rate",
+    "reference_background_foreground_rate",
+    "gray_zone_rate",
+    "foreground_workload",
+    "compression_ratio",
+    "hard_negative_assignment_distribution",
+    "scenario_control_assignment_distribution",
+    "mixed_membership_count"
+  ],
+  "reporting_units": [
+    "raw record",
+    "event",
+    "scenario",
+    "attack subtype"
+  ],
+  "uncertainty_reporting": {
+    "small_scenario_rule": "Report exact numerators and denominators; do not generalize from four attack scenarios.",
+    "confidence_interval_unit": "scenario",
+    "paper_claim_status": "development gate only"
+  },
+  "stop_loss": {
+    "hard_stop_if": [
+      "any active attack is operational_background_suppressed",
+      "truth or scenario metadata enters policy features",
+      "R-ATTACK-0A-3 artifact validation fails",
+      "mixed-membership rows enter the pure reference-background denominator",
+      "evidence snapshots or provenance differ from the frozen full replay"
+    ],
+    "do_not_proceed_if": [
+      "reference background suppression rate is below 0.05",
+      "gray-zone rate exceeds 0.5"
+    ],
+    "on_failure": [
+      "stop before learning",
+      "report the first failing layer and reason",
+      "revise the policy without changing this evaluation denominator",
+      "rerun as a new protocol version"
+    ]
+  },
+  "forbidden_claims": [
+    "reference background is confirmed benign",
+    "hard negatives are confirmed benign",
+    "origin-family smoke proves multi-attack recall",
+    "zero suppressed attacks proves real-world recall",
+    "RPKI invalid is attack truth",
+    "RPKI valid is benign",
+    "AS-rel diagnostic is route-leak truth",
+    "NO_EXPORT present is attack truth",
+    "NO_EXPORT absent is safe",
+    "poisoning or evasion robustness is proven",
+    "learning is ready"
+  ]
+}

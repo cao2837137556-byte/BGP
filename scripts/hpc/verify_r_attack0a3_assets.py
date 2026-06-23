@@ -13,6 +13,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--container", required=True)
     parser.add_argument("--output", default="")
     parser.add_argument("--size-only", action="store_true")
+    parser.add_argument(
+        "--summary-only",
+        action="store_true",
+        help="Print only the concise readiness summary; full details remain in --output.",
+    )
     return parser.parse_args()
 
 
@@ -90,7 +95,21 @@ def main() -> None:
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    print(json.dumps(summary, indent=2))
+    console_summary = {
+        "phase": summary["phase"],
+        "container_exists": summary["container_exists"],
+        "asset_count": summary["asset_count"],
+        "ok_count": summary["ok_count"],
+        "problem_count": summary["problem_count"],
+        "status_counts": summary["status_counts"],
+        "required_upload_packs": summary["required_upload_packs"],
+        "problem_count_by_pack": {
+            pack: len(paths) for pack, paths in missing_by_pack.items()
+        },
+        "ready": summary["ready"],
+        "full_report": str(output),
+    }
+    print(json.dumps(console_summary if args.summary_only else summary, indent=2))
     raise SystemExit(0 if summary["ready"] else 2)
 
 

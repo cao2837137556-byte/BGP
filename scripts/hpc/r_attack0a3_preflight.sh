@@ -13,7 +13,8 @@ python3 "$REPO/scripts/hpc/verify_r_attack0a3_assets.py" \
   --manifest "$MANIFEST" \
   --repo-root "$REPO" \
   --container "$IMG" \
-  --output "$OUTPUT"
+  --output "$OUTPUT" \
+  --summary-only
 
 module purge
 module load apps/apptainer/1.4.5-2

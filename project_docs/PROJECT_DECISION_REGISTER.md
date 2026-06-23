@@ -789,3 +789,34 @@ Consequence:
 - Foreground policies are judged as high-recall retention / compression stages, not final detectors.
 - The first smoke stop-loss is strict: `suppressed_attack_count` must be `0`.
 - Learning remains blocked until labeled scenarios prove raw-to-event, event-to-candidate, and candidate-to-foreground retention.
+
+## R-NOISE-CLEAN-1 Preregistered Evaluation Decision
+
+Status: active.
+
+Decision:
+
+- Freeze foreground evaluation populations, denominators, metrics, and stop-loss
+  rules before inspecting the R-ATTACK-0A-3 full-window result.
+- Require `suppressed_attack_count=0` and keep gray-zone attacks in downstream
+  retained workload.
+- Compute background compression only on rows with no injected scenario
+  membership; mixed-membership rows are audited separately.
+
+Rationale:
+
+- The queued full replay must not be followed by result-dependent threshold or
+  denominator changes.
+- The archived R-NOISE-1 smoke used legacy final references and old `rel_*`
+  context, so it cannot be reused unchanged in the clean mainline.
+- Controlled attack truth, hard-negative lookalikes, scenario controls, and
+  reference background have different semantics and must remain separate.
+
+Consequence:
+
+- R-NOISE-CLEAN-1 cannot execute until R-ATTACK-0A-3 artifact validation passes.
+- Truth metadata is evaluation-only and forbidden from policy features.
+- A safe but operationally useless policy also fails feasibility if reference
+  background suppression is below `5%` or gray-zone rate exceeds `50%`.
+- Passing this gate supports only an origin-family development smoke, not
+  multi-attack, real-world, low-false-positive, or poisoning/evasion claims.

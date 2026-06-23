@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-06-22
+Last updated: 2026-06-23
 
 Status: active authoritative mainline state.
 
@@ -70,6 +70,7 @@ Attack families that must remain visible:
 | Controlled origin injection smoke | raw/event/candidate/evidence plumbing passed on 12 rewritten chunks | R-ATTACK-0A | development smoke only | 16 attack records; 4 attack events; candidate retention and three evidence joins all `1.0`; no foreground or full-window claim |
 | Controlled origin scenario QA | plumbing smoke qualified; scenario v1 blocked from promotion | R-ATTACK-QA-0 | high | Documentation-AS shortcut, community phase leakage, event/scenario visibility mismatch, insufficient diversity, and no hard negatives |
 | Hardened controlled origin smoke | v2 bounded smoke passed all 16 QA checks | R-ATTACK-0A-2 | high | 4 attack + 4 hard-negative scenarios; attack retention `1.0`; hard-negative candidate rate `0.357143`; ready for full-window replay only |
+| Clean foreground evaluation protocol | metrics and stop-loss preregistered; not executed | R-NOISE-CLEAN-1 protocol freeze | high | Full-window QA is a prerequisite; suppressed attack count must be `0`; background denominator excludes mixed/scenario rows |
 
 ## 4. Active Data / Evidence Contract
 
@@ -127,6 +128,9 @@ Forbidden in new decision logic:
      remain unmeasured.
    - Scenario-level public visibility must still not be inferred from
      event-level `collector_count=1`.
+   - The full replay is currently queued on HPC.
+   - R-NOISE-CLEAN-1 evaluation rules are frozen, but execution remains blocked
+     until the full replay validation passes.
 
 2. Historical replay and paired poisoning/evasion scenarios are missing.
    - The 6h reference window cannot prove real-world attack recall or poisoning/evasion robustness.
@@ -140,8 +144,8 @@ Forbidden in new decision logic:
 
 ```text
 R-ATTACK-0A-3:
-Package and execute the qualified full 6h replay before clean foreground
-evaluation.
+Wait for and validate the queued qualified full 6h replay before clean
+foreground evaluation.
 ```
 
 Allowed scope:
@@ -165,6 +169,10 @@ Forbidden scope:
 - do not run full 6h replay for scenario v1;
 - do not change the v2 scenario contract during full replay;
 - do not enter R-NOISE-CLEAN-1 until complete full-window artifacts pass QA.
+- do not change R-NOISE-CLEAN-1 denominators or safety gates after seeing the
+  full-window result.
+- do not reuse the archived R-NOISE-1 implementation unchanged because it
+  references legacy final labels and old `rel_*` fields.
 
 ## 7. Active Experiment Order
 
@@ -178,8 +186,8 @@ R-CLEAN-0
   -> R-ATTACK-0A [done: development smoke]
   -> R-ATTACK-QA-0 [done: stop-loss for scenario v1 promotion]
   -> R-ATTACK-0A-2 [done: hardened bounded smoke]
-  -> R-ATTACK-0A-3 [next: qualified full-window replay]
-  -> R-NOISE-CLEAN-1
+  -> R-ATTACK-0A-3 [queued: qualified full-window replay]
+  -> R-NOISE-CLEAN-1 [evaluation protocol frozen; execution gated]
   -> R-ATTACK-0B
   -> R-HIST-0
   -> R-POISON-0
@@ -211,7 +219,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-ATTACK-0A | first controlled exact-prefix / forged-origin raw-level injection smoke | parser/event/candidate/evidence plumbing passed on bounded smoke; no foreground/full-window claim | completed development smoke | `project_docs/R_ATTACK_0A_ORIGIN_INJECTION_SMOKE.md` |
 | R-ATTACK-QA-0 | qualify scenario realism and full-window replay plan | plumbing qualified; scenario v1 blocked from promotion by synthetic shortcuts and missing hard negatives | completed | `project_docs/R_ATTACK_QA_0_ORIGIN_SCENARIO_QUALIFICATION.md` |
 | R-ATTACK-0A-2 | repair controlled origin scenarios and repeat bounded smoke | 16/16 QA passed; attack retention `1.0`; hard-negative candidate rate `0.357143`; no NO_EXPORT scenario | completed | `project_docs/R_ATTACK_0A_2_HARDENED_ORIGIN_SMOKE.md` |
-| R-ATTACK-0A-3 | execute qualified full 6h replay and validate artifacts | next step | pending | HPC run package |
+| R-ATTACK-0A-3 | execute qualified full 6h replay and validate artifacts | queued on HPC | active | HPC run package |
+| R-NOISE-CLEAN-1 protocol | preregister attack-retention, background-denominator, and stop-loss rules | protocol frozen; no experiment run | completed design | `project_docs/R_NOISE_CLEAN_1_EVALUATION_PROTOCOL.md` |
 
 Older phase documents remain available as archive, but this table is the active navigation surface.
 
