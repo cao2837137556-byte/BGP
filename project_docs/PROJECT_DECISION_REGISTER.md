@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-06-17
+Last updated: 2026-06-24
 
 Status: active project-level research decision register.
 
@@ -814,9 +814,47 @@ Rationale:
 
 Consequence:
 
-- R-NOISE-CLEAN-1 cannot execute until R-ATTACK-0A-3 artifact validation passes.
+- R-NOISE-CLEAN-1 cannot execute until R-ATTACK-0A-3 artifact validation or a
+  documented attack-path qualification decision passes.
 - Truth metadata is evaluation-only and forbidden from policy features.
 - A safe but operationally useless policy also fails feasibility if reference
   background suppression is below `5%` or gray-zone rate exceeds `50%`.
 - Passing this gate supports only an origin-family development smoke, not
   multi-attack, real-world, low-false-positive, or poisoning/evasion claims.
+
+## R-ATTACK-0A-3 Full-Window Qualification Decision
+
+Status: active.
+
+Decision:
+
+- Treat R-ATTACK-0A-3 as qualified for R-NOISE-CLEAN-1 foreground evaluation.
+- Preserve the validation fact that the strict global artifact checker reported
+  `validated=false` because `community_event_join_1` failed by one background
+  row.
+- Do not rerun the full replay solely for the one-row global community caveat.
+
+Rationale:
+
+- The completed full replay produced `3,431,117` event rows and `3,431,117`
+  candidate rows.
+- Candidate attack retention is `1.0`.
+- RPKI, AS-rel, and community evidence joins for injected attack events are all
+  `1.0`.
+- The only failed global check is community raw-match coverage:
+  `3,431,116 / 3,431,117` events have a raw match.
+- The missing community raw match is a background evidence-availability caveat,
+  not an injected attack-path failure.
+- Community absence or unavailable state is already forbidden as safe/benign
+  evidence.
+
+Consequence:
+
+- R-NOISE-CLEAN-1 may proceed on the qualified full replay.
+- The foreground policy must not use community absence or unavailable state as
+  a benign/safe guard.
+- The caveat must be reported in R-NOISE-CLEAN-1 if community evidence is used.
+- This decision does not change R-NOISE-CLEAN-1 denominators, safety gates, or
+  stop-loss thresholds.
+- This decision does not support low false positive, multi-attack recall,
+  poisoning/evasion robustness, or learning claims.

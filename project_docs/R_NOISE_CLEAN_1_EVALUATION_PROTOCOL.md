@@ -33,6 +33,32 @@ following:
 If any prerequisite fails, the next action is artifact repair, not foreground
 evaluation.
 
+### 2026-06-24 Qualification Addendum
+
+R-ATTACK-0A-3 completed after this protocol was frozen. The strict validation
+JSON reports `validated=false` because the global community raw-match check
+misses one background event:
+
+```text
+events_with_raw_match = 3,431,116 / 3,431,117
+event_raw_match_rate = 0.9999997085
+failed_checks = [community_event_join_1]
+```
+
+The controlled attack path is qualified:
+
+- candidate attack retention is `1.0`;
+- RPKI attack evidence join is `1.0`;
+- AS-rel attack evidence join is `1.0`;
+- community attack evidence join is `1.0`;
+- QA passed.
+
+Therefore R-NOISE-CLEAN-1 may execute on the qualified full replay, with the
+community caveat reported explicitly. This addendum does not change evaluation
+denominators, safety gates, feasibility gates, or stop-loss thresholds. The
+foreground policy must not use community absence or unavailable state as a
+benign/safe feature.
+
 ## 3. Why the Old R-NOISE-1 Cannot Be Reused Unchanged
 
 The archived R-NOISE-1 smoke is useful diagnostic history, but its implementation
