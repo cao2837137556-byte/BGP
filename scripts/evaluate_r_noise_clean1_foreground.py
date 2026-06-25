@@ -337,6 +337,10 @@ def load_truth(paths: dict[str, Path], events: pd.DataFrame) -> pd.DataFrame:
     truth = pd.read_parquet(paths["raw_truth"], columns=truth_cols)
     truth["raw_record_id"] = truth["raw_record_id"].astype(str)
     membership = pd.read_csv(paths["raw_event_membership"])
+    # The propagation audit membership file may already carry truth columns.
+    # Keep only join keys here so labels come from the raw truth table exactly
+    # once and pandas does not suffix scenario/family columns during merge.
+    membership = membership[["event_id", "raw_record_id"]].drop_duplicates()
     membership["raw_record_id"] = membership["raw_record_id"].astype(str)
     membership["event_id"] = membership["event_id"].astype(str)
     joined = membership.merge(truth, on="raw_record_id", how="left")
@@ -389,7 +393,7 @@ def attach_truth_for_evaluation(df: pd.DataFrame, truth_labels: pd.DataFrame) ->
         "has_scenario_control",
         "mixed_membership",
     ]:
-        result[column] = result[column].fillna(False).astype(bool)
+        result[column] = bool_series(result, column)
     result["population"] = result["population"].fillna("reference_background")
     result["injected_member_count"] = result["injected_member_count"].fillna(0).astype(int)
     result["attack_member_count"] = result["attack_member_count"].fillna(0).astype(int)
