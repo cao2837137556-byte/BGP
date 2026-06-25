@@ -1,0 +1,96 @@
+{
+  "schema_version": "r_noise_clean1_policy_v0",
+  "phase": "R-NOISE-CLEAN-1",
+  "status": "execution_config",
+  "purpose": "Conservative clean foreground evaluation on the qualified R-ATTACK-0A-3 full-window replay.",
+  "assignment_states": {
+    "protected_foreground": "Retained because a clean weak signal or evidence-protection signal is present.",
+    "gray_retained": "Retained because suppression is not justified by current clean evidence.",
+    "operational_background_suppressed": "Operationally suppressed from downstream workload; not a benign label."
+  },
+  "allowed_policy_features": [
+    "candidate_flag",
+    "candidate_reasons",
+    "matched_rule_count",
+    "collector_count",
+    "RPKI status/evidence state",
+    "2024 AS-rel path diagnostic/evidence state",
+    "community evidence state and well-known community flags"
+  ],
+  "forbidden_policy_features": [
+    "scenario_id",
+    "scenario_class",
+    "is_attack_member",
+    "is_hard_negative_member",
+    "attack_role",
+    "attack_subtype",
+    "truth_semantics",
+    "legacy final/high/needs/low labels",
+    "P1/P2/P3",
+    "2017-derived rel_seq/rel_unknown_cnt/rel_has_unknown"
+  ],
+  "protected_reason_tokens": [
+    "new_origin",
+    "new origin",
+    "origin_change",
+    "prefix_origin",
+    "unseen_path",
+    "path_change",
+    "path_len",
+    "path_length",
+    "valley",
+    "leak",
+    "triplet",
+    "low_visibility",
+    "single_collector",
+    "collector_asymmetry",
+    "community",
+    "no_export"
+  ],
+  "protected_rpki_statuses": [
+    "invalid_asn",
+    "invalid_length"
+  ],
+  "protected_asrel_diagnostics": [
+    "possible_valley_transition"
+  ],
+  "protected_community_flags": [
+    "has_no_export",
+    "has_no_advertise",
+    "has_nopeer"
+  ],
+  "suppression_requirements": {
+    "candidate_flag_must_be_false": true,
+    "matched_rule_count_must_be_zero": true,
+    "candidate_reason_must_be_empty": true,
+    "no_protected_rpki_status": true,
+    "no_protected_asrel_diagnostic": true,
+    "no_well_known_community_flag": true,
+    "community_raw_join_unavailable_is_not_suppressible": true,
+    "asrel_unavailable_is_gray": true
+  },
+  "safety_gates": {
+    "suppressed_attack_count": 0,
+    "candidate_to_downstream_attack_retention": 1.0,
+    "truth_feature_leakage_count": 0,
+    "mixed_membership_in_background_denominator_count": 0
+  },
+  "feasibility_gates": {
+    "minimum_reference_background_suppression_rate": 0.05,
+    "maximum_gray_zone_rate": 0.5
+  },
+  "truth_boundary": "Controlled truth metadata is evaluation-only. It must not enter policy features.",
+  "forbidden_claims": [
+    "suppressed background is benign",
+    "foreground is attack",
+    "hard negatives are confirmed benign",
+    "origin-family smoke proves multi-attack recall",
+    "RPKI invalid is attack truth",
+    "RPKI valid is benign",
+    "AS-rel diagnostic is route-leak truth",
+    "NO_EXPORT present is attack truth",
+    "NO_EXPORT absent is safe",
+    "poisoning/evasion robustness is proven",
+    "learning is ready"
+  ]
+}
