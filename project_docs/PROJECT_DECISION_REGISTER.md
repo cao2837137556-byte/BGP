@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-06-24
+Last updated: 2026-06-29
 
 Status: active project-level research decision register.
 
@@ -902,3 +902,39 @@ raw updates
   useful background compression.
 - If no policy passes, the project repairs semantic evidence / novelty features
   before expanding attack families or training learning.
+
+## R-FOREGROUND-1 Online Foreground Smoke Decision
+
+Status: active.
+
+Decision:
+
+- Promote the R-FOREGROUND-0 `aggressive_recurrence` policy to
+  `online_aggressive_recurrence_v1`.
+- Treat it as the current online foreground smoke policy, not as a final
+  production suppression system.
+- Keep online foreground compression separate from the future offline
+  training/evaluation sample-pool construction.
+
+Rationale:
+
+- R-FOREGROUND-0 showed `aggressive_recurrence` is the best passing policy:
+  attack retention `1.0`, suppressed attacks `0`, background suppression
+  `0.37744629`, and compression ratio `1.606295`.
+- A more aggressive policy (`external_only_aggressive`) compressed more but
+  suppressed controlled attacks, so it is an unsafe upper-bound stress test.
+- The foreground layer should be useful, not merely safe. The current
+  origin-family smoke target is background suppression >= `30%`; after
+  multi-attack expansion the target becomes >= `50%`, with a stretch target of
+  `60%-70%`.
+
+Consequence:
+
+- Hard-negative/control/mixed rows suppressed by the online foreground are not
+  automatically policy failures if active attacks are retained.
+- Those rows must remain available for a later `R-TRAIN-DATA-0` offline
+  training/evaluation pool.
+- Suppressed background is operational pressure reduction, not confirmed
+  benign.
+- The next scientific step after R-FOREGROUND-1 is `R-ATTACK-0B` multi-attack
+  controlled scenario expansion, followed by retesting the foreground target.

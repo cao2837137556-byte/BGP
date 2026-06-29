@@ -1,0 +1,108 @@
+{
+  "schema_version": "r_foreground1_online_policy_v1",
+  "phase": "R-FOREGROUND-1",
+  "status": "online_foreground_smoke_config",
+  "policy_id": "online_aggressive_recurrence_v1",
+  "source_policy": "R-FOREGROUND-0 aggressive_recurrence",
+  "purpose": "Freeze the best passing candidate-free foreground policy as an online foreground smoke policy.",
+  "truth_boundary": "Controlled truth metadata is evaluation-only and must be attached after policy assignment.",
+  "candidate_boundary": "candidate_flag, candidate_reasons, matched_rule_count, and legacy final labels are not policy features.",
+  "online_training_split_boundary": "Online foreground compression and offline training/evaluation sample construction are separate tracks. Hard negatives and controls may be operationally suppressed online, but their labeled rows must remain available for a later offline training/evaluation pool.",
+  "assignment_states": {
+    "protected_foreground": "Retained because clean evidence or semantic novelty indicates downstream risk.",
+    "gray_retained": "Retained because current evidence is insufficient for safe operational suppression.",
+    "operational_background_suppressed": "Suppressed from downstream online workload; not a benign label."
+  },
+  "feature_thresholds": {
+    "low_visibility_collector_count": 1,
+    "short_duration_sec": 300,
+    "rare_prefix_origin_count": 3,
+    "rare_prefix_origin_path_count": 3,
+    "rare_path_signature_count": 3,
+    "stable_prefix_origin_count": 20,
+    "stable_prefix_origin_path_count": 10,
+    "stable_path_signature_count": 20,
+    "common_prefix_origin_count": 5,
+    "common_prefix_origin_path_count": 5
+  },
+  "risk_values": {
+    "rpki_statuses": [
+      "invalid_asn",
+      "invalid_length"
+    ],
+    "asrel_diagnostics": [
+      "possible_valley_transition",
+      "valley_like",
+      "suspect_triplet",
+      "path_relation_violation"
+    ],
+    "community_flags": [
+      "has_no_export",
+      "has_no_advertise",
+      "has_nopeer"
+    ]
+  },
+  "policy_logic": {
+    "protected_foreground": [
+      "external_risk_signal",
+      "rare_prefix_origin_path",
+      "low_visibility AND external_risk_signal"
+    ],
+    "operational_background_suppressed": [
+      "NOT protected_foreground",
+      "NOT evidence_unavailable_for_suppression",
+      "common_nonrare_route"
+    ],
+    "gray_retained": [
+      "all remaining rows"
+    ]
+  },
+  "current_origin_smoke_gates": {
+    "suppressed_attack_count": 0,
+    "attack_retention": 1.0,
+    "truth_feature_leakage_count": 0,
+    "minimum_reference_background_suppression_rate": 0.3,
+    "minimum_compression_ratio": 1.5
+  },
+  "future_multi_attack_targets": {
+    "minimum_reference_background_suppression_rate": 0.5,
+    "stretch_reference_background_suppression_rate": "0.60-0.70",
+    "note": "These targets become binding after route-leak, path-manipulation, stealth, and poisoning/evasion scenarios are added. R-FOREGROUND-1 only validates the current origin-family smoke."
+  },
+  "allowed_policy_features": [
+    "event prefix/origin/path/time/visibility fields",
+    "window recurrence and rarity features derived from event fields",
+    "RPKI status/evidence state",
+    "2024 AS-rel path diagnostic/evidence state",
+    "community evidence state and well-known community flags"
+  ],
+  "forbidden_policy_features": [
+    "candidate_flag",
+    "candidate_reasons",
+    "matched_rule_count",
+    "scenario_id",
+    "scenario_class",
+    "is_attack_member",
+    "is_hard_negative_member",
+    "attack_role",
+    "attack_subtype",
+    "truth_semantics",
+    "legacy final/high/needs/low labels",
+    "P1/P2/P3",
+    "2017-derived rel_seq/rel_unknown_cnt/rel_has_unknown"
+  ],
+  "forbidden_claims": [
+    "suppressed background is benign",
+    "foreground is attack",
+    "hard negatives are confirmed benign",
+    "origin-family smoke proves multi-attack recall",
+    "RPKI invalid is attack truth",
+    "RPKI valid is benign",
+    "AS-rel diagnostic is route-leak truth",
+    "NO_EXPORT present is attack truth",
+    "NO_EXPORT absent is safe",
+    "low visibility means NO_EXPORT",
+    "poisoning/evasion robustness is proven",
+    "learning is ready"
+  ]
+}
