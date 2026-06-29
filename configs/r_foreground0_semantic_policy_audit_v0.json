@@ -1,0 +1,110 @@
+{
+  "schema_version": "r_foreground0_semantic_policy_audit_v0",
+  "phase": "R-FOREGROUND-0",
+  "status": "audit_config",
+  "purpose": "Candidate-free semantic foreground extraction audit on the qualified controlled full-window replay.",
+  "truth_boundary": "Controlled truth metadata is evaluation-only. It must not enter policy features.",
+  "candidate_boundary": "candidate_flag and candidate_reasons are not used by candidate-free foreground policies. Candidate artifacts are historical diagnostics only.",
+  "assignment_states": {
+    "protected_foreground": "Retained because clean evidence or semantic novelty indicates downstream risk.",
+    "gray_retained": "Retained because current evidence is insufficient for safe operational suppression.",
+    "operational_background_suppressed": "Suppressed from downstream workload; not a benign label."
+  },
+  "feature_thresholds": {
+    "low_visibility_collector_count": 1,
+    "short_duration_sec": 300,
+    "rare_prefix_origin_count": 3,
+    "rare_prefix_origin_path_count": 3,
+    "rare_path_signature_count": 3,
+    "stable_prefix_origin_count": 20,
+    "stable_prefix_origin_path_count": 10,
+    "stable_path_signature_count": 20,
+    "common_prefix_origin_count": 5,
+    "common_prefix_origin_path_count": 5
+  },
+  "risk_values": {
+    "rpki_statuses": [
+      "invalid_asn",
+      "invalid_length"
+    ],
+    "asrel_diagnostics": [
+      "possible_valley_transition",
+      "valley_like",
+      "suspect_triplet",
+      "path_relation_violation"
+    ],
+    "community_flags": [
+      "has_no_export",
+      "has_no_advertise",
+      "has_nopeer"
+    ]
+  },
+  "policies": [
+    {
+      "policy_id": "external_only_aggressive",
+      "description": "Protect only explicit clean external evidence risk; suppress the rest except unavailable evidence. This is a stress-test upper bound, not a recommended default."
+    },
+    {
+      "policy_id": "novelty_plus_evidence_balanced",
+      "description": "Protect clean external evidence, rare prefix-origin/path objects, and low visibility only when paired with novelty or evidence."
+    },
+    {
+      "policy_id": "stable_recurrence_suppression",
+      "description": "Suppress only stable recurrent route objects with no clean risk evidence; retain the rest as protected or gray."
+    },
+    {
+      "policy_id": "aggressive_recurrence",
+      "description": "Suppress common non-risk route objects while retaining explicit risk, rare prefix-origin-path, and low-visibility risk combinations."
+    },
+    {
+      "policy_id": "visibility_cautious",
+      "description": "Treat low visibility conservatively, but still suppress stable multi-collector non-risk recurrence."
+    }
+  ],
+  "safety_gates": {
+    "suppressed_attack_count": 0,
+    "attack_retention": 1.0,
+    "truth_feature_leakage_count": 0
+  },
+  "feasibility_gates": {
+    "minimum_reference_background_suppression_rate": 0.2,
+    "minimum_compression_ratio": 1.25,
+    "maximum_gray_zone_rate": 0.5
+  },
+  "allowed_policy_features": [
+    "event prefix/origin/path/time/visibility fields",
+    "window recurrence and rarity features derived from event fields",
+    "RPKI status/evidence state",
+    "2024 AS-rel path diagnostic/evidence state",
+    "community evidence state and well-known community flags"
+  ],
+  "forbidden_policy_features": [
+    "candidate_flag",
+    "candidate_reasons",
+    "matched_rule_count",
+    "scenario_id",
+    "scenario_class",
+    "is_attack_member",
+    "is_hard_negative_member",
+    "attack_role",
+    "attack_subtype",
+    "truth_semantics",
+    "legacy final/high/needs/low labels",
+    "P1/P2/P3",
+    "2017-derived rel_seq/rel_unknown_cnt/rel_has_unknown"
+  ],
+  "forbidden_claims": [
+    "suppressed background is benign",
+    "foreground is attack",
+    "hard negatives are confirmed benign",
+    "origin-family smoke proves multi-attack recall",
+    "RPKI invalid is attack truth",
+    "RPKI valid is benign",
+    "AS-rel diagnostic is route-leak truth",
+    "NO_EXPORT present is attack truth",
+    "NO_EXPORT absent is safe",
+    "low visibility means NO_EXPORT",
+    "poisoning/evasion robustness is proven",
+    "learning is ready"
+  ]
+}

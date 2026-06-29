@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-06-24
+Last updated: 2026-06-29
 
 Status: active authoritative mainline state.
 
@@ -71,7 +71,8 @@ Attack families that must remain visible:
 | Controlled origin scenario QA | plumbing smoke qualified; scenario v1 blocked from promotion | R-ATTACK-QA-0 | high | Documentation-AS shortcut, community phase leakage, event/scenario visibility mismatch, insufficient diversity, and no hard negatives |
 | Hardened controlled origin smoke | v2 bounded smoke passed all 16 QA checks | R-ATTACK-0A-2 | high | 4 attack + 4 hard-negative scenarios; attack retention `1.0`; hard-negative candidate rate `0.357143`; ready for full-window replay only |
 | Controlled origin full-window replay | completed and qualified for clean foreground evaluation with one non-blocking community caveat | R-ATTACK-0A-3 | high | 3,431,117 event/candidate rows; attack retention `1.0`; attack RPKI/AS-rel/community joins `1.0`; global community raw-match misses 1 background row |
-| Clean foreground evaluation protocol | metrics and stop-loss preregistered; not executed | R-NOISE-CLEAN-1 protocol freeze | high | Full-window QA is a prerequisite; suppressed attack count must be `0`; background denominator excludes mixed/scenario rows |
+| Clean foreground evaluation | executed; safety passed but feasibility failed | R-NOISE-CLEAN-1 | high | `suppressed_attack_count=0`, attack retention `1.0`, but background suppression only `0.001263748`; candidate-style blanket protection is too conservative |
+| Candidate-free semantic foreground audit | implementation ready; full run pending | R-FOREGROUND-0 | active | Candidate artifacts are removed from policy features; compare evidence/novelty/recurrence foreground policies with compression gates |
 
 ## 4. Active Data / Evidence Contract
 
@@ -120,20 +121,22 @@ Forbidden in new decision logic:
 
 ## 5. Current Blockers
 
-1. Clean foreground behavior remains unmeasured on the qualified full-window
-   controlled origin replay.
+1. A useful candidate-free foreground compression layer remains unqualified.
    - R-ATTACK-0A-3 completed the full 6h replay on the hardened v2 scenario.
    - It produced `3,431,117` event rows and `3,431,117` candidate rows.
    - Candidate attack retention is `1.0`.
    - RPKI, AS-rel, and community attack evidence joins are each `1.0`.
    - The validation JSON reports `validated=false` only because global
      community raw-match is `3,431,116 / 3,431,117`.
-   - The single missing community raw match is a background artifact caveat,
-     not an injected attack-path failure.
-   - Scenario-level public visibility must still not be inferred from
-     event-level `collector_count=1`.
-   - R-NOISE-CLEAN-1 evaluation rules are frozen and should now be executed
-     against the qualified full replay.
+   - R-NOISE-CLEAN-1 then passed safety but failed feasibility:
+     `suppressed_attack_count=0`, attack retention `1.0`,
+     background suppression `0.001263748`, compression ratio `1.001265`.
+   - The failure shows `candidate_flag` and broad candidate reasons are too
+     conservative as foreground protection signals.
+   - Candidate artifacts are now historical diagnostics / ablation references,
+     not the mainline compression layer.
+   - R-FOREGROUND-0 should run candidate-free semantic foreground policy audit
+     using event fields plus clean RPKI / AS-rel / community sidecars.
 
 2. Historical replay and paired poisoning/evasion scenarios are missing.
    - The 6h reference window cannot prove real-world attack recall or poisoning/evasion robustness.
@@ -149,8 +152,8 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-NOISE-CLEAN-1:
-Run the preregistered clean foreground safety evaluation on the qualified
+R-FOREGROUND-0:
+Run candidate-free semantic foreground policy audit on the qualified
 R-ATTACK-0A-3 full-window replay.
 ```
 
@@ -158,11 +161,12 @@ Allowed scope:
 
 - use the qualified R-ATTACK-0A-3 full-window artifacts;
 - keep truth metadata strictly evaluation-only;
-- compute foreground / gray / operational-background assignment with the
-  frozen R-NOISE-CLEAN-1 denominators;
-- require `suppressed_attack_count = 0`;
-- report exact attack, hard-negative, scenario-control, mixed-membership, and
-  pure reference-background numerators;
+- do not read `candidate_flag`, `candidate_reasons`, or `matched_rule_count`
+  as foreground policy features;
+- compare multiple candidate-free semantic policies based on event fields,
+  recurrence / rarity, RPKI, 2024 AS-rel, and community sidecars;
+- require `suppressed_attack_count = 0` and attack retention `1.0`;
+- require materially useful compression, not merely safety;
 - treat the one-row global community join caveat as missing evidence, not as
   safe/background evidence.
 
@@ -173,12 +177,11 @@ Forbidden scope:
 - do not train learning;
 - do not claim NO_EXPORT attack or route-leak truth;
 - do not run production suppression;
-- do not treat R-NOISE-1 as final;
+- do not treat R-NOISE-1 or R-NOISE-CLEAN-1 as final;
+- do not use candidate as the mainline compression layer;
 - do not promote the 12-chunk smoke to paper-grade recall or low-FP evidence;
 - do not run full 6h replay for scenario v1;
 - do not change the v2 scenario contract during full replay;
-- do not change R-NOISE-CLEAN-1 denominators or safety gates after seeing the
-  full-window result.
 - do not use community absence or unavailable state as a benign/safe feature.
 - do not reuse the archived R-NOISE-1 implementation unchanged because it
   references legacy final labels and old `rel_*` fields.
@@ -196,7 +199,9 @@ R-CLEAN-0
   -> R-ATTACK-QA-0 [done: stop-loss for scenario v1 promotion]
   -> R-ATTACK-0A-2 [done: hardened bounded smoke]
   -> R-ATTACK-0A-3 [done: qualified full-window replay with one community caveat]
-  -> R-NOISE-CLEAN-1 [next: execute frozen clean foreground evaluation]
+  -> R-NOISE-CLEAN-1 [done: safety pass, feasibility fail; too conservative]
+  -> R-FOREGROUND-0 [next: candidate-free semantic foreground audit]
+  -> R-FOREGROUND-1 [pending: promote best passing policy if any]
   -> R-ATTACK-0B
   -> R-HIST-0
   -> R-POISON-0
@@ -218,6 +223,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-CONSIST-1 | audit Stage 1 AS-rel provenance | old Stage 1 likely 2017 AS-rel | active blocker | `project_docs/R_CONSIST1_STAGE1_ASREL_PROVENANCE_AUDIT.md` |
 | R-AGG-2/3 | candidate-first raw incident aggregation | too fragmented / stop-loss evidence | diagnostic only | `project_docs/R_AGG_3_RAW_INCIDENT_QUALITY_AUDIT.md` |
 | R-EVID-0 | lightweight pre-triage after raw incidents | stop-loss; overlap too high | diagnostic only | `project_docs/R_EVID_0_LIGHTWEIGHT_EVIDENCE_PRETRIAGE_DESIGN.md` |
+| R-NOISE-CLEAN-1 | clean foreground policy using candidate context | safe but operationally useless | superseded by R-FOREGROUND-0 | `project_docs/R_NOISE_CLEAN_1_EVALUATION_PROTOCOL.md` |
+| R-FOREGROUND-0 | candidate-free semantic foreground audit | implementation ready; full run pending | active next | `project_docs/R_FOREGROUND_0_CANDIDATE_FREE_SEMANTIC_FOREGROUND_AUDIT.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

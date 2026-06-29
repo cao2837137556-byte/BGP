@@ -858,3 +858,47 @@ Consequence:
   stop-loss thresholds.
 - This decision does not support low false positive, multi-attack recall,
   poisoning/evasion robustness, or learning claims.
+
+## R-FOREGROUND-0 Candidate-Free Foreground Decision
+
+Status: active.
+
+Decision:
+
+- Remove candidate artifacts from the mainline compression layer.
+- Treat `candidate_flag`, `candidate_reasons`, and `matched_rule_count` as
+  historical diagnostics / ablation references only.
+- Design the next compression audit as candidate-free semantic foreground
+  extraction over event rows plus clean evidence sidecars.
+
+Rationale:
+
+- R-ATTACK-0A-3 showed `event rows = candidate rows = 3,431,117`, so candidate
+  did not provide meaningful compression.
+- R-NOISE-CLEAN-1 passed safety but failed feasibility:
+  `suppressed_attack_count=0`, attack retention `1.0`,
+  pure reference-background suppression `0.001263748`, and compression ratio
+  `1.001265`.
+- The failure was caused by an overly conservative policy that treated
+  candidate flags and broad candidate reasons as blanket protection.
+- Frontline systems suggest better foreground criteria: semantic routing
+  changes, clean external evidence, visibility risk, recurrence / rarity, and
+  poisoning-aware history caveats.
+
+Consequence:
+
+- The mainline path is now:
+
+```text
+raw updates
+-> event construction
+-> clean evidence ledger
+-> semantic foreground extraction
+-> learning / deep evidence explanation / incident aggregation
+```
+
+- R-FOREGROUND-0 compares multiple candidate-free policies.
+- A policy must keep controlled attacks unsuppressed and provide materially
+  useful background compression.
+- If no policy passes, the project repairs semantic evidence / novelty features
+  before expanding attack families or training learning.
