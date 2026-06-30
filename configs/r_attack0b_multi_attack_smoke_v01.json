@@ -1,0 +1,303 @@
+{
+  "schema_version": "r_attack0b_multi_attack_smoke_v01",
+  "phase": "R-ATTACK-0B",
+  "status": "multi_attack_controlled_smoke",
+  "source_background_run_id": "s2a_baseline_v01_pilot_6h_april16",
+  "derived_run_id": "s2a_attack0b_multi_attack_smoke_6h_april16_v01",
+  "run_date": "2024-04-16",
+  "event_window_sec": 300,
+  "collector_set_id": "route_views_sg_plus_rrc00_v1",
+  "expected_collectors": [
+    "route-views.sg",
+    "rrc00"
+  ],
+  "asrel_cache": "data/evidence/as_relationships/as_rel_2024-04-01.parquet",
+  "asrel_metadata": "data/evidence/as_relationships/as_rel_2024-04-01.metadata.json",
+  "evidence_snapshot_binding": {
+    "rpki_snapshot_id": "vrp_2024-04-16",
+    "asrel_snapshot_id": "caida_serial2_2024-04-01",
+    "collector_set_id": "route_views_sg_plus_rrc00_v1",
+    "community_extraction_version": "r_comm_clean_0",
+    "evidence_recomputed": true
+  },
+  "scientific_limits": [
+    "The 6h source window is reference background, not confirmed benign truth.",
+    "Observed ASNs are used only as topology-consistent counterfactual roles; no real network is alleged to have attacked.",
+    "Route-leak-like scenarios are controlled path-propagation diagnostics, not confirmed historical route leaks.",
+    "Path-manipulation-like scenarios test path semantic novelty with origin preserved; they are not random AS insertion.",
+    "NO_EXPORT, stealth, and poisoning/evasion are not introduced in this phase.",
+    "Foreground retention is evaluated after materialization; learning is not trained."
+  ],
+  "required_attack_subtypes": [
+    "exact_prefix_origin_hijack",
+    "forged_origin_hijack",
+    "route_leak_like_valley",
+    "path_manipulation_known_transit"
+  ],
+  "role_selection_defaults": {
+    "require_role_observed_in_background": true,
+    "forbid_documentation_asns": true,
+    "forbid_role_already_in_template_path": true,
+    "max_candidates_checked": 5000
+  },
+  "scenarios": [
+    {
+      "scenario_id": "r_attack0b_exact_origin_001",
+      "template_id": "attack0b_exact_origin_tpl_001",
+      "scenario_split_group": "split_attack0b_exact_origin_001",
+      "victim_prefix_group": "victim_192_67_68_0_24",
+      "legitimate_origin_group": "origin_as30382",
+      "attacker_as_group": "counterfactual_role_as16509",
+      "expected_visibility_class": "public_visible",
+      "scenario_class": "attack",
+      "primary_family": "origin_hijack",
+      "attack_subtype": "exact_prefix_origin_hijack",
+      "baseline_template": {
+        "prefix": "192.67.68.0/24",
+        "origin_as": 30382
+      },
+      "active_template": {
+        "prefix": "192.67.68.0/24",
+        "origin_as": 30382
+      },
+      "active_transform": "replace_origin",
+      "required_penultimate_as": 7018,
+      "role_selection": {
+        "mode": "static",
+        "asn": 16509
+      },
+      "required_inserted_edges": [
+        [
+          7018,
+          16509
+        ]
+      ],
+      "expected_rpki_active": "invalid_asn",
+      "expected_asrel_active_one_of": [
+        "all_pairs_known_no_valley_diagnostic",
+        "possible_valley_transition"
+      ]
+    },
+    {
+      "scenario_id": "r_attack0b_forged_origin_001",
+      "template_id": "attack0b_forged_origin_tpl_001",
+      "scenario_split_group": "split_attack0b_forged_origin_001",
+      "victim_prefix_group": "victim_101_100_195_0_24",
+      "legitimate_origin_group": "origin_as58621",
+      "attacker_as_group": "counterfactual_role_as56308",
+      "expected_visibility_class": "public_visible",
+      "scenario_class": "attack",
+      "primary_family": "forged_origin",
+      "attack_subtype": "forged_origin_hijack",
+      "baseline_template": {
+        "prefix": "101.100.195.0/24",
+        "origin_as": 58621
+      },
+      "active_template": {
+        "prefix": "101.100.195.0/24",
+        "origin_as": 58621
+      },
+      "active_transform": "insert_before_origin",
+      "required_penultimate_as": 4657,
+      "role_selection": {
+        "mode": "static",
+        "asn": 56308
+      },
+      "required_inserted_edges": [
+        [
+          4657,
+          56308
+        ],
+        [
+          56308,
+          58621
+        ]
+      ],
+      "expected_rpki_active": "valid",
+      "expected_asrel_active_one_of": [
+        "all_pairs_known_no_valley_diagnostic",
+        "possible_valley_transition"
+      ]
+    },
+    {
+      "scenario_id": "r_attack0b_route_leak_001",
+      "template_id": "attack0b_route_leak_tpl_001",
+      "scenario_split_group": "split_attack0b_route_leak_001",
+      "victim_prefix_group": "victim_186_154_16_0_20",
+      "legitimate_origin_group": "origin_as19429",
+      "attacker_as_group": "dynamic_observed_route_leak_role",
+      "expected_visibility_class": "public_visible",
+      "scenario_class": "attack",
+      "primary_family": "route_leak_like",
+      "attack_subtype": "route_leak_like_valley",
+      "baseline_template": {
+        "prefix": "186.154.16.0/20",
+        "origin_as": 19429
+      },
+      "active_template": {
+        "prefix": "186.154.16.0/20",
+        "origin_as": 19429
+      },
+      "active_transform": "insert_before_origin",
+      "required_penultimate_as": 1299,
+      "role_selection": {
+        "mode": "search_insert_before_origin",
+        "required_asrel_diagnostic": "possible_valley_transition",
+        "prefer_role_observed_in_background": true
+      },
+      "expected_rpki_active": "valid",
+      "expected_asrel_active_one_of": [
+        "possible_valley_transition"
+      ]
+    },
+    {
+      "scenario_id": "r_attack0b_path_manip_001",
+      "template_id": "attack0b_path_manip_tpl_001",
+      "scenario_split_group": "split_attack0b_path_manip_001",
+      "victim_prefix_group": "victim_178_34_90_0_24",
+      "legitimate_origin_group": "origin_as12389",
+      "attacker_as_group": "dynamic_observed_path_role",
+      "expected_visibility_class": "public_visible",
+      "scenario_class": "attack",
+      "primary_family": "path_manipulation_like",
+      "attack_subtype": "path_manipulation_known_transit",
+      "baseline_template": {
+        "prefix": "178.34.90.0/24",
+        "origin_as": 12389
+      },
+      "active_template": {
+        "prefix": "178.34.90.0/24",
+        "origin_as": 12389
+      },
+      "active_transform": "insert_before_origin",
+      "required_penultimate_as": 174,
+      "role_selection": {
+        "mode": "search_insert_before_origin",
+        "required_asrel_diagnostic": "all_pairs_known_no_valley_diagnostic",
+        "prefer_role_observed_in_background": true
+      },
+      "expected_rpki_active": "valid",
+      "expected_asrel_active_one_of": [
+        "all_pairs_known_no_valley_diagnostic"
+      ]
+    },
+    {
+      "scenario_id": "r_attack0b_hn_moas_001",
+      "template_id": "attack0b_hn_moas_tpl_001",
+      "scenario_split_group": "split_attack0b_hn_moas_001",
+      "victim_prefix_group": "victim_138_204_14_0_24",
+      "legitimate_origin_group": "observed_valid_moas_pair_41095_263681",
+      "attacker_as_group": "not_applicable",
+      "expected_visibility_class": "public_visible",
+      "scenario_class": "hard_negative",
+      "primary_family": "hard_negative",
+      "attack_subtype": "observed_valid_moas_transition",
+      "baseline_template": {
+        "prefix": "138.204.14.0/24",
+        "origin_as": 41095
+      },
+      "active_template": {
+        "prefix": "138.204.14.0/24",
+        "origin_as": 263681
+      },
+      "active_transform": "observed_template",
+      "expected_rpki_active": "valid"
+    },
+    {
+      "scenario_id": "r_attack0b_hn_deaggregation_001",
+      "template_id": "attack0b_hn_deaggregation_tpl_001",
+      "scenario_split_group": "split_attack0b_hn_deaggregation_001",
+      "victim_prefix_group": "victim_parent_child_64_7_160",
+      "legitimate_origin_group": "origin_as13549",
+      "attacker_as_group": "not_applicable",
+      "expected_visibility_class": "public_visible",
+      "scenario_class": "hard_negative",
+      "primary_family": "hard_negative",
+      "attack_subtype": "observed_parent_subprefix_deaggregation",
+      "baseline_template": {
+        "prefix": "64.7.160.0/19",
+        "origin_as": 13549
+      },
+      "active_template": {
+        "prefix": "64.7.160.0/23",
+        "origin_as": 13549
+      },
+      "active_transform": "observed_template",
+      "expected_rpki_active": "valid"
+    },
+    {
+      "scenario_id": "r_attack0b_hn_path_001",
+      "template_id": "attack0b_hn_path_tpl_001",
+      "scenario_split_group": "split_attack0b_hn_path_001",
+      "victim_prefix_group": "victim_199_38_133_0_24_hn",
+      "legitimate_origin_group": "origin_as17215",
+      "attacker_as_group": "not_applicable",
+      "expected_visibility_class": "public_visible",
+      "scenario_class": "hard_negative",
+      "primary_family": "hard_negative",
+      "attack_subtype": "observed_traffic_engineering_path_change",
+      "baseline_template": {
+        "prefix": "199.38.133.0/24",
+        "origin_as": 17215
+      },
+      "active_template": {
+        "prefix": "199.38.133.0/24",
+        "origin_as": 17215
+      },
+      "active_transform": "observed_alternate_path",
+      "expected_rpki_active": "unknown"
+    },
+    {
+      "scenario_id": "r_attack0b_hn_community_001",
+      "template_id": "attack0b_hn_community_tpl_001",
+      "scenario_split_group": "split_attack0b_hn_community_001",
+      "victim_prefix_group": "victim_192_67_68_0_24_hn",
+      "legitimate_origin_group": "origin_as30382",
+      "attacker_as_group": "not_applicable",
+      "expected_visibility_class": "public_visible",
+      "scenario_class": "hard_negative",
+      "primary_family": "hard_negative",
+      "attack_subtype": "observed_normal_community_variation",
+      "baseline_template": {
+        "prefix": "192.67.68.0/24",
+        "origin_as": 30382
+      },
+      "active_template": {
+        "prefix": "192.67.68.0/24",
+        "origin_as": 30382
+      },
+      "active_transform": "observed_alternate_community",
+      "expected_rpki_active": "valid"
+    }
+  ],
+  "phase_schedule": {
+    "attack": {
+      "stable_baseline": [
+        "2024-04-16T02:20:00Z"
+      ],
+      "attack_launch": [
+        "2024-04-16T02:40:00Z",
+        "2024-04-16T02:41:00Z",
+        "2024-04-16T02:42:00Z",
+        "2024-04-16T02:44:00Z"
+      ],
+      "recovery": [
+        "2024-04-16T02:55:00Z"
+      ]
+    },
+    "hard_negative": {
+      "stable_baseline": [
+        "2024-04-16T03:20:00Z"
+      ],
+      "attack_launch": [
+        "2024-04-16T03:40:00Z",
+        "2024-04-16T03:41:00Z",
+        "2024-04-16T03:42:00Z",
+        "2024-04-16T03:44:00Z"
+      ],
+      "recovery": [
+        "2024-04-16T03:55:00Z"
+      ]
+    }
+  }
+}

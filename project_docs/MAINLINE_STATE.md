@@ -74,6 +74,7 @@ Attack families that must remain visible:
 | Clean foreground evaluation | executed; safety passed but feasibility failed | R-NOISE-CLEAN-1 | high | `suppressed_attack_count=0`, attack retention `1.0`, but background suppression only `0.001263748`; candidate-style blanket protection is too conservative |
 | Candidate-free semantic foreground audit | completed; `aggressive_recurrence` is the best passing candidate | R-FOREGROUND-0 | high | Attack retention `1.0`, suppressed attacks `0`, background suppression `0.37744629`, compression `1.606295` |
 | Online foreground smoke | implementation ready; full run pending | R-FOREGROUND-1 | active | Freeze `online_aggressive_recurrence_v1`; current origin smoke target >=30% background suppression, future multi-attack target >=50%, stretch 60%-70% |
+| Multi-attack controlled smoke | implementation ready; full run pending | R-ATTACK-0B | active next | Adds exact-origin, forged-origin, route-leak-like, and path-manipulation-like scenarios with realism QA and foreground v1 retention checks |
 
 ## 4. Active Data / Evidence Contract
 
@@ -149,10 +150,22 @@ Forbidden in new decision logic:
    - Future multi-attack gate after attack-family expansion: background
      suppression >= `50%`, with stretch target `60%-70%`.
 
-2. Historical replay and paired poisoning/evasion scenarios are missing.
+2. Multi-attack foreground retention is not yet qualified.
+   - R-FOREGROUND-1 passed on origin-family smoke only.
+   - R-ATTACK-0B must add route-leak-like and path-manipulation-like
+      scenarios, then retest foreground v1.
+   - Route-leak-like must produce `possible_valley_transition`; path-
+     manipulation-like must preserve origin and produce
+     `all_pairs_known_no_valley_diagnostic`.
+   - If foreground v1 suppresses any controlled attack family, repair
+     foreground before learning or poisoning/evasion expansion.
+   - If retention remains `1.0` but compression is below the future multi-
+     attack target, design R-FOREGROUND-2.
+
+3. Historical replay and paired poisoning/evasion scenarios are missing.
    - The 6h reference window cannot prove real-world attack recall or poisoning/evasion robustness.
 
-3. Community sidecar has a small join-quality caveat.
+4. Community sidecar has a small join-quality caveat.
    - `partial_record_count_match=10273`;
    - `raw_join_unavailable=1`;
    - the R-ATTACK-0A-3 derived run also has `raw_join_unavailable=1`;
@@ -163,29 +176,25 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-FOREGROUND-1:
-Freeze `aggressive_recurrence` as `online_aggressive_recurrence_v1` and run
-an online foreground smoke on the qualified R-ATTACK-0A-3 full-window replay.
+R-ATTACK-0B:
+Run a multi-attack controlled smoke with exact-origin, forged-origin,
+route-leak-like, and path-manipulation-like scenarios, then retest
+R-FOREGROUND-1 foreground retention.
 ```
 
 Allowed scope:
 
-- use the qualified R-ATTACK-0A-3 full-window artifacts;
+- use the qualified clean 6h background and existing evidence pipeline;
 - keep truth metadata strictly evaluation-only;
-- do not read `candidate_flag`, `candidate_reasons`, or `matched_rule_count`
-  as foreground policy features;
-- use the R-FOREGROUND-0 best passing policy:
-  `online_aggressive_recurrence_v1`;
-- write full online assignment artifacts for foreground / suppressed / gray
-  rows;
-- require `suppressed_attack_count = 0` and attack retention `1.0`;
-- require current origin-family background suppression >= `30%` and
-  compression ratio >= `1.5`;
-- record the future multi-attack target >= `50%` and stretch `60%-70%`;
+- materialize controlled attacks at raw-update level;
+- use observed ASNs and 2024 AS-rel-constrained inserted edges;
+- require route-leak-like scenarios to produce `possible_valley_transition`;
+- require path-manipulation-like scenarios to preserve origin and produce
+  `all_pairs_known_no_valley_diagnostic`;
+- recompute RPKI / AS-rel / community sidecars for the derived run;
+- run R-FOREGROUND-1 and require `suppressed_attack_count = 0`;
 - keep online foreground compression separate from the later offline
-  training/evaluation sample pool;
-- treat the one-row global community join caveat as missing evidence, not as
-  safe/background evidence.
+  training/evaluation sample pool.
 
 Forbidden scope:
 
@@ -196,8 +205,10 @@ Forbidden scope:
 - do not run production suppression;
 - do not treat R-NOISE-1 or R-NOISE-CLEAN-1 as final;
 - do not use candidate as the mainline compression layer;
+- do not treat candidate retention as a hard mainline gate;
 - do not promote the 12-chunk smoke to paper-grade recall or low-FP evidence;
-- do not run full 6h replay for scenario v1;
+- do not claim route-leak truth from AS-rel diagnostics;
+- do not introduce NO_EXPORT / stealth / poisoning in R-ATTACK-0B;
 - do not change the v2 scenario contract during full replay;
 - do not use community absence or unavailable state as a benign/safe feature.
 - do not reuse the archived R-NOISE-1 implementation unchanged because it
@@ -218,8 +229,8 @@ R-CLEAN-0
   -> R-ATTACK-0A-3 [done: qualified full-window replay with one community caveat]
   -> R-NOISE-CLEAN-1 [done: safety pass, feasibility fail; too conservative]
   -> R-FOREGROUND-0 [done: candidate-free audit; aggressive_recurrence passed]
-  -> R-FOREGROUND-1 [next: online foreground smoke]
-  -> R-ATTACK-0B
+  -> R-FOREGROUND-1 [done: online foreground smoke passed on origin-family full replay]
+  -> R-ATTACK-0B [next: multi-attack controlled smoke]
   -> R-TRAIN-DATA-0
   -> R-HIST-0
   -> R-POISON-0
@@ -243,7 +254,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-EVID-0 | lightweight pre-triage after raw incidents | stop-loss; overlap too high | diagnostic only | `project_docs/R_EVID_0_LIGHTWEIGHT_EVIDENCE_PRETRIAGE_DESIGN.md` |
 | R-NOISE-CLEAN-1 | clean foreground policy using candidate context | safe but operationally useless | superseded by R-FOREGROUND-0 | `project_docs/R_NOISE_CLEAN_1_EVALUATION_PROTOCOL.md` |
 | R-FOREGROUND-0 | candidate-free semantic foreground audit | `aggressive_recurrence` passed; `37.744629%` background suppression and `1.606295x` compression with `0` suppressed attacks | completed | `project_docs/R_FOREGROUND_0_CANDIDATE_FREE_SEMANTIC_FOREGROUND_AUDIT.md` |
-| R-FOREGROUND-1 | online foreground smoke | implementation ready; full run pending | active next | `project_docs/R_FOREGROUND_1_ONLINE_FOREGROUND_SMOKE.md` |
+| R-FOREGROUND-1 | online foreground smoke | full 6h origin-family replay passed: attack retention `1.0`, suppressed attacks `0`, background suppression `0.37744629`, compression `1.606295x` | completed | `project_docs/R_FOREGROUND_1_ONLINE_FOREGROUND_SMOKE.md` |
+| R-ATTACK-0B | multi-attack controlled smoke | implementation ready; full run pending | active next | `project_docs/R_ATTACK_0B_MULTI_ATTACK_SMOKE.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

@@ -938,3 +938,39 @@ Consequence:
   benign.
 - The next scientific step after R-FOREGROUND-1 is `R-ATTACK-0B` multi-attack
   controlled scenario expansion, followed by retesting the foreground target.
+
+## R-ATTACK-0B Multi-Attack Controlled Smoke Decision
+
+Status: active.
+
+Decision:
+
+- Expand the controlled benchmark directly, without creating another standalone
+  protocol-only phase.
+- Include exact-origin, forged-origin, route-leak-like, and
+  path-manipulation-like attack subtypes in the first multi-attack smoke.
+- Embed realism QA and R-FOREGROUND-1 retention QA in the run itself.
+
+Rationale:
+
+- R-FOREGROUND-1 passed only on origin-family attacks. It cannot justify
+  learning, poisoning/evasion, or multi-attack claims.
+- Route-leak-like scenarios must be AS-rel constrained; otherwise they are just
+  random valley-looking paths.
+- Path-manipulation-like scenarios must preserve origin and use
+  all-known/no-valley AS-rel paths, otherwise the system either learns synthetic
+  unknown-edge artifacts or collapses into another route-leak-like case.
+- A separate protocol document would add overhead without improving the next
+  scientific gate, because the key constraints already exist in R-LABEL and
+  R-ATTACK-QA.
+
+Consequence:
+
+- R-ATTACK-0B materializes attacks at raw-update level, recomputes RPKI /
+  AS-rel / community sidecars, reruns foreground v1, and reports per-family
+  QA.
+- Candidate retention is diagnostic only, not a hard mainline compression gate.
+- If any controlled attack family is suppressed by foreground v1, foreground
+  repair takes priority before learning or poisoning expansion.
+- If all families are retained but compression is below the future >=`50%`
+  target, design R-FOREGROUND-2.
