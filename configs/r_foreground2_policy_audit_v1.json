@@ -1,0 +1,172 @@
+{
+  "schema_version": "r_foreground2_policy_audit_v1",
+  "phase": "R-FOREGROUND-2",
+  "status": "policy_improvement_audit_config",
+  "purpose": "Audit stronger candidate-free online foreground policies on the validated R-ATTACK-0B multi-attack replay.",
+  "truth_boundary": "Controlled truth metadata is evaluation-only and must be attached after policy assignment.",
+  "candidate_boundary": "candidate_flag, candidate_reasons, matched_rule_count, and legacy final labels are not policy features.",
+  "online_training_split_boundary": "Online foreground compression and offline training/evaluation sample construction are separate tracks. Hard negatives and controls may be operationally suppressed online, but their labeled rows must remain available for a later offline training/evaluation pool.",
+  "assignment_states": {
+    "protected_foreground": "Retained because clean evidence or semantic novelty indicates downstream risk.",
+    "gray_retained": "Retained because current evidence is insufficient for safe operational suppression.",
+    "operational_background_suppressed": "Suppressed from downstream online workload; not a benign label."
+  },
+  "base_feature_thresholds": {
+    "low_visibility_collector_count": 1,
+    "short_duration_sec": 300,
+    "rare_prefix_origin_count": 3,
+    "rare_prefix_origin_path_count": 3,
+    "rare_path_signature_count": 3,
+    "stable_prefix_origin_count": 20,
+    "stable_prefix_origin_path_count": 10,
+    "stable_path_signature_count": 20,
+    "common_prefix_origin_count": 5,
+    "common_prefix_origin_path_count": 5
+  },
+  "risk_values": {
+    "rpki_statuses": [
+      "invalid_asn",
+      "invalid_length"
+    ],
+    "asrel_diagnostics": [
+      "possible_valley_transition",
+      "valley_like",
+      "suspect_triplet",
+      "path_relation_violation"
+    ],
+    "community_flags": [
+      "has_no_export",
+      "has_no_advertise",
+      "has_nopeer"
+    ]
+  },
+  "policies": [
+    {
+      "policy_id": "baseline_v1_replay",
+      "description": "Reproduce R-FOREGROUND-1 online_aggressive_recurrence_v1 on the R-ATTACK-0B replay.",
+      "recommendable": true,
+      "rare_prefix_origin_path_protect_max": 3,
+      "protect_rare_prefix_origin": false,
+      "protect_rare_path_signature": false,
+      "protect_low_visibility_with_novelty": false,
+      "protect_low_visibility_with_external": true,
+      "suppress_prefix_origin_min": 5,
+      "suppress_prefix_origin_path_min": 5,
+      "suppress_low_visibility": true
+    },
+    {
+      "policy_id": "count3_path2_candidate",
+      "description": "Tighten rare path protection to <=2 observations and suppress repeated non-risk path objects at >=3 observations.",
+      "recommendable": true,
+      "rare_prefix_origin_path_protect_max": 2,
+      "protect_rare_prefix_origin": false,
+      "protect_rare_path_signature": false,
+      "protect_low_visibility_with_novelty": false,
+      "protect_low_visibility_with_external": true,
+      "suppress_prefix_origin_min": 3,
+      "suppress_prefix_origin_path_min": 3,
+      "suppress_low_visibility": true
+    },
+    {
+      "policy_id": "count3_path2_lowvis_cautious",
+      "description": "Same as count3_path2_candidate but keeps low-visibility rows out of suppression for future stealth caution.",
+      "recommendable": true,
+      "rare_prefix_origin_path_protect_max": 2,
+      "protect_rare_prefix_origin": false,
+      "protect_rare_path_signature": false,
+      "protect_low_visibility_with_novelty": true,
+      "protect_low_visibility_with_external": true,
+      "suppress_prefix_origin_min": 3,
+      "suppress_prefix_origin_path_min": 3,
+      "suppress_low_visibility": false
+    },
+    {
+      "policy_id": "count2_path2_pressure",
+      "description": "Pressure-test stronger recurrence suppression while still protecting <=2-observation path novelty.",
+      "recommendable": true,
+      "rare_prefix_origin_path_protect_max": 2,
+      "protect_rare_prefix_origin": false,
+      "protect_rare_path_signature": false,
+      "protect_low_visibility_with_novelty": false,
+      "protect_low_visibility_with_external": true,
+      "suppress_prefix_origin_min": 2,
+      "suppress_prefix_origin_path_min": 2,
+      "suppress_low_visibility": true
+    },
+    {
+      "policy_id": "path1_pressure_test",
+      "description": "Pressure-test whether <=1 path novelty protection would suppress controlled path-manipulation attacks.",
+      "recommendable": false,
+      "rare_prefix_origin_path_protect_max": 1,
+      "protect_rare_prefix_origin": false,
+      "protect_rare_path_signature": false,
+      "protect_low_visibility_with_novelty": false,
+      "protect_low_visibility_with_external": true,
+      "suppress_prefix_origin_min": 2,
+      "suppress_prefix_origin_path_min": 2,
+      "suppress_low_visibility": true
+    },
+    {
+      "policy_id": "external_only_pressure_test",
+      "description": "Upper-bound pressure test that protects only explicit external risk; expected to be unsafe for path manipulation.",
+      "recommendable": false,
+      "rare_prefix_origin_path_protect_max": 0,
+      "protect_rare_prefix_origin": false,
+      "protect_rare_path_signature": false,
+      "protect_low_visibility_with_novelty": false,
+      "protect_low_visibility_with_external": true,
+      "suppress_prefix_origin_min": 1,
+      "suppress_prefix_origin_path_min": 1,
+      "suppress_low_visibility": true
+    }
+  ],
+  "safety_gates": {
+    "suppressed_attack_count": 0,
+    "attack_retention": 1.0,
+    "truth_feature_leakage_count": 0
+  },
+  "feasibility_gates": {
+    "minimum_reference_background_suppression_rate": 0.5,
+    "minimum_compression_ratio": 2.0,
+    "maximum_gray_zone_rate": 0.35
+  },
+  "future_targets": {
+    "minimum_reference_background_suppression_rate": 0.5,
+    "stretch_reference_background_suppression_rate": "0.60-0.70"
+  },
+  "allowed_policy_features": [
+    "event prefix/origin/path/time/visibility fields",
+    "window recurrence and rarity features derived from event fields",
+    "RPKI status/evidence state",
+    "2024 AS-rel path diagnostic/evidence state",
+    "community evidence state and well-known community flags"
+  ],
+  "forbidden_policy_features": [
+    "candidate_flag",
+    "candidate_reasons",
+    "matched_rule_count",
+    "scenario_id",
+    "scenario_class",
+    "is_attack_member",
+    "is_hard_negative_member",
+    "attack_role",
+    "attack_subtype",
+    "truth_semantics",
+    "legacy final/high/needs/low labels",
+    "P1/P2/P3",
+    "2017-derived rel_seq/rel_unknown_cnt/rel_has_unknown"
+  ],
+  "forbidden_claims": [
+    "suppressed background is benign",
+    "foreground is attack",
+    "hard negatives are confirmed benign",
+    "R-FOREGROUND-2 proves production suppression",
+    "R-FOREGROUND-2 proves stealth or poisoning/evasion robustness",
+    "RPKI invalid is attack truth",
+    "RPKI valid is benign",
+    "AS-rel diagnostic is route-leak truth",
+    "NO_EXPORT present is attack truth",
+    "NO_EXPORT absent is safe",
+    "learning is ready"
+  ]
+}

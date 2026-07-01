@@ -941,7 +941,7 @@ Consequence:
 
 ## R-ATTACK-0B Multi-Attack Controlled Smoke Decision
 
-Status: active.
+Status: completed; superseded by R-FOREGROUND-2 compression-improvement audit.
 
 Decision:
 
@@ -974,3 +974,50 @@ Consequence:
   repair takes priority before learning or poisoning expansion.
 - If all families are retained but compression is below the future >=`50%`
   target, design R-FOREGROUND-2.
+
+Result:
+
+- R-ATTACK-0B full replay validated:
+  - `validated=true`;
+  - `qa_pass=true`;
+  - `online_pass=true`;
+  - `suppressed_attack_count=0`;
+  - `attack_retention=1.0`.
+- Exact-origin, forged-origin, route-leak-like, and path-manipulation-like
+  controlled attack families were all retained by R-FOREGROUND-1.
+- Background suppression remained `0.377447197`, below the future `>=0.50`
+  target.
+
+## R-FOREGROUND-2 Policy Improvement Audit Decision
+
+Status: active.
+
+Decision:
+
+- Before learning or poisoning expansion, audit stronger candidate-free
+  foreground policies on the validated R-ATTACK-0B replay.
+- Treat `suppressed_attack_count=0` and `attack_retention=1.0` as hard safety
+  gates.
+- Treat background suppression `>=0.50` and compression ratio `>=2.0` as the
+  current improvement target.
+- Include pressure-test policies, but do not recommend them if they suppress
+  controlled attacks.
+
+Rationale:
+
+- R-ATTACK-0B showed multi-attack safety for R-FOREGROUND-1, but not enough
+  compression for the intended deployable low-load story.
+- The right next step is not learning. Learning would inherit an oversized
+  foreground if compression remains weak.
+- The right next step is also not blind aggressive filtering. We need to find
+  the boundary where compression improves without losing controlled attacks.
+
+Consequence:
+
+- R-FOREGROUND-2 reads existing R-ATTACK-0B event/evidence artifacts and writes
+  small audit outputs only.
+- It does not retrain learning, add attack families, implement production
+  suppression, or use candidate/legacy labels.
+- If a recommendable policy passes, it can be promoted to R-FOREGROUND-3 smoke.
+- If no policy reaches `>=0.50` without attack suppression, the result is a
+  stop-loss that points to feature repair rather than model training.
