@@ -2,7 +2,7 @@
 
 Date: 2026-07-01
 
-Status: implementation ready; full run pending.
+Status: completed on HPC; results pulled back and inspected on 2026-07-02.
 
 ## 1. Purpose
 
@@ -147,6 +147,19 @@ No full assignment parquet is written in this phase.
 
 ## 7. Allowed Claims
 
+Full-run result:
+
+| Policy | Background suppression | Compression | Suppressed attacks | Interpretation |
+|---|---:|---:|---:|---|
+| `baseline_v1_replay` | `0.377447197` | `1.606292` | `0` | current safe baseline |
+| `count3_path2_candidate` | `0.434294803` | `1.767721` | `0` | safe but below target |
+| `path1_pressure_test` | `0.510538701` | `2.043079` | `0` | reaches target but was a pressure test |
+| `external_only_pressure_test` | `0.840702662` | `6.277574` | `2` | unsafe upper bound |
+
+The audit found a safe pressure boundary but did not directly promote it. The
+next step is R-FOREGROUND-3, which reruns `path1_pressure_test` as a formal
+single-policy smoke named `online_path_pressure_v1`.
+
 If validation passes, allowed claims are:
 
 - policy candidates were audited on the validated R-ATTACK-0B replay;
@@ -170,11 +183,10 @@ are not route-leak truth. NO_EXPORT absence is not safe evidence.
 
 ## 9. Next Step
 
-If a recommendable policy passes the `>=50%` target with `0` suppressed attacks,
-promote it to R-FOREGROUND-3 smoke.
+R-FOREGROUND-3:
 
-If only safety passes but compression remains below target, inspect the retained
-pressure audit and repair foreground features before moving to learning.
-
-If any controlled attack is suppressed, repair the foreground safety logic
-before adding stealth, NO_EXPORT, poisoning, or learning.
+- formalize `path1_pressure_test` as `online_path_pressure_v1`;
+- rerun it as a single auditable online foreground smoke;
+- write full assignment / foreground / suppressed / gray artifacts;
+- keep truth metadata evaluation-only;
+- do not train learning or claim production suppression.

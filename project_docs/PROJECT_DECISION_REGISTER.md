@@ -1021,3 +1021,51 @@ Consequence:
 - If a recommendable policy passes, it can be promoted to R-FOREGROUND-3 smoke.
 - If no policy reaches `>=0.50` without attack suppression, the result is a
   stop-loss that points to feature repair rather than model training.
+
+Result:
+
+- R-FOREGROUND-2 completed on the validated R-ATTACK-0B replay.
+- `count3_path2_candidate` was recommendable and safe but below target:
+  background suppression `0.434294803`, compression `1.767721`, suppressed
+  attacks `0`.
+- `path1_pressure_test` reached the current target with background suppression
+  `0.510538701`, compression `2.043079`, and suppressed attacks `0`, but it was
+  deliberately marked as a pressure test rather than a directly promotable
+  policy.
+- `external_only_pressure_test` compressed more but suppressed `2` controlled
+  attacks and is unsafe.
+
+## R-FOREGROUND-3 Online Path-Pressure Policy Decision
+
+Status: active.
+
+Decision:
+
+- Formalize the R-FOREGROUND-2 `path1_pressure_test` boundary as
+  `online_path_pressure_v1`.
+- Rerun it as a single candidate-free online foreground smoke before treating
+  it as the current foreground baseline.
+- Keep the same hard gates: `suppressed_attack_count=0`,
+  `attack_retention=1.0`, background suppression `>=0.50`, and compression
+  ratio `>=2.0`.
+
+Rationale:
+
+- A pressure test can reveal a useful boundary, but it should not be promoted
+  by interpretation alone.
+- R-FOREGROUND-3 makes the boundary explicit, auditable, and reproducible by
+  writing full assignment / foreground / suppressed / gray artifacts.
+- This protects the project from silently turning an exploratory threshold into
+  a mainline result.
+
+Consequence:
+
+- If R-FOREGROUND-3 passes, `online_path_pressure_v1` becomes the current
+  foreground baseline for the next design step.
+- If it fails, foreground feature repair takes priority before training data
+  construction, historical replay, poisoning/evasion expansion, or learning.
+- Hard-negative, scenario-control, and mixed rows suppressed online are not
+  thrown away; they remain candidates for the later offline training/evaluation
+  sample pool.
+- Suppressed background remains operational workload reduction, not confirmed
+  benign.

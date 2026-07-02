@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-06-29
+Last updated: 2026-07-02
 
 Status: active authoritative mainline state.
 
@@ -75,7 +75,8 @@ Attack families that must remain visible:
 | Candidate-free semantic foreground audit | completed; `aggressive_recurrence` is the best passing candidate | R-FOREGROUND-0 | high | Attack retention `1.0`, suppressed attacks `0`, background suppression `0.37744629`, compression `1.606295` |
 | Online foreground smoke | completed on origin-family and R-ATTACK-0B replay | R-FOREGROUND-1 | active baseline | `online_aggressive_recurrence_v1`; R-ATTACK-0B attack retention `1.0`, suppressed attacks `0`, background suppression `0.377447197`, compression `1.606292` |
 | Multi-attack controlled smoke | validated full replay | R-ATTACK-0B | completed | Exact-origin, forged-origin, route-leak-like, and path-manipulation-like scenarios passed realism QA; all controlled attack families retained by foreground v1 |
-| Foreground compression improvement audit | implementation ready; full run pending | R-FOREGROUND-2 | active next | Compare stronger candidate-free policies on R-ATTACK-0B; require `suppressed_attack_count=0`, target background suppression `>=0.50` |
+| Foreground compression improvement audit | completed; found safe pressure boundary but no recommendable policy passed | R-FOREGROUND-2 | high | `path1_pressure_test` reached background suppression `0.510538701`, compression `2.043079`, suppressed attacks `0`; `external_only_pressure_test` suppressed `2` attacks and is unsafe |
+| Online path-pressure foreground smoke | implementation ready; full run pending | R-FOREGROUND-3 | active next | Formalize `path1_pressure_test` as `online_path_pressure_v1` and rerun as a single auditable online policy before promotion |
 
 ## 4. Active Data / Evidence Contract
 
@@ -168,8 +169,20 @@ Forbidden in new decision logic:
      - compression ratio `1.606292`.
    - This is safe enough for the current multi-attack smoke but below the
      future `>=0.50` background-suppression target.
-   - R-FOREGROUND-2 now audits stronger candidate-free policies. Any policy
-     that suppresses even one controlled attack event fails.
+   - R-FOREGROUND-2 completed the stronger candidate-free policy audit:
+     - `baseline_v1_replay`: background suppression `0.377447197`,
+       compression `1.606292`, suppressed attacks `0`;
+     - `count3_path2_candidate`: background suppression `0.434294803`,
+       compression `1.767721`, suppressed attacks `0`;
+     - `path1_pressure_test`: background suppression `0.510538701`,
+       compression `2.043079`, suppressed attacks `0`;
+     - `external_only_pressure_test`: background suppression `0.840702662`,
+       compression `6.277574`, but suppressed attacks `2`, so unsafe.
+   - `path1_pressure_test` met the safety/feasibility gates but was marked as
+     a pressure test, not directly recommendable.
+   - R-FOREGROUND-3 now formalizes this boundary as
+     `online_path_pressure_v1` and reruns it as a single auditable policy
+     before any promotion.
 
 3. Historical replay and paired poisoning/evasion scenarios are missing.
    - The 6h reference window cannot prove real-world attack recall or poisoning/evasion robustness.
@@ -185,21 +198,23 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-FOREGROUND-2:
-Audit stronger candidate-free foreground policies on the validated R-ATTACK-0B
-multi-attack replay, with `suppressed_attack_count=0` as a hard safety gate and
-`>=0.50` background suppression as the improvement target.
+R-FOREGROUND-3:
+Formalize the best safe R-FOREGROUND-2 pressure-test boundary as
+`online_path_pressure_v1` and run a single-policy online foreground smoke on the
+validated R-ATTACK-0B multi-attack replay.
 ```
 
 Allowed scope:
 
 - use the validated R-ATTACK-0B derived run and evidence sidecars;
 - keep truth metadata strictly evaluation-only;
-- compare candidate-free foreground policies only;
+- run only the candidate-free `online_path_pressure_v1` policy;
 - require every controlled attack family to retain `attack_retention = 1.0`;
 - require `suppressed_attack_count = 0`;
-- report whether any recommendable policy reaches `>=0.50` background
-  suppression and compression ratio `>=2.0`;
+- require reference-background suppression `>=0.50` and compression ratio
+  `>=2.0`;
+- write full assignment / foreground / suppressed / gray artifacts for later
+  online and offline-track inspection;
 - keep online foreground compression separate from the later offline
   training/evaluation sample pool.
 
@@ -215,10 +230,10 @@ Forbidden scope:
 - do not treat candidate retention as a hard mainline gate;
 - do not promote the 12-chunk smoke to paper-grade recall or low-FP evidence;
 - do not claim route-leak truth from AS-rel diagnostics;
-- do not add new attack families in R-FOREGROUND-2;
+- do not add new attack families in R-FOREGROUND-3;
 - do not rerun materialization or evidence sidecars unless R-ATTACK-0B outputs
   are missing;
-- do not promote pressure-test policies that suppress controlled attacks;
+- do not promote if any controlled attack is suppressed;
 - do not use community absence or unavailable state as a benign/safe feature.
 - do not reuse the archived R-NOISE-1 implementation unchanged because it
   references legacy final labels and old `rel_*` fields.
@@ -240,7 +255,8 @@ R-CLEAN-0
   -> R-FOREGROUND-0 [done: candidate-free audit; aggressive_recurrence passed]
   -> R-FOREGROUND-1 [done: online foreground smoke passed on origin-family full replay]
   -> R-ATTACK-0B [done: multi-attack controlled smoke validated]
-  -> R-FOREGROUND-2 [next: policy improvement audit toward >=50% compression]
+  -> R-FOREGROUND-2 [done: safe pressure boundary found, no direct promotion]
+  -> R-FOREGROUND-3 [next: formal online_path_pressure_v1 smoke]
   -> R-TRAIN-DATA-0
   -> R-HIST-0
   -> R-POISON-0
@@ -266,7 +282,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-FOREGROUND-0 | candidate-free semantic foreground audit | `aggressive_recurrence` passed; `37.744629%` background suppression and `1.606295x` compression with `0` suppressed attacks | completed | `project_docs/R_FOREGROUND_0_CANDIDATE_FREE_SEMANTIC_FOREGROUND_AUDIT.md` |
 | R-FOREGROUND-1 | online foreground smoke | origin-family and R-ATTACK-0B multi-attack replay passed: attack retention `1.0`, suppressed attacks `0`; R-ATTACK-0B background suppression `0.377447197`, compression `1.606292x` | completed baseline | `project_docs/R_FOREGROUND_1_ONLINE_FOREGROUND_SMOKE.md` |
 | R-ATTACK-0B | multi-attack controlled smoke | validated full replay; all four controlled attack families retained; background suppression still `0.377447197` | completed | `project_docs/R_ATTACK_0B_MULTI_ATTACK_SMOKE.md` |
-| R-FOREGROUND-2 | foreground policy improvement audit | implementation ready; full run pending | active next | `project_docs/R_FOREGROUND_2_POLICY_IMPROVEMENT_AUDIT.md` |
+| R-FOREGROUND-2 | foreground policy improvement audit | completed; safe pressure boundary at `0.510538701` background suppression and `2.043079x` compression, but pressure-test policy requires formal rerun | completed | `project_docs/R_FOREGROUND_2_POLICY_IMPROVEMENT_AUDIT.md` |
+| R-FOREGROUND-3 | formal online foreground smoke | implementation ready; full run pending | active next | `project_docs/R_FOREGROUND_3_ONLINE_FOREGROUND_SMOKE.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
