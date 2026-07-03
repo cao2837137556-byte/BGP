@@ -2,8 +2,8 @@
 
 Date: 2026-07-03
 
-Status: feasibility audit completed; bounded materializer and QA are the next
-implementation step.
+Status: bounded materializer implemented; 12-chunk local smoke QA passed; full
+6h replay is the next implementation step.
 
 ## 1. Purpose
 
@@ -204,15 +204,73 @@ This means the current baseline and clean sidecars contain enough templates to
 design realistic R-ATTACK-1 scenarios. It does not mean attacks have already
 been materialized or that NO_EXPORT is attack truth.
 
-## 11. Next Step
+## 11. Bounded Materializer and Local Smoke Result
+
+R-ATTACK-1 now has a bounded materializer, QA gate, and HPC full-replay wrapper:
+
+```text
+configs/r_attack1_family_expansion_v01.json
+scripts/materialize_r_attack1_family_expansion.py
+scripts/audit_r_attack1_family_expansion_qa.py
+scripts/hpc/r_attack1_family_expansion_full_replay.slurm
+scripts/hpc/validate_r_attack1_full_replay.py
+```
+
+The materializer uses observed raw templates from the 6h baseline and keeps
+truth only in sidecars. It does not write truth fields into raw updates.
+
+Local 12-chunk smoke result:
+
+| Metric | Value |
+|---|---:|
+| source raw rows | `7200000` |
+| derived raw rows | `7200036` |
+| injected raw rows | `36` |
+| injected attack rows | `12` |
+| injected hard-negative rows | `12` |
+| attack scenarios | `2` |
+| hard-negative scenarios | `2` |
+| dynamic role rows | `12` |
+| inserted AS-rel edges known in 2024 cache | `true` |
+| active NO_EXPORT attack rows | `4` |
+| QA pass | `true` |
+| QA checks passed | `14 / 14` |
+| foreground attack retention | `1.0` |
+| foreground suppressed attack count | `0` |
+
+Scenario-level QA:
+
+| Scenario | Class | Expected role | Observed evidence |
+|---|---|---|---|
+| `r_attack1_subprefix_origin_001` | attack | subprefix origin hijack | `invalid_asn`, `all_pairs_known_no_valley_diagnostic`, collectors `route-views.sg` and `rrc00` |
+| `r_attack1_stealth_noexport_001` | attack | monitor-visible NO_EXPORT / stealth | `unknown` RPKI, `possible_valley_transition`, `NO_EXPORT` event evidence, collector `rrc00` |
+| `r_attack1_hn_subprefix_deagg_001` | hard negative | normal subprefix deaggregation | `valid`, all-known/no-valley path, same expected collectors |
+| `r_attack1_hn_noexport_001` | hard negative | normal NO_EXPORT community use | `unknown` RPKI, all-known/no-valley path, `NO_EXPORT` event evidence |
+
+The older origin-only propagation audit still writes
+`smoke_replay/audit/r_attack0a_summary.json`. In R-ATTACK-1 it is used only for
+raw/event/evidence join artifacts. Its origin-family RPKI expectation is not
+the multi-attack QA authority. The authoritative R-ATTACK-1 gate is
+`smoke_replay/qa/r_attack1_qa_summary.json`.
+
+Important boundary:
+
+```text
+The local smoke uses only the rewritten chunks. It validates scenario realism,
+raw/event propagation, evidence joins, and attack retention on the smoke subset.
+It does not replace the full 6h replay needed for paper-grade foreground
+retention and compression analysis.
+```
+
+## 12. Next Step
 
 Immediate next step:
 
 ```text
-R-ATTACK-1 bounded materializer and QA:
-materialize small subprefix and monitor-visible NO_EXPORT/stealth scenarios,
-recompute evidence sidecars, and retest the frozen online_path_pressure_v1
-foreground baseline.
+R-ATTACK-1 full 6h replay on HPC:
+materialize the same bounded scenarios across the full 6h derived run, rebuild
+events, rebuild candidate diagnostics, recompute RPKI / AS-rel / community
+sidecars, and retest the frozen online_path_pressure_v1 foreground baseline.
 ```
 
 If any new family is suppressed, stop and repair the foreground layer before

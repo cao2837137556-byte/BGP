@@ -1077,7 +1077,7 @@ Consequence:
 
 ## R-ATTACK-1 Attack Family Expansion Decision
 
-Status: active next.
+Status: active; bounded materializer implemented, full 6h replay pending.
 
 Decision:
 
@@ -1107,14 +1107,27 @@ Consequence:
   - `1045` NO_EXPORT events;
   - `764` NO_EXPORT prefix-origin pairs;
   - aligned RPKI / AS-rel / community rows for all `3431103` baseline events.
-- The next implementation step is bounded R-ATTACK-1 scenario materialization
-  and QA, not `R-TRAIN-DATA-0`.
+- Bounded R-ATTACK-1 scenario materialization and 12-chunk smoke QA are now
+  implemented:
+  - injected raw rows `36`;
+  - injected attack rows `12`;
+  - injected hard-negative rows `12`;
+  - required subprefix and monitor-visible NO_EXPORT / stealth attack subtypes
+    are present;
+  - normal subprefix deaggregation and normal NO_EXPORT community-use hard
+    negatives are present;
+  - QA checks `14 / 14` passed;
+  - foreground attack retention `1.0`;
+  - foreground suppressed attack count `0`.
+- The next implementation step is the full 6h R-ATTACK-1 replay, not
+  `R-TRAIN-DATA-0`.
 - Subprefix scenarios must use observed parent prefixes and realistic attacker
   AS choices.
 - Stealth / NO_EXPORT scenarios must use recomputed community sidecar evidence
   and distinguish monitor-visible cases from fully invisible observability
   boundary cases.
-- If any new family is suppressed by the frozen foreground baseline, repair the
-  foreground layer before adding poisoning/evasion variants or training.
+- If any new family is suppressed by the frozen foreground baseline in the
+  full replay, repair the foreground layer before adding poisoning/evasion
+  variants or training.
 - Paired poisoning/evasion remains core to the paper, but starts only after the
   base attack families are realistic and retained.
