@@ -1,0 +1,103 @@
+{
+  "schema_version": "r_attack1_family_expansion_plan_v01",
+  "phase": "R-ATTACK-1",
+  "status": "planning_contract_with_feasibility_audit_passed",
+  "purpose": "Expand the controlled benchmark after R-FOREGROUND-3, with realistic subprefix and stealth/NO_EXPORT scenarios before poisoning or learning.",
+  "current_foreground_baseline": {
+    "phase": "R-FOREGROUND-3",
+    "policy_id": "online_path_pressure_v1",
+    "status": "frozen_current_baseline_after_passing_R_ATTACK_0B",
+    "hard_gate_for_r_attack_1": "The policy is evaluated unchanged on R-ATTACK-1 scenarios unless a failure explicitly triggers a later R-FOREGROUND repair phase."
+  },
+  "feasibility_audit_result": {
+    "script": "scripts/audit_r_attack1_family_expansion_feasibility.py",
+    "run_id": "s2a_baseline_v01_pilot_6h_april16",
+    "overall_feasible": true,
+    "event_rows": 3431103,
+    "subprefix_parent_prefix_origin_candidates": 151374,
+    "subprefix_candidate_events": 1435739,
+    "no_export_event_count": 1045,
+    "no_export_prefix_origin_pairs": 764,
+    "normal_community_hard_negative_candidates": 3279787,
+    "low_visibility_reference_candidates": 3389627,
+    "boundary": "Feasibility does not materialize attacks or prove NO_EXPORT attack truth."
+  },
+  "required_attack_families": [
+    {
+      "family": "subprefix_origin_hijack",
+      "primary_family": "forged_origin_like",
+      "why_needed": "R-ATTACK-0B covered exact-prefix origin changes but not longest-prefix-match pressure.",
+      "minimum_realism_contract": [
+        "victim parent prefix must be observed in the 6h baseline",
+        "subprefix length must be syntactically routable and operationally plausible",
+        "attacker ASN must come from the observed routing universe, not documentation ASN ranges",
+        "RPKI length evidence is recomputed after injection and remains evidence, not truth"
+      ]
+    },
+    {
+      "family": "stealth_no_export_visibility",
+      "primary_family": "stealth_evasion_like",
+      "why_needed": "R-ATTACK-0B explicitly deferred NO_EXPORT / stealth / monitor-evasion scenarios.",
+      "minimum_realism_contract": [
+        "scenario must use recomputed community sidecar fields, not hand-written truth columns",
+        "NO_EXPORT present is evidence of propagation control semantics, not attack truth",
+        "NO_EXPORT absent or unavailable is never safe evidence",
+        "low visibility alone is not treated as confirmed NO_EXPORT",
+        "fully public-invisible variants are observability-boundary cases, not recall-denominator events"
+      ]
+    }
+  ],
+  "required_hard_negative_controls": [
+    "normal_deaggregation_or_more_specific_announcement",
+    "normal_community_change_without_attack_truth",
+    "low_visibility_non_attack_reference_pattern",
+    "legitimate_moas_or_origin_transition_if_supported_by_available_data"
+  ],
+  "evidence_contract": {
+    "rpki": {
+      "snapshot": "2024-04-16",
+      "required_after_injection": true,
+      "forbidden_claim": "RPKI invalid is attack truth; RPKI valid is benign"
+    },
+    "asrel": {
+      "snapshot": "2024-04-01",
+      "required_after_injection": true,
+      "forbidden_claim": "AS-rel diagnostic is confirmed route leak truth"
+    },
+    "communities": {
+      "source": "R-COMM-CLEAN-0 sidecar",
+      "required_after_injection": true,
+      "required_for_stealth_no_export": true,
+      "forbidden_claim": "NO_EXPORT present is confirmed attack; NO_EXPORT absent is safe; low visibility means NO_EXPORT"
+    }
+  },
+  "realism_gates": [
+    "no documentation ASN or synthetic fixed ASN shortcut",
+    "roles must be selected from observed baseline routing universe when possible",
+    "attack raw records must pass the same parser and event construction path as background",
+    "stable, attack, and recovery phases must exist",
+    "community distributions should be preserved unless the scenario explicitly studies community semantics",
+    "truth metadata must remain sidecar-only and evaluation-only",
+    "foreground policy features must not include scenario_id, attack labels, or truth columns"
+  ],
+  "foreground_gates": {
+    "policy_id": "online_path_pressure_v1",
+    "suppressed_attack_count": 0,
+    "attack_retention": 1.0,
+    "truth_feature_leakage_count": 0,
+    "minimum_reference_background_suppression_rate": 0.5,
+    "minimum_compression_ratio": 2.0
+  },
+  "explicitly_deferred": [
+    "paired poisoning/evasion variants",
+    "historical replay",
+    "learning/training data construction",
+    "production suppression claim",
+    "incident aggregation after judgment"
+  ],
+  "stop_loss": [
+    "If any R-ATTACK-1 active attack is suppressed, stop and run a foreground repair phase before expanding benchmark scope.",
+    "If NO_EXPORT scenarios cannot be made monitor-visible with explicit observability contracts, do not fake them; record the observability blocker.",
+    "If subprefix templates require unrealistic prefix or ASN choices, stop and repair scenario selection before replay."
+  ]
+}

@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-06-29
+Last updated: 2026-07-03
 
 Status: active project-level research decision register.
 
@@ -1037,7 +1037,7 @@ Result:
 
 ## R-FOREGROUND-3 Online Path-Pressure Policy Decision
 
-Status: active.
+Status: completed; current online foreground baseline frozen.
 
 Decision:
 
@@ -1060,12 +1060,61 @@ Rationale:
 
 Consequence:
 
-- If R-FOREGROUND-3 passes, `online_path_pressure_v1` becomes the current
-  foreground baseline for the next design step.
-- If it fails, foreground feature repair takes priority before training data
-  construction, historical replay, poisoning/evasion expansion, or learning.
+- R-FOREGROUND-3 passed and `online_path_pressure_v1` is the current foreground
+  baseline for the next controlled-attack expansion.
+- The completed run kept `attack_retention=1.0`, `suppressed_attack_count=0`,
+  and `truth_feature_leakage_count=0`.
+- It reached background suppression `0.510538701` and compression ratio
+  `2.043079`.
 - Hard-negative, scenario-control, and mixed rows suppressed online are not
   thrown away; they remain candidates for the later offline training/evaluation
   sample pool.
 - Suppressed background remains operational workload reduction, not confirmed
   benign.
+- This decision does not prove stealth / NO_EXPORT robustness, subprefix
+  coverage, historical replay recall, poisoning/evasion robustness, or learning
+  readiness.
+
+## R-ATTACK-1 Attack Family Expansion Decision
+
+Status: active next.
+
+Decision:
+
+- Expand the controlled benchmark before learning or poisoning.
+- Add realistic subprefix origin hijack and stealth / NO_EXPORT visibility
+  scenarios.
+- Keep `online_path_pressure_v1` frozen for the first R-ATTACK-1 retention
+  check.
+- Run a feasibility audit before writing any materializer so attack templates
+  come from observed baseline/evidence structure rather than hand-written fake
+  rows.
+
+Rationale:
+
+- R-ATTACK-0B covered exact-prefix origin hijack, forged-origin hijack,
+  route-leak-like valley, and path-manipulation-like known transit.
+- It explicitly deferred subprefix and stealth / NO_EXPORT cases.
+- R-FOREGROUND-3 passing on four controlled families is not enough to justify
+  learning, historical recall, or poisoning/evasion claims.
+- NO_EXPORT is a key monitor-evasion evidence channel, but it is not attack
+  truth and cannot be evaluated without explicit observability boundaries.
+
+Consequence:
+
+- The read-only feasibility audit passed:
+  - `151374` subprefix parent prefix-origin candidates;
+  - `1045` NO_EXPORT events;
+  - `764` NO_EXPORT prefix-origin pairs;
+  - aligned RPKI / AS-rel / community rows for all `3431103` baseline events.
+- The next implementation step is bounded R-ATTACK-1 scenario materialization
+  and QA, not `R-TRAIN-DATA-0`.
+- Subprefix scenarios must use observed parent prefixes and realistic attacker
+  AS choices.
+- Stealth / NO_EXPORT scenarios must use recomputed community sidecar evidence
+  and distinguish monitor-visible cases from fully invisible observability
+  boundary cases.
+- If any new family is suppressed by the frozen foreground baseline, repair the
+  foreground layer before adding poisoning/evasion variants or training.
+- Paired poisoning/evasion remains core to the paper, but starts only after the
+  base attack families are realistic and retained.

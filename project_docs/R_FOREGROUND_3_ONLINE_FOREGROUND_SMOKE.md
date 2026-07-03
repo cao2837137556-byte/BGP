@@ -2,7 +2,8 @@
 
 Date: 2026-07-02
 
-Status: implementation ready; full run pending on HPC.
+Status: completed; `online_path_pressure_v1` is frozen as the current online
+foreground baseline for the next controlled-attack expansion.
 
 ## 1. Purpose
 
@@ -187,7 +188,32 @@ offline data pool: retain hard negatives / controls / mixed / poisoning-prelude
                    examples for future learning and evaluation
 ```
 
-## 8. Allowed Claims
+## 8. Result
+
+R-FOREGROUND-3 completed on the validated R-ATTACK-0B replay.
+
+| Metric | Value |
+|---|---:|
+| total rows | `3431121` |
+| foreground rows | `1679387` |
+| suppressed rows | `1751734` |
+| compression ratio | `2.043079` |
+| pure reference background suppression | `0.510538701` |
+| gray-zone rate | `0.041341299` |
+| active attack events | `10` |
+| suppressed attack count | `0` |
+| attack retention | `1.0` |
+| truth feature leakage count | `0` |
+
+Per-family controlled attack retention remained `1.0` for the R-ATTACK-0B
+families covered so far: exact-prefix origin hijack, forged-origin hijack,
+route-leak-like valley, and path-manipulation-like known transit.
+
+This passes the R-FOREGROUND-3 online, safety, and feasibility gates. It does
+not prove robustness for subprefix, stealth / NO_EXPORT, historical attacks, or
+poisoning/evasion variants.
+
+## 9. Allowed Claims
 
 If validation passes, allowed claims are:
 
@@ -198,7 +224,7 @@ If validation passes, allowed claims are:
 - candidate and legacy workflow labels were not used as policy features;
 - suppressed background is an operational workload-reduction state.
 
-## 9. Forbidden Claims
+## 10. Forbidden Claims
 
 R-FOREGROUND-3 does not prove:
 
@@ -213,16 +239,15 @@ R-FOREGROUND-3 does not prove:
 RPKI invalid is not attack truth. RPKI valid is not benign. AS-rel diagnostics
 are not route-leak truth. NO_EXPORT absence is not safe evidence.
 
-## 10. Next Step
+## 11. Next Step
 
-If R-FOREGROUND-3 passes:
+Because R-FOREGROUND-3 passed:
 
 - freeze `online_path_pressure_v1` as the current online foreground baseline;
-- move to either:
-  - `R-TRAIN-DATA-0` offline training/evaluation pool design; or
-  - `R-HIST-0` historical event replay planning.
+- move to `R-ATTACK-1` attack-family expansion before learning;
+- explicitly add subprefix and stealth / NO_EXPORT scenarios with realism QA;
+- keep poisoning/evasion paired variants deferred until the base attack
+  families are realistic and retained.
 
-If R-FOREGROUND-3 fails:
-
-- repair the foreground policy before learning, historical replay, poisoning,
-  or attack-like incident aggregation.
+If any R-ATTACK-1 family is suppressed by the frozen baseline, the next step is
+foreground repair, not learning.

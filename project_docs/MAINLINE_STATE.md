@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-07-02
+Last updated: 2026-07-03
 
 Status: active authoritative mainline state.
 
@@ -76,7 +76,8 @@ Attack families that must remain visible:
 | Online foreground smoke | completed on origin-family and R-ATTACK-0B replay | R-FOREGROUND-1 | active baseline | `online_aggressive_recurrence_v1`; R-ATTACK-0B attack retention `1.0`, suppressed attacks `0`, background suppression `0.377447197`, compression `1.606292` |
 | Multi-attack controlled smoke | validated full replay | R-ATTACK-0B | completed | Exact-origin, forged-origin, route-leak-like, and path-manipulation-like scenarios passed realism QA; all controlled attack families retained by foreground v1 |
 | Foreground compression improvement audit | completed; found safe pressure boundary but no recommendable policy passed | R-FOREGROUND-2 | high | `path1_pressure_test` reached background suppression `0.510538701`, compression `2.043079`, suppressed attacks `0`; `external_only_pressure_test` suppressed `2` attacks and is unsafe |
-| Online path-pressure foreground smoke | implementation ready; full run pending | R-FOREGROUND-3 | active next | Formalize `path1_pressure_test` as `online_path_pressure_v1` and rerun as a single auditable online policy before promotion |
+| Online path-pressure foreground smoke | completed and frozen as current baseline | R-FOREGROUND-3 | high | `online_path_pressure_v1`; attack retention `1.0`, suppressed attacks `0`, background suppression `0.510538701`, compression `2.043079`; not yet tested on subprefix, stealth/NO_EXPORT, historical replay, or poisoning |
+| Attack-family expansion | feasibility audit passed; bounded materializer next | R-ATTACK-1 | active next | Subprefix and stealth/NO_EXPORT templates exist in clean 6h sidecars; next step is materialization + QA, not learning |
 
 ## 4. Active Data / Evidence Contract
 
@@ -180,14 +181,31 @@ Forbidden in new decision logic:
        compression `6.277574`, but suppressed attacks `2`, so unsafe.
    - `path1_pressure_test` met the safety/feasibility gates but was marked as
      a pressure test, not directly recommendable.
-   - R-FOREGROUND-3 now formalizes this boundary as
-     `online_path_pressure_v1` and reruns it as a single auditable policy
-     before any promotion.
+   - R-FOREGROUND-3 completed the formal single-policy rerun and freezes
+     `online_path_pressure_v1` as the current online foreground baseline:
+     - total rows `3431121`;
+     - foreground rows `1679387`;
+     - suppressed rows `1751734`;
+     - pure reference background suppression `0.510538701`;
+     - compression ratio `2.043079`;
+     - gray-zone rate `0.041341299`;
+     - suppressed attack count `0`;
+     - attack retention `1.0`;
+     - truth feature leakage count `0`.
+   - This is a controlled-smoke baseline only. It does not prove subprefix,
+     stealth / NO_EXPORT, historical replay, or poisoning/evasion robustness.
 
-3. Historical replay and paired poisoning/evasion scenarios are missing.
+3. Missing attack-family coverage blocks learning and poisoning claims.
+   - R-ATTACK-0B did not include subprefix origin hijack.
+   - R-ATTACK-0B did not include stealth / NO_EXPORT / monitor-evasion
+     scenarios.
+   - R-ATTACK-1 must expand these families with realism QA before learning
+     data construction or paired poisoning/evasion variants.
+
+4. Historical replay and paired poisoning/evasion scenarios are missing.
    - The 6h reference window cannot prove real-world attack recall or poisoning/evasion robustness.
 
-4. Community sidecar has a small join-quality caveat.
+5. Community sidecar has a small join-quality caveat.
    - `partial_record_count_match=10273`;
    - `raw_join_unavailable=1`;
    - the R-ATTACK-0A-3 derived run also has `raw_join_unavailable=1`;
@@ -198,42 +216,49 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-FOREGROUND-3:
-Formalize the best safe R-FOREGROUND-2 pressure-test boundary as
-`online_path_pressure_v1` and run a single-policy online foreground smoke on the
-validated R-ATTACK-0B multi-attack replay.
+R-ATTACK-1:
+Implement the bounded subprefix and monitor-visible stealth / NO_EXPORT
+materializer and QA, then retest the frozen `online_path_pressure_v1`
+foreground baseline unchanged.
 ```
 
 Allowed scope:
 
-- use the validated R-ATTACK-0B derived run and evidence sidecars;
+- use the completed feasibility audit as the template source:
+  `151374` subprefix parent prefix-origin candidates, `1045` NO_EXPORT events,
+  and aligned RPKI / AS-rel / community sidecars;
+- add subprefix origin hijack templates only from observed parent prefixes and
+  observed routing-universe ASNs;
+- add monitor-visible stealth / NO_EXPORT templates only with explicit
+  observability contracts;
+- include a small hard-negative/control set for normal deaggregation,
+  community change, and low-visibility reference patterns;
+- recompute or reattach RPKI, 2024 AS-rel, and community sidecars after any
+  injection;
 - keep truth metadata strictly evaluation-only;
-- run only the candidate-free `online_path_pressure_v1` policy;
-- require every controlled attack family to retain `attack_retention = 1.0`;
-- require `suppressed_attack_count = 0`;
-- require reference-background suppression `>=0.50` and compression ratio
-  `>=2.0`;
-- write full assignment / foreground / suppressed / gray artifacts for later
-  online and offline-track inspection;
-- keep online foreground compression separate from the later offline
-  training/evaluation sample pool.
+- reuse `online_path_pressure_v1` unchanged for the first R-ATTACK-1 retention
+  test;
+- require every controlled attack family to retain `attack_retention = 1.0`
+  and `suppressed_attack_count = 0`.
 
 Forbidden scope:
 
 - do not modify old seven-layer pipeline;
 - do not use legacy final/high/needs/low as truth or guard;
 - do not train learning;
-- do not claim NO_EXPORT attack or route-leak truth;
+- do not claim NO_EXPORT attack, NO_EXPORT absence as safe, or route-leak
+  truth;
 - do not run production suppression;
 - do not treat R-NOISE-1 or R-NOISE-CLEAN-1 as final;
 - do not use candidate as the mainline compression layer;
 - do not treat candidate retention as a hard mainline gate;
 - do not promote the 12-chunk smoke to paper-grade recall or low-FP evidence;
 - do not claim route-leak truth from AS-rel diagnostics;
-- do not add new attack families in R-FOREGROUND-3;
-- do not rerun materialization or evidence sidecars unless R-ATTACK-0B outputs
-  are missing;
-- do not promote if any controlled attack is suppressed;
+- do not start paired poisoning/evasion variants before the base R-ATTACK-1
+  families are realistic and retained;
+- do not start `R-TRAIN-DATA-0` or learning before R-ATTACK-1 and later
+  poisoning/historical gates are planned;
+- do not promote if any controlled R-ATTACK-1 attack is suppressed;
 - do not use community absence or unavailable state as a benign/safe feature.
 - do not reuse the archived R-NOISE-1 implementation unchanged because it
   references legacy final labels and old `rel_*` fields.
@@ -256,10 +281,12 @@ R-CLEAN-0
   -> R-FOREGROUND-1 [done: online foreground smoke passed on origin-family full replay]
   -> R-ATTACK-0B [done: multi-attack controlled smoke validated]
   -> R-FOREGROUND-2 [done: safe pressure boundary found, no direct promotion]
-  -> R-FOREGROUND-3 [next: formal online_path_pressure_v1 smoke]
-  -> R-TRAIN-DATA-0
-  -> R-HIST-0
+  -> R-FOREGROUND-3 [done: online_path_pressure_v1 baseline frozen]
+  -> R-ATTACK-1 [next: bounded subprefix + stealth/NO_EXPORT materializer and QA]
+  -> R-FOREGROUND-4 [future: retest/fix foreground on expanded families if needed]
   -> R-POISON-0
+  -> R-HIST-0
+  -> R-TRAIN-DATA-0
   -> R-LEARN-0
   -> R-LEARN-1
   -> R-INC-0
@@ -283,7 +310,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-FOREGROUND-1 | online foreground smoke | origin-family and R-ATTACK-0B multi-attack replay passed: attack retention `1.0`, suppressed attacks `0`; R-ATTACK-0B background suppression `0.377447197`, compression `1.606292x` | completed baseline | `project_docs/R_FOREGROUND_1_ONLINE_FOREGROUND_SMOKE.md` |
 | R-ATTACK-0B | multi-attack controlled smoke | validated full replay; all four controlled attack families retained; background suppression still `0.377447197` | completed | `project_docs/R_ATTACK_0B_MULTI_ATTACK_SMOKE.md` |
 | R-FOREGROUND-2 | foreground policy improvement audit | completed; safe pressure boundary at `0.510538701` background suppression and `2.043079x` compression, but pressure-test policy requires formal rerun | completed | `project_docs/R_FOREGROUND_2_POLICY_IMPROVEMENT_AUDIT.md` |
-| R-FOREGROUND-3 | formal online foreground smoke | implementation ready; full run pending | active next | `project_docs/R_FOREGROUND_3_ONLINE_FOREGROUND_SMOKE.md` |
+| R-FOREGROUND-3 | formal online foreground smoke | completed; `online_path_pressure_v1` passed with attack retention `1.0`, suppressed attacks `0`, background suppression `0.510538701`, compression `2.043079x` | completed baseline | `project_docs/R_FOREGROUND_3_ONLINE_FOREGROUND_SMOKE.md` |
+| R-ATTACK-1 | attack-family expansion | feasibility audit passed; clean templates exist for subprefix and NO_EXPORT/stealth; bounded materializer and QA are next | active next | `project_docs/R_ATTACK_1_ATTACK_FAMILY_EXPANSION_PLAN.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
