@@ -79,6 +79,7 @@ Attack families that must remain visible:
 | Online path-pressure foreground smoke | completed and frozen as current baseline | R-FOREGROUND-3 | high | `online_path_pressure_v1`; attack retention `1.0`, suppressed attacks `0`, background suppression about `0.51`, compression about `2.04`; now retested on R-ATTACK-1 full replay |
 | Attack-family expansion | full 6h replay validated | R-ATTACK-1 | completed | Subprefix and monitor-visible NO_EXPORT/stealth scenarios passed full replay; attack retention `1.0`, suppressed attacks `0`, background suppression `0.510540519`, compression `2.043065` |
 | Paired poisoning/evasion protocol | protocol and feasibility audit passed | R-POISON-0 | high | 5 feasible paired templates for R-POISON-1; route-leak policy poisoning remains design-only until policy semantics are bounded |
+| Paired poisoning/evasion bounded materialization | bounded pair prototypes materialized | R-POISON-1 | high | 5 feasible pairs, 33 truth-prototype rows, fair-pair contract passed; no full replay and no adversarial retention claim |
 
 ## 4. Active Data / Evidence Contract
 
@@ -226,20 +227,20 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-POISON-1:
-Bounded materialization of feasible paired poisoning/evasion variants from the
-R-POISON-0 protocol, before training or final incident aggregation.
+R-POISON-2:
+Bounded replay for R-POISON-1 materialized poisoning/evasion pairs, with
+evidence recomputation and `online_path_pressure_v1` foreground evaluation.
 ```
 
 Allowed scope:
 
-- start from the validated R-ATTACK-0B / R-ATTACK-1 clean base families;
-- materialize only R-POISON-0 feasible clean-vs-adversarial pairs;
-- keep victim/origin/attacker/background/evidence fixed within each pair;
-- vary only the explicit poisoning preparation or visibility constraint;
+- start from the R-POISON-1 materialized feasible pairs;
+- generate a derived bounded run, not a full benchmark expansion;
+- recompute RPKI / AS-rel / community evidence for the derived run;
+- rerun `online_path_pressure_v1` without changing the policy;
 - keep truth metadata evaluation-only;
-- require evidence recomputation and version binding after each variant;
-- report clean-vs-adversarial foreground retention and signal-drop metrics.
+- report clean-vs-adversarial foreground retention, signal drop, and
+  observability-denominator outcomes.
 
 Forbidden scope:
 
@@ -260,6 +261,7 @@ Forbidden scope:
   references legacy final labels and old `rel_*` fields.
 - do not materialize the route-leak policy poisoning pair until its policy
   semantics contract is bounded.
+- do not count public-invisible variants as foreground misses.
 
 ## 7. Active Experiment Order
 
@@ -282,7 +284,8 @@ R-CLEAN-0
   -> R-FOREGROUND-3 [done: online_path_pressure_v1 baseline frozen]
   -> R-ATTACK-1 [done: full 6h replay of bounded subprefix + stealth/NO_EXPORT scenarios]
   -> R-POISON-0 [done: paired poisoning/evasion protocol and feasibility audit]
-  -> R-POISON-1 [next: bounded materialization of feasible poisoning/evasion pairs]
+  -> R-POISON-1 [done: bounded materialization of feasible poisoning/evasion pairs]
+  -> R-POISON-2 [next: bounded replay and foreground retention-drop evaluation]
   -> R-FOREGROUND-4 [future: retest/fix foreground on poisoned/evasive variants if needed]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
@@ -312,6 +315,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-FOREGROUND-3 | formal online foreground smoke | completed; `online_path_pressure_v1` passed with attack retention `1.0`, suppressed attacks `0`, background suppression `0.510538701`, compression `2.043079x` | completed baseline | `project_docs/R_FOREGROUND_3_ONLINE_FOREGROUND_SMOKE.md` |
 | R-ATTACK-1 | attack-family expansion | full 6h replay validated; subprefix and monitor-visible NO_EXPORT / stealth families retained; background suppression `0.510540519`, compression `2.043065x` | completed | `project_docs/R_ATTACK_1_ATTACK_FAMILY_EXPANSION_PLAN.md` |
 | R-POISON-0 | paired poisoning/evasion protocol | feasibility audit passed; 5 feasible pairs cover detection-data poisoning and visibility evasion; route-leak policy poisoning blocked as design-only | completed design | `project_docs/R_POISON_0_PAIRED_POISONING_EVASION_PROTOCOL.md` |
+| R-POISON-1 | bounded paired materialization | materialized 5 feasible pair prototypes; clean-base validation and fair-pair contracts passed; adversarial retention remains pending replay | completed materialization | `project_docs/R_POISON_1_BOUNDED_PAIRED_MATERIALIZATION.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

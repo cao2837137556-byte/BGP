@@ -1206,3 +1206,58 @@ Consequence:
   the observability contract says the public monitor should see them.
 - Learning remains blocked until poisoned/evasive variants are materialized
   and foreground retention is retested.
+
+## R-POISON-1 Bounded Pair Materialization Decision
+
+Status: completed materialization; adversarial replay still pending.
+
+Decision:
+
+- Materialize only the five R-POISON-0 feasible pairs:
+  - exact-origin history poisoning;
+  - forged-origin history poisoning;
+  - path-manipulation history poisoning;
+  - subprefix NO_EXPORT evasion;
+  - stealth collector-asymmetry evasion.
+- Keep `pair_route_leak_policy_poisoning_v01` blocked because policy semantics
+  remain under-specified.
+- Treat R-POISON-1 as bounded materialization, not as a full replay or a
+  poisoning robustness result.
+- Clean-base evidence and foreground status may be inherited from validated
+  R-ATTACK-0B / R-ATTACK-1 summaries.
+- Adversarial evidence joins and foreground retention must remain
+  `pending_replay_validation` until R-POISON-2.
+
+Rationale:
+
+- The paper needs paired clean-vs-adversarial poisoning/evasion evidence, but
+  the first materialization step should not be entangled with a 144-file replay.
+- The fair-pair contract must be frozen before replay: victim, origin,
+  attacker, background window, evidence snapshot, and foreground policy stay
+  fixed; only poisoning preparation or visibility constraints may change.
+- Claiming poisoned/evasive foreground retention before replay would be a
+  scientific error.
+
+Result:
+
+- `scripts/materialize_r_poison1_bounded_pairs.py` writes the bounded asset.
+- The local bounded materialization produced:
+  - materialized feasible pairs: `5`;
+  - truth prototype rows: `33`;
+  - variant contract rows: `10`;
+  - clean-base validation pass: `true`;
+  - fair-pair contract pass: `true`;
+  - route-leak policy poisoning skipped: `true`;
+  - full replay: `false`;
+  - learning trained: `false`;
+  - foreground policy changed: `false`.
+
+Consequence:
+
+- Next step is `R-POISON-2` bounded replay for the five materialized feasible
+  pairs.
+- R-POISON-2 must recompute evidence sidecars and rerun
+  `online_path_pressure_v1` without changing the policy.
+- Only R-POISON-2 may report clean-vs-adversarial retention drop.
+- If R-POISON-2 suppresses an adversarial attack member, foreground repair
+  takes priority before learning or historical replay expansion.
