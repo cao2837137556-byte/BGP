@@ -2,8 +2,7 @@
 
 Date: 2026-07-03
 
-Status: bounded materializer implemented; 12-chunk local smoke QA passed; full
-6h replay is the next implementation step.
+Status: full 6h replay completed and validated.
 
 ## 1. Purpose
 
@@ -262,16 +261,63 @@ It does not replace the full 6h replay needed for paper-grade foreground
 retention and compression analysis.
 ```
 
-## 12. Next Step
+## 12. Full 6h Replay Result
+
+The full replay ran on HPC and returned a complete pullback bundle:
+
+```text
+D:\study\paper\supercompute_transfer\r_attack1_pullback_20260705_125817
+```
+
+Key validation result:
+
+| Metric | Value |
+|---|---:|
+| full replay validated | `true` |
+| validation checks passed | `18 / 18` |
+| QA checks passed | `14 / 14` |
+| event rows | `3431117` |
+| candidate rows | `3431117` |
+| foreground rows | `1679397` |
+| suppressed rows | `1751720` |
+| background suppression | `0.510540519` |
+| compression ratio | `2.043065` |
+| active attack events | `7` |
+| foreground attack retention | `1.0` |
+| foreground suppressed attack count | `0` |
+| truth feature leakage count | `0` |
+
+Scenario-level result:
+
+| Scenario | Class | Result |
+|---|---|---|
+| `r_attack1_subprefix_origin_001` | attack | `6` active events, all retained; RPKI `invalid_asn`; AS-rel `all_pairs_known_no_valley_diagnostic` |
+| `r_attack1_stealth_noexport_001` | attack | `1` active event, retained; community sidecar shows `NO_EXPORT`; RPKI `unknown`; AS-rel `possible_valley_transition` |
+| `r_attack1_hn_subprefix_deagg_001` | hard negative | `4` active events; RPKI `valid`; all-known/no-valley path |
+| `r_attack1_hn_noexport_001` | hard negative | `1` active event; normal `NO_EXPORT` community-use lookalike |
+
+Conclusion:
+
+```text
+R-ATTACK-1 passes the full-window controlled-family expansion gate.
+```
+
+This validates that the frozen `online_path_pressure_v1` foreground baseline
+retains the new subprefix and monitor-visible NO_EXPORT / stealth controlled
+families while preserving roughly the same background compression as
+R-FOREGROUND-3. It does not prove historical-event recall, fully invisible
+monitor-evasion recall, poisoning robustness, or learning performance.
+
+## 13. Next Step
 
 Immediate next step:
 
 ```text
-R-ATTACK-1 full 6h replay on HPC:
-materialize the same bounded scenarios across the full 6h derived run, rebuild
-events, rebuild candidate diagnostics, recompute RPKI / AS-rel / community
-sidecars, and retest the frozen online_path_pressure_v1 foreground baseline.
+R-POISON-0:
+design paired poisoning/evasion variants for the now-validated controlled
+families, before training or final incident aggregation.
 ```
 
-If any new family is suppressed, stop and repair the foreground layer before
-learning, historical replay, or poisoning/evasion variants.
+Historical replay remains required for external validity, but the next mainline
+step should target the paper's core poisoning/evasion claim. Learning remains
+blocked until poisoning/evasion and historical replay protocols are explicit.

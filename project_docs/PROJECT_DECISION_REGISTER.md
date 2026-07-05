@@ -1077,7 +1077,7 @@ Consequence:
 
 ## R-ATTACK-1 Attack Family Expansion Decision
 
-Status: active; bounded materializer implemented, full 6h replay pending.
+Status: completed; full 6h replay validated.
 
 Decision:
 
@@ -1119,15 +1119,26 @@ Consequence:
   - QA checks `14 / 14` passed;
   - foreground attack retention `1.0`;
   - foreground suppressed attack count `0`.
-- The next implementation step is the full 6h R-ATTACK-1 replay, not
-  `R-TRAIN-DATA-0`.
+- The full 6h R-ATTACK-1 replay is now validated:
+  - `validated=true`;
+  - validation checks `18 / 18` passed;
+  - QA checks `14 / 14` passed;
+  - event rows `3431117`;
+  - candidate rows `3431117`;
+  - foreground rows `1679397`;
+  - suppressed rows `1751720`;
+  - background suppression `0.510540519`;
+  - compression ratio `2.043065`;
+  - foreground attack retention `1.0`;
+  - foreground suppressed attack count `0`;
+  - truth feature leakage count `0`.
 - Subprefix scenarios must use observed parent prefixes and realistic attacker
   AS choices.
 - Stealth / NO_EXPORT scenarios must use recomputed community sidecar evidence
   and distinguish monitor-visible cases from fully invisible observability
   boundary cases.
-- If any new family is suppressed by the frozen foreground baseline in the
-  full replay, repair the foreground layer before adding poisoning/evasion
-  variants or training.
-- Paired poisoning/evasion remains core to the paper, but starts only after the
-  base attack families are realistic and retained.
+- The next implementation step is `R-POISON-0` paired poisoning/evasion
+  benchmark design, not `R-TRAIN-DATA-0`.
+- Historical replay remains required for external validity.
+- Paired poisoning/evasion remains core to the paper and can now start because
+  the base controlled families are realistic and retained.
