@@ -1,0 +1,413 @@
+{
+  "schema_version": "r_poison0_paired_benchmark_protocol_v01",
+  "phase": "R-POISON-0",
+  "status": "protocol_and_feasibility_audit_only",
+  "source_background_run_id": "s2a_baseline_v01_pilot_6h_april16",
+  "run_date": "2024-04-16",
+  "foreground_policy": "online_path_pressure_v1",
+  "validated_base_phases": [
+    "R-ATTACK-0B",
+    "R-ATTACK-1",
+    "R-FOREGROUND-3"
+  ],
+  "evidence_snapshot_binding": {
+    "rpki_snapshot_id": "vrp_2024-04-16",
+    "asrel_snapshot_id": "caida_serial2_2024-04-01",
+    "community_extraction_version": "r_comm_clean_0",
+    "foreground_policy_id": "online_path_pressure_v1",
+    "evidence_recomputed_required_for_materialization": true
+  },
+  "threat_model_boundary": {
+    "core_targets": [
+      {
+        "threat_model": "detection_data_poisoning",
+        "definition": "Crafted control-plane announcements before the attack pollute public-monitor-derived history, novelty, role, or path memory used by detection.",
+        "paper_role": "core"
+      },
+      {
+        "threat_model": "visibility_evasion",
+        "definition": "The attack changes public monitor observability, for example by subprefix plus NO_EXPORT or collector-asymmetry constraints.",
+        "paper_role": "core"
+      }
+    ],
+    "not_core_targets": [
+      {
+        "threat_model": "as_path_poisoning_for_traffic_engineering",
+        "definition": "Classical AS-path poisoning to influence route choice is terminology-relevant but not the main data-poisoning target in this benchmark.",
+        "paper_role": "terminology_caveat"
+      }
+    ]
+  },
+  "global_forbidden_claims": [
+    "NO_EXPORT present is not attack truth.",
+    "NO_EXPORT absent is not safe.",
+    "RPKI invalid is not attack truth.",
+    "RPKI valid is not benign.",
+    "AS-rel diagnostic is not route leak truth.",
+    "public-invisible control-plane events are not foreground misses unless the observability contract says the public monitor should see them.",
+    "Legacy final/high/needs/low labels are not truth or guard signals.",
+    "This protocol does not train learning models.",
+    "This protocol does not change online foreground suppression.",
+    "Unpaired poisoned/evasive results are not valid paper evidence."
+  ],
+  "required_pair_metrics": [
+    "clean_attack_retention",
+    "poisoned_or_evasive_attack_retention",
+    "retention_drop_under_poisoning_or_evasion",
+    "clean_foreground_rate",
+    "poisoned_or_evasive_foreground_rate",
+    "knowledge_base_drift_score",
+    "novelty_signal_drop",
+    "visibility_contract_satisfied",
+    "unobservable_from_public_control_plane",
+    "suppressed_attack_count",
+    "foreground_workload_change"
+  ],
+  "stop_loss_criteria": {
+    "missing_clean_base_blocks_materialization": true,
+    "missing_held_constant_blocks_materialization": true,
+    "missing_changed_variable_blocks_materialization": true,
+    "missing_evidence_snapshot_binding_blocks_materialization": true,
+    "zero_public_visibility_counted_as_miss_blocks_materialization": true,
+    "unpaired_poisoned_or_evasive_variant_blocks_materialization": true,
+    "learning_training_requested_blocks_phase": true,
+    "minimum_feasible_core_pairs": 4,
+    "required_core_pair_types": [
+      "detection_data_poisoning",
+      "visibility_evasion"
+    ]
+  },
+  "pair_templates": [
+    {
+      "pair_id": "pair_exact_origin_history_poisoning_v01",
+      "clean_base_scenario_id": "r_attack0b_exact_origin_001",
+      "family": "origin_hijack",
+      "adversarial_variant": "data_poisoned",
+      "threat_model": "detection_data_poisoning",
+      "benchmark_track": "controlled_attack",
+      "materialization_status": "protocol_ready_pending_r_poison1",
+      "held_constant": [
+        "victim_prefix_group",
+        "legitimate_origin_group",
+        "attacker_as_group",
+        "background_window_id",
+        "collector_set_id",
+        "evidence_snapshot_binding",
+        "foreground_policy"
+      ],
+      "changed_variables": [
+        "poisoning_phase_enabled",
+        "pre_attack_origin_history",
+        "pre_attack_prefix_origin_novelty",
+        "pre_attack_path_frequency"
+      ],
+      "phases": [
+        "stable_baseline",
+        "poisoning_preparation",
+        "attack_launch",
+        "recovery"
+      ],
+      "knowledge_base_targets": [
+        "prefix_origin_history",
+        "origin_novelty",
+        "path_signature_frequency"
+      ],
+      "drift_metrics": [
+        "prefix_origin_history_delta",
+        "new_origin_signal_drop",
+        "path_signature_prior_count_delta"
+      ],
+      "observability_contract": {
+        "expected_visibility_class": "public_visible",
+        "recall_denominator_policy": "included_public_visible",
+        "expected_public_collectors_seen": "same_as_clean_base"
+      },
+      "forbidden_shortcuts": [
+        "Do not make the poisoned attack a different victim or attacker.",
+        "Do not change evidence snapshots between clean and poisoned variants.",
+        "Do not use legacy workflow labels to define poisoning success."
+      ]
+    },
+    {
+      "pair_id": "pair_forged_origin_history_poisoning_v01",
+      "clean_base_scenario_id": "r_attack0b_forged_origin_001",
+      "family": "forged_origin_hijack",
+      "adversarial_variant": "data_poisoned",
+      "threat_model": "detection_data_poisoning",
+      "benchmark_track": "controlled_attack",
+      "materialization_status": "protocol_ready_pending_r_poison1",
+      "held_constant": [
+        "victim_prefix_group",
+        "legitimate_origin_group",
+        "attacker_as_group",
+        "background_window_id",
+        "collector_set_id",
+        "evidence_snapshot_binding",
+        "foreground_policy"
+      ],
+      "changed_variables": [
+        "poisoning_phase_enabled",
+        "pre_attack_as_link_history",
+        "pre_attack_forged_path_history",
+        "pre_attack_role_memory"
+      ],
+      "phases": [
+        "stable_baseline",
+        "poisoning_preparation",
+        "attack_launch",
+        "recovery"
+      ],
+      "knowledge_base_targets": [
+        "as_link_history",
+        "path_signature_frequency",
+        "routing_role_memory"
+      ],
+      "drift_metrics": [
+        "as_link_prior_count_delta",
+        "path_novelty_signal_drop",
+        "role_memory_drift"
+      ],
+      "observability_contract": {
+        "expected_visibility_class": "public_visible",
+        "recall_denominator_policy": "included_public_visible",
+        "expected_public_collectors_seen": "same_as_clean_base"
+      },
+      "forbidden_shortcuts": [
+        "Do not relabel AS-rel matched paths as safe.",
+        "Do not treat RPKI valid forged-origin variants as benign.",
+        "Do not change the clean base object when adding poisoning preparation."
+      ]
+    },
+    {
+      "pair_id": "pair_path_manipulation_history_poisoning_v01",
+      "clean_base_scenario_id": "r_attack0b_path_manip_001",
+      "family": "path_manipulation_like",
+      "adversarial_variant": "data_poisoned",
+      "threat_model": "detection_data_poisoning",
+      "benchmark_track": "controlled_attack",
+      "materialization_status": "protocol_ready_pending_r_poison1",
+      "held_constant": [
+        "victim_prefix_group",
+        "legitimate_origin_group",
+        "attacker_as_group",
+        "background_window_id",
+        "collector_set_id",
+        "evidence_snapshot_binding",
+        "foreground_policy"
+      ],
+      "changed_variables": [
+        "poisoning_phase_enabled",
+        "pre_attack_path_signature_history",
+        "pre_attack_transit_role_frequency"
+      ],
+      "phases": [
+        "stable_baseline",
+        "poisoning_preparation",
+        "attack_launch",
+        "recovery"
+      ],
+      "knowledge_base_targets": [
+        "path_signature_frequency",
+        "transit_role_memory",
+        "path_novelty"
+      ],
+      "drift_metrics": [
+        "path_signature_prior_count_delta",
+        "transit_role_memory_drift",
+        "path_novelty_signal_drop"
+      ],
+      "observability_contract": {
+        "expected_visibility_class": "public_visible",
+        "recall_denominator_policy": "included_public_visible",
+        "expected_public_collectors_seen": "same_as_clean_base"
+      },
+      "forbidden_shortcuts": [
+        "Do not randomly insert ASNs without baseline-supported roles.",
+        "Do not use path novelty loss alone as attack success.",
+        "Do not claim route-leak truth from this path manipulation pair."
+      ]
+    },
+    {
+      "pair_id": "pair_subprefix_noexport_evasion_v01",
+      "clean_base_scenario_id": "r_attack1_subprefix_origin_001",
+      "family": "subprefix_origin_hijack",
+      "adversarial_variant": "noexport_evasive",
+      "threat_model": "visibility_evasion",
+      "benchmark_track": "controlled_attack",
+      "materialization_status": "protocol_ready_pending_r_poison1",
+      "held_constant": [
+        "victim_prefix_group",
+        "legitimate_origin_group",
+        "attacker_as_group",
+        "background_window_id",
+        "evidence_snapshot_binding",
+        "foreground_policy",
+        "prefix_specificity"
+      ],
+      "changed_variables": [
+        "visibility_constraint",
+        "community_no_export_present",
+        "expected_public_collectors_seen",
+        "expected_public_collectors_not_seen"
+      ],
+      "phases": [
+        "stable_baseline",
+        "attack_launch",
+        "recovery"
+      ],
+      "knowledge_base_targets": [
+        "public_monitor_visibility",
+        "collector_asymmetry",
+        "community_no_export_signal"
+      ],
+      "drift_metrics": [
+        "public_collector_visibility_drop",
+        "collector_asymmetry_delta",
+        "foreground_visibility_signal_drop"
+      ],
+      "observability_contract": {
+        "expected_visibility_class": "partial_public_visible",
+        "recall_denominator_policy": "included_for_expected_visible_collectors_only",
+        "expected_public_collectors_seen": "explicit_subset_required",
+        "expected_public_collectors_not_seen": "explicit_subset_required"
+      },
+      "forbidden_shortcuts": [
+        "Do not count fully public-invisible variants as foreground misses.",
+        "Do not claim NO_EXPORT present is attack truth.",
+        "Do not claim NO_EXPORT absent is safe."
+      ]
+    },
+    {
+      "pair_id": "pair_stealth_collector_asymmetry_v01",
+      "clean_base_scenario_id": "r_attack1_stealth_noexport_001",
+      "family": "stealth_evasion_like",
+      "adversarial_variant": "visibility_evasive",
+      "threat_model": "visibility_evasion",
+      "benchmark_track": "controlled_attack",
+      "materialization_status": "protocol_ready_pending_r_poison1",
+      "held_constant": [
+        "victim_prefix_group",
+        "legitimate_origin_group",
+        "attacker_as_group",
+        "background_window_id",
+        "evidence_snapshot_binding",
+        "foreground_policy"
+      ],
+      "changed_variables": [
+        "visibility_constraint",
+        "collector_scope_contract",
+        "community_no_export_present",
+        "public_visibility_class"
+      ],
+      "phases": [
+        "stable_baseline",
+        "attack_launch",
+        "recovery"
+      ],
+      "knowledge_base_targets": [
+        "collector_asymmetry",
+        "community_no_export_signal",
+        "public_monitor_visibility"
+      ],
+      "drift_metrics": [
+        "expected_seen_collector_match_rate",
+        "expected_not_seen_collector_match_rate",
+        "public_visibility_gap"
+      ],
+      "observability_contract": {
+        "expected_visibility_class": "partial_public_visible",
+        "recall_denominator_policy": "included_for_expected_visible_collectors_only",
+        "expected_public_collectors_seen": "explicit_subset_required",
+        "expected_public_collectors_not_seen": "explicit_subset_required"
+      },
+      "forbidden_shortcuts": [
+        "Do not turn low visibility into confirmed NO_EXPORT.",
+        "Do not treat missing community fields as NO_EXPORT absence.",
+        "Do not report recall without the collector visibility contract."
+      ]
+    },
+    {
+      "pair_id": "pair_route_leak_policy_poisoning_v01",
+      "clean_base_scenario_id": "r_attack0b_route_leak_001",
+      "family": "route_leak_like",
+      "adversarial_variant": "data_poisoned",
+      "threat_model": "detection_data_poisoning",
+      "benchmark_track": "controlled_attack",
+      "materialization_status": "design_only_needs_policy_semantics",
+      "held_constant": [
+        "victim_prefix_group",
+        "legitimate_origin_group",
+        "attacker_as_group",
+        "background_window_id",
+        "collector_set_id",
+        "evidence_snapshot_binding",
+        "foreground_policy"
+      ],
+      "changed_variables": [
+        "poisoning_phase_enabled",
+        "pre_attack_path_relation_history",
+        "pre_attack_valley_like_frequency"
+      ],
+      "phases": [
+        "stable_baseline",
+        "poisoning_preparation",
+        "attack_launch",
+        "recovery"
+      ],
+      "knowledge_base_targets": [
+        "path_relation_diagnostic_history",
+        "valley_like_frequency"
+      ],
+      "drift_metrics": [
+        "valley_like_signal_drop",
+        "path_relation_history_delta"
+      ],
+      "observability_contract": {
+        "expected_visibility_class": "public_visible",
+        "recall_denominator_policy": "included_public_visible",
+        "expected_public_collectors_seen": "same_as_clean_base"
+      },
+      "forbidden_shortcuts": [
+        "Do not treat AS-rel valley-like diagnostic as route leak truth.",
+        "Do not promote this pair until policy semantics are explicitly bounded."
+      ]
+    }
+  ],
+  "references": [
+    {
+      "label": "Is Crunching Public Data the Right Approach to Detect BGP Hijacks?",
+      "url": "https://arxiv.org/abs/2507.20434",
+      "role": "Data-poisoning motivation for public-monitor-derived knowledge bases."
+    },
+    {
+      "label": "Global BGP Attacks that Evade Route Monitoring",
+      "url": "https://arxiv.org/abs/2408.09622",
+      "role": "NO_EXPORT/subprefix monitor-evasion motivation."
+    },
+    {
+      "label": "BEAM: Towards a Semantics-Aware Routing Anomaly Detection System",
+      "url": "https://www.usenix.org/conference/usenixsecurity24/presentation/chen-yihao",
+      "role": "Historical semantic memory motivates poisoning-aware robustness checks."
+    },
+    {
+      "label": "DFOH: A System to Detect Forged-Origin BGP Hijacks",
+      "url": "https://www.usenix.org/conference/nsdi24/presentation/holterbach",
+      "role": "Forged-origin detection baseline class that uses public BGP observations."
+    },
+    {
+      "label": "RFC 1997",
+      "url": "https://datatracker.ietf.org/doc/html/rfc1997",
+      "role": "Well-known BGP community semantics including NO_EXPORT."
+    },
+    {
+      "label": "RFC 7908",
+      "url": "https://www.rfc-editor.org/info/rfc7908",
+      "role": "Route leak definition boundary."
+    },
+    {
+      "label": "RFC 9234",
+      "url": "https://datatracker.ietf.org/doc/html/rfc9234",
+      "role": "BGP roles/OTC route leak prevention and detection boundary."
+    }
+  ]
+}

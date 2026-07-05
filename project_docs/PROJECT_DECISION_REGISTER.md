@@ -1142,3 +1142,67 @@ Consequence:
 - Historical replay remains required for external validity.
 - Paired poisoning/evasion remains core to the paper and can now start because
   the base controlled families are realistic and retained.
+
+## R-POISON-0 Paired Poisoning / Evasion Protocol Decision
+
+Status: completed design; R-POISON-1 materialization may proceed for feasible
+pairs only.
+
+Decision:
+
+- Treat poisoning/evasion as paired adversarial variants, not as unpaired extra
+  attack rows.
+- Separate detection-data poisoning from visibility evasion:
+  - detection-data poisoning manipulates public-monitor-derived history,
+    novelty, path, link, or routing-role memory before the actual attack;
+  - visibility evasion manipulates what public collectors are expected to see,
+    for example through NO_EXPORT / collector asymmetry contracts.
+- Keep classical AS-path poisoning for traffic engineering as a terminology
+  caveat, not the central paper target.
+- Require every R-POISON-1 variant to hold the clean base victim, origin,
+  attacker, background window, foreground policy, and evidence snapshot fixed.
+- Only the explicit poisoning preparation or visibility constraint may change.
+
+Rationale:
+
+- The current controlled families are now realistic enough and retained by
+  `online_path_pressure_v1`, so poisoning/evasion design can start.
+- Public-monitor-derived systems can fail if history or observability is
+  manipulated; this is different from ordinary attack-family expansion.
+- A paired benchmark is the only scientifically clean way to measure
+  retention drop, novelty-signal drop, knowledge-base drift, and visibility
+  effects.
+- Unpaired poisoned/evasive rows would blur template realism, background
+  differences, evidence snapshots, and denominator definitions.
+
+Result:
+
+- `configs/r_poison0_paired_benchmark_protocol_v01.json` defines six pair
+  templates.
+- `scripts/audit_r_poison0_feasibility.py` checks clean-base availability,
+  validation status, held constants, changed variables, observability
+  contracts, denominator policy, poisoning memory targets, drift metrics, and
+  forbidden shortcuts.
+- The local audit passed overall:
+  - `overall_feasible=true`;
+  - feasible pairs: `5`;
+  - blocked pairs: `1`;
+  - covered threat models: `detection_data_poisoning`,
+    `visibility_evasion`;
+  - base validations available and passing for R-ATTACK-0B and R-ATTACK-1.
+- The blocked pair is `pair_route_leak_policy_poisoning_v01`, deliberately
+  held at design-only because AS-rel diagnostics are not route-leak truth and
+  policy semantics need a stricter contract.
+
+Consequence:
+
+- Next step is `R-POISON-1` bounded materialization for feasible pairs only.
+- R-POISON-1 must not materialize the route-leak policy poisoning pair until
+  the policy-semantics contract is bounded.
+- R-POISON-0 produced no attack data, trained no learning model, and changed
+  no foreground policy.
+- `NO_EXPORT` present remains evidence, not attack truth.
+- Public-invisible variants must not be counted as foreground misses unless
+  the observability contract says the public monitor should see them.
+- Learning remains blocked until poisoned/evasive variants are materialized
+  and foreground retention is retested.
