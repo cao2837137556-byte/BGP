@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-07-05
+Last updated: 2026-07-06
 
 Status: active authoritative mainline state.
 
@@ -81,6 +81,7 @@ Attack families that must remain visible:
 | Paired poisoning/evasion protocol | protocol and feasibility audit passed | R-POISON-0 | high | 5 feasible paired templates for R-POISON-1; route-leak policy poisoning remains design-only until policy semantics are bounded |
 | Paired poisoning/evasion bounded materialization | bounded pair prototypes materialized | R-POISON-1 | high | 5 feasible pairs, 33 truth-prototype rows, fair-pair contract passed; no full replay and no adversarial retention claim |
 | Paired poisoning/evasion bounded replay | completed; stop-loss triggered | R-POISON-2 | high | Clean retention mean `1.0`, adversarial retention mean `0.8`; path-manipulation history poisoning suppressed 2 adversarial attack events |
+| Retention reason / ablation audit | completed; explains why retained pairs were retained | R-POISON-2A | high | 1 current failure pair, 1 single-signal fragile retained pair, 3 combined-stress fragile retained pairs; next remains targeted foreground repair |
 
 ## 4. Active Data / Evidence Contract
 
@@ -214,10 +215,28 @@ Forbidden in new decision logic:
      does not prove historical-event recall, fully invisible monitor-evasion
      recall, poisoning robustness, or learning performance.
 
-3. Historical replay and paired poisoning/evasion scenarios are missing.
-   - The 6h reference window cannot prove real-world attack recall or poisoning/evasion robustness.
+3. R-POISON-2A clarified that retained poisoning/evasion pairs are not yet a
+   robustness proof.
+   - R-POISON-2 retained four adversarial pairs and suppressed one.
+   - R-POISON-2A decomposed the retained cases:
+     - `pair_forged_origin_history_poisoning_v01` is single-signal fragile
+       under `mask_asrel_diagnostic`;
+     - `pair_exact_origin_history_poisoning_v01`,
+       `pair_subprefix_noexport_evasion_v01`, and
+       `pair_stealth_collector_asymmetry_v01` survive single-signal ablations
+       but fail combined external+novelty stress tests;
+     - `pair_path_manipulation_history_poisoning_v01` remains a current
+       foreground failure.
+   - This means foreground repair must add a path-memory poisoning guard and
+     later test stronger variants. The retained pairs cannot be described as
+     general poisoning robustness.
 
-4. Community sidecar has a small join-quality caveat.
+4. Historical replay and larger paired poisoning/evasion scenarios are still
+   missing.
+   - The 6h reference window cannot prove real-world attack recall or
+     poisoning/evasion robustness.
+
+5. Community sidecar has a small join-quality caveat.
    - `partial_record_count_match=10273`;
    - `raw_join_unavailable=1`;
    - the R-ATTACK-0A-3 derived run also has `raw_join_unavailable=1`;
@@ -230,13 +249,18 @@ Forbidden in new decision logic:
 ```text
 R-FOREGROUND-4:
 Repair `online_path_pressure_v1` against the R-POISON-2 path-manipulation
-history-poisoning stop-loss before learning or larger poisoning replay.
+history-poisoning stop-loss before learning or larger poisoning replay. Use
+R-POISON-2A as the repair design input: fix the current path-memory failure,
+preserve the retained-pair protection contracts, and do not claim that the
+retained pairs already prove poisoning robustness.
 ```
 
 Allowed scope:
 
 - start from the single R-POISON-2 failure mode:
   `pair_path_manipulation_history_poisoning_v01`;
+- use the R-POISON-2A ablation audit to distinguish current failures,
+  single-signal fragility, and combined-stress fragility;
 - protect poisoning-susceptible path-memory transitions when novelty has been
   artificially washed out;
 - preserve the existing safety boundary: suppressed attack count must be `0`;
@@ -291,6 +315,7 @@ R-CLEAN-0
   -> R-POISON-0 [done: paired poisoning/evasion protocol and feasibility audit]
   -> R-POISON-1 [done: bounded materialization of feasible poisoning/evasion pairs]
   -> R-POISON-2 [done: bounded replay; stop-loss triggered]
+  -> R-POISON-2A [done: retention reason and signal ablation audit]
   -> R-FOREGROUND-4 [next: repair path-memory poisoning foreground weakness]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
@@ -322,6 +347,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-POISON-0 | paired poisoning/evasion protocol | feasibility audit passed; 5 feasible pairs cover detection-data poisoning and visibility evasion; route-leak policy poisoning blocked as design-only | completed design | `project_docs/R_POISON_0_PAIRED_POISONING_EVASION_PROTOCOL.md` |
 | R-POISON-1 | bounded paired materialization | materialized 5 feasible pair prototypes; clean-base validation and fair-pair contracts passed; adversarial retention remains pending replay | completed materialization | `project_docs/R_POISON_1_BOUNDED_PAIRED_MATERIALIZATION.md` |
 | R-POISON-2 | bounded poisoning/evasion replay | stop-loss triggered: path-manipulation history poisoning dropped from `1.0` clean retention to `0.0` adversarial retention; 2 adversarial attack events suppressed | completed stop-loss | `project_docs/R_POISON_2_BOUNDED_REPLAY.md` |
+| R-POISON-2A | retention reason and signal ablation audit | completed; forged-origin retained pair is AS-rel single-signal fragile, three retained pairs are combined-stress fragile, and path-manipulation history poisoning remains current failure | completed audit | `project_docs/R_POISON_2A_RETENTION_REASON_ABLATION.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

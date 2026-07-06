@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-07-03
+Last updated: 2026-07-06
 
 Status: active project-level research decision register.
 
@@ -1311,3 +1311,63 @@ Consequence:
 - The repair must stay narrow; it should not revert to blanket retention.
 - Route-leak policy poisoning remains blocked until policy semantics are
   explicitly bounded.
+
+## R-POISON-2A Retention Reason / Ablation Decision
+
+Status: completed audit; R-FOREGROUND-4 remains the next implementation step.
+
+Decision:
+
+- Do not interpret the four retained R-POISON-2 adversarial pairs as a general
+  poisoning-robustness proof.
+- Audit retained pairs by their foreground protection reason before changing
+  the policy.
+- Use counterfactual signal ablation to separate:
+  - current foreground failures;
+  - single-signal fragile retained pairs;
+  - combined-stress fragile retained pairs;
+  - retained pairs that survive single-signal removal.
+- Keep RPKI, AS-rel, NO_EXPORT, low visibility, and path novelty as evidence
+  or diagnostics, not attack truth.
+
+Rationale:
+
+- R-POISON-2 showed one clear miss, but the retained pairs may be retained
+  because strong independent evidence remains visible.
+- A foreground repair that only patches the failed path-manipulation pair could
+  miss fragile retained families.
+- A foreground repair that keeps every possible weak signal would destroy the
+  compression goal. The project needs a narrow repair with explicit stop-loss
+  gates.
+
+Result:
+
+- `scripts/audit_r_poison2a_retention_ablation.py` reads R-POISON-2 bounded
+  replay outputs and reruns the frozen assignment under signal masks.
+- The local audit produced:
+  - pair count: `5`;
+  - bounded event rows: `10`;
+  - ablation event rows: `80`;
+  - adversarial pairs currently retained: `4`;
+  - adversarial pairs currently suppressed: `1`;
+  - current failure pair:
+    `pair_path_manipulation_history_poisoning_v01`;
+  - single-signal fragile retained pair:
+    `pair_forged_origin_history_poisoning_v01`;
+  - combined-stress fragile retained pairs:
+    `pair_exact_origin_history_poisoning_v01`,
+    `pair_subprefix_noexport_evasion_v01`, and
+    `pair_stealth_collector_asymmetry_v01`.
+
+Consequence:
+
+- R-FOREGROUND-4 must first repair the path-memory poisoning failure:
+  short-lived crafted recurrence must not be treated as long-term benign
+  history.
+- The forged-origin retained pair needs a secondary guard before any broad
+  robustness claim because it is AS-rel single-signal fragile.
+- The exact-origin, subprefix/NO_EXPORT, and stealth pairs can remain retained
+  under current bounded evidence, but their protection must be written as an
+  evidence-bundle contract, not as standalone poisoning robustness.
+- Do not proceed to learning, larger poisoning replay, or historical replay
+  expansion before the R-FOREGROUND-4 repair smoke passes the stop-loss gates.
