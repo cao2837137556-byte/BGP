@@ -1261,3 +1261,53 @@ Consequence:
 - Only R-POISON-2 may report clean-vs-adversarial retention drop.
 - If R-POISON-2 suppresses an adversarial attack member, foreground repair
   takes priority before learning or historical replay expansion.
+
+## R-POISON-2 Bounded Replay Stop-Loss Decision
+
+Status: completed; stop-loss triggered.
+
+Decision:
+
+- Run a bounded event-level replay for the five R-POISON-1 feasible pairs.
+- Use the frozen `online_path_pressure_v1` logic.
+- Do not call this a full 6h replay.
+- Use the result as a foreground robustness stop-loss gate before learning or
+  larger poisoning replay.
+
+Result:
+
+- Pair count: `5`.
+- Bounded replay event rows: `10`.
+- Clean attack retention mean: `1.0`.
+- Adversarial attack retention mean: `0.8`.
+- Suppressed adversarial attack events: `2`.
+- Stop-loss triggered: `true`.
+- The only pair with retention drop is
+  `pair_path_manipulation_history_poisoning_v01`:
+  - clean retention: `1.0`;
+  - poisoned/evasive retention: `0.0`;
+  - retention drop: `1.0`;
+  - suppressed attack events: `2`.
+
+Interpretation:
+
+- The path-manipulation clean case is retained by novelty.
+- The data-poisoned variant simulates that the path signature has already been
+  introduced into public-monitor-derived history.
+- RPKI remains `valid`.
+- AS-rel remains `all_pairs_known_no_valley_diagnostic`.
+- There is no NO_EXPORT / community risk signal.
+- With novelty washed out and no surviving external risk signal, the frozen
+  foreground policy suppresses the poisoned variant as recurrent background.
+
+Consequence:
+
+- This is a real robustness gap in the current foreground layer.
+- Do not proceed to learning, historical replay expansion, or larger poisoning
+  replay before repair.
+- Next step is `R-FOREGROUND-4`:
+  repair poisoning-susceptible path-memory foreground protection while
+  preserving useful background compression.
+- The repair must stay narrow; it should not revert to blanket retention.
+- Route-leak policy poisoning remains blocked until policy semantics are
+  explicitly bounded.
