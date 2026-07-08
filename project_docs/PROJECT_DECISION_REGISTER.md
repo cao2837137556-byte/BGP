@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-07-06
+Last updated: 2026-07-08
 
 Status: active project-level research decision register.
 
@@ -1371,3 +1371,61 @@ Consequence:
   evidence-bundle contract, not as standalone poisoning robustness.
 - Do not proceed to learning, larger poisoning replay, or historical replay
   expansion before the R-FOREGROUND-4 repair smoke passes the stop-loss gates.
+
+## R-FOREGROUND-4A Path-Memory Maturity Feasibility Decision
+
+Status: completed audit; R-FOREGROUND-4B targeted guard smoke is next.
+
+Decision:
+
+- Repair the R-POISON-2 path-manipulation history-poisoning weakness by
+  changing what counts as a suppressible background recurrence.
+- Do not add a broad rule that retains every recent recurrence.
+- Treat path-memory maturity as suppression-permission evidence only:
+  - mature recurrence can support operational background suppression;
+  - immature or recent recurrence blocks confident suppression;
+  - immature or recent recurrence is not attack truth.
+- Do not claim long-term maturity from the supplied foreground artifact alone.
+  It only supports within-window maturity proxies.
+
+Rationale:
+
+- R-POISON-2 showed that crafted history can wash out path novelty and cause a
+  path-manipulation-like attack to be suppressed.
+- R-POISON-2A showed that retained poisoning/evasion pairs are not a general
+  robustness proof.
+- R-FOREGROUND-4A shows that a broad recent-recurrence guard would damage
+  compression too much, so the repair must be targeted.
+
+Result:
+
+- `scripts/audit_r_foreground4a_path_memory_maturity.py` computes path-memory
+  maturity proxies and impact estimates from the supplied R-ATTACK-1 /
+  R-FOREGROUND-3 assignment artifact.
+- Local audit results:
+  - assignment rows: `384,839`;
+  - unique `prefix_origin_path_key`: `239,939`;
+  - current suppressed rows: `184,772`;
+  - current suppression rate: `0.480128`;
+  - current compression ratio: `1.923551`;
+  - suppressed recent-suspicious recurrence proxy rows: `67,758`;
+  - share of suppressed rows that are recent-suspicious recurrence proxies:
+    `0.366711`;
+  - broad guard retaining all recent-suspicious recurrence proxy rows would
+    reduce suppression to `0.304060` and compression to `1.436905`;
+  - R-POISON-2 path-memory failure is classified as
+    `bounded_recent_crafted_history_proxy`;
+  - long-term maturity claim supported by current artifact: `false`.
+
+Consequence:
+
+- R-FOREGROUND-4B must implement a targeted path-memory poisoning guard, not a
+  general recent-recurrence must-keep.
+- R-FOREGROUND-4B should repair
+  `pair_path_manipulation_history_poisoning_v01`, keep suppressed attack count
+  at `0`, restore adversarial retention to `1.0`, and preserve useful
+  compression as much as possible.
+- Formal long-term maturity needs a longer historical sidecar. If R-FOREGROUND
+  later relies on mature recurrence for strong suppression, the sidecar must
+  record first-seen age, long-window span, collector diversity, and recent-vs-
+  long-term recurrence separation.

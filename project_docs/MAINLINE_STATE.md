@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-07-06
+Last updated: 2026-07-08
 
 Status: active authoritative mainline state.
 
@@ -82,6 +82,7 @@ Attack families that must remain visible:
 | Paired poisoning/evasion bounded materialization | bounded pair prototypes materialized | R-POISON-1 | high | 5 feasible pairs, 33 truth-prototype rows, fair-pair contract passed; no full replay and no adversarial retention claim |
 | Paired poisoning/evasion bounded replay | completed; stop-loss triggered | R-POISON-2 | high | Clean retention mean `1.0`, adversarial retention mean `0.8`; path-manipulation history poisoning suppressed 2 adversarial attack events |
 | Retention reason / ablation audit | completed; explains why retained pairs were retained | R-POISON-2A | high | 1 current failure pair, 1 single-signal fragile retained pair, 3 combined-stress fragile retained pairs; next remains targeted foreground repair |
+| Path-memory maturity feasibility audit | completed; broad guard is too expensive | R-FOREGROUND-4A | high | Supplied assignment rows `384,839`; current compression `1.923551x`; broad recent-recurrence guard would drop compression to `1.436905x`; long-term maturity still needs a longer-history sidecar |
 
 ## 4. Active Data / Evidence Contract
 
@@ -231,12 +232,26 @@ Forbidden in new decision logic:
      later test stronger variants. The retained pairs cannot be described as
      general poisoning robustness.
 
-4. Historical replay and larger paired poisoning/evasion scenarios are still
+4. R-FOREGROUND-4A showed the repair must be targeted.
+   - The supplied R-ATTACK-1 / R-FOREGROUND-3 assignment artifact has
+     `384,839` rows.
+   - Current suppression rate is `0.480128` and compression ratio is
+     `1.923551` on that supplied artifact.
+   - `67,758` suppressed rows are recent-suspicious recurrence proxies,
+     about `0.366711` of all suppressed rows.
+   - Pulling every such row back to foreground/gray would reduce suppression
+     to `0.304060` and compression to `1.436905`.
+   - Therefore R-FOREGROUND-4B must not protect all recent recurrence. It must
+     target poisoning-like path-memory transitions.
+   - The current artifact provides within-window maturity proxies only.
+     Formal long-term maturity still requires a longer historical sidecar.
+
+5. Historical replay and larger paired poisoning/evasion scenarios are still
    missing.
    - The 6h reference window cannot prove real-world attack recall or
      poisoning/evasion robustness.
 
-5. Community sidecar has a small join-quality caveat.
+6. Community sidecar has a small join-quality caveat.
    - `partial_record_count_match=10273`;
    - `raw_join_unavailable=1`;
    - the R-ATTACK-0A-3 derived run also has `raw_join_unavailable=1`;
@@ -248,11 +263,10 @@ Forbidden in new decision logic:
 
 ```text
 R-FOREGROUND-4:
-Repair `online_path_pressure_v1` against the R-POISON-2 path-manipulation
-history-poisoning stop-loss before learning or larger poisoning replay. Use
-R-POISON-2A as the repair design input: fix the current path-memory failure,
-preserve the retained-pair protection contracts, and do not claim that the
-retained pairs already prove poisoning robustness.
+Implement a targeted path-memory poisoning guard smoke. R-FOREGROUND-4A showed
+that broad recent-recurrence protection would damage compression too much, so
+R-FOREGROUND-4B must repair the path-manipulation poisoning failure without
+retaining every recent recurrent route.
 ```
 
 Allowed scope:
@@ -261,6 +275,8 @@ Allowed scope:
   `pair_path_manipulation_history_poisoning_v01`;
 - use the R-POISON-2A ablation audit to distinguish current failures,
   single-signal fragility, and combined-stress fragility;
+- use the R-FOREGROUND-4A maturity audit to avoid broad recent-recurrence
+  retention;
 - protect poisoning-susceptible path-memory transitions when novelty has been
   artificially washed out;
 - preserve the existing safety boundary: suppressed attack count must be `0`;
@@ -291,6 +307,9 @@ Forbidden scope:
 - do not count public-invisible variants as foreground misses.
 - do not train learning or expand historical replay until the R-POISON-2
   stop-loss is repaired.
+- do not claim within-window recurrence is long-term maturity.
+- do not use maturity as an attack score; it is only suppression-permission
+  evidence.
 
 ## 7. Active Experiment Order
 
@@ -316,7 +335,8 @@ R-CLEAN-0
   -> R-POISON-1 [done: bounded materialization of feasible poisoning/evasion pairs]
   -> R-POISON-2 [done: bounded replay; stop-loss triggered]
   -> R-POISON-2A [done: retention reason and signal ablation audit]
-  -> R-FOREGROUND-4 [next: repair path-memory poisoning foreground weakness]
+  -> R-FOREGROUND-4A [done: path-memory maturity feature feasibility audit]
+  -> R-FOREGROUND-4B [next: targeted path-memory poisoning guard smoke]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
   -> R-LEARN-0
@@ -348,6 +368,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-POISON-1 | bounded paired materialization | materialized 5 feasible pair prototypes; clean-base validation and fair-pair contracts passed; adversarial retention remains pending replay | completed materialization | `project_docs/R_POISON_1_BOUNDED_PAIRED_MATERIALIZATION.md` |
 | R-POISON-2 | bounded poisoning/evasion replay | stop-loss triggered: path-manipulation history poisoning dropped from `1.0` clean retention to `0.0` adversarial retention; 2 adversarial attack events suppressed | completed stop-loss | `project_docs/R_POISON_2_BOUNDED_REPLAY.md` |
 | R-POISON-2A | retention reason and signal ablation audit | completed; forged-origin retained pair is AS-rel single-signal fragile, three retained pairs are combined-stress fragile, and path-manipulation history poisoning remains current failure | completed audit | `project_docs/R_POISON_2A_RETENTION_REASON_ABLATION.md` |
+| R-FOREGROUND-4A | path-memory maturity feature feasibility audit | completed; broad guard would hurt compression, and current artifact only supports within-window maturity proxies | completed audit | `project_docs/R_FOREGROUND_4A_PATH_MEMORY_MATURITY_AUDIT.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
