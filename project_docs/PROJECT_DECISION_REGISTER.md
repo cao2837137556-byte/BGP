@@ -1429,3 +1429,58 @@ Consequence:
   later relies on mature recurrence for strong suppression, the sidecar must
   record first-seen age, long-window span, collector diversity, and recent-vs-
   long-term recurrence separation.
+
+## R-MEM-0 30d Path-Memory Sidecar Feasibility Decision
+
+Status: completed feasibility audit; R-MEM-1 sidecar materialization is next.
+
+Decision:
+
+- Do not repair path-memory poisoning robustness using only the 6h foreground
+  artifact.
+- Use a 30-day path-memory sidecar before changing the foreground policy.
+- Treat 30-day history as a stateful sidecar lookup, not as a one-shot
+  foreground input and not as training labels.
+- Keep maturity as suppression-permission evidence:
+  - mature recurrence can support operational background suppression;
+  - recent-only or immature recurrence blocks confident suppression;
+  - neither state is attack truth or benign truth.
+
+Rationale:
+
+- R-FOREGROUND-4A showed that broad protection of recent recurrence would
+  damage compression too much.
+- The poisoning failure is specifically about confusing short-lived crafted
+  recurrence with stable path history.
+- A 6h window cannot distinguish long-term natural recurrence from an attack
+  prelude.
+- Front-end compression must be evaluated like an online system: current 5m or
+  15m batches query historical memory, rather than consuming all historical data
+  as the active foreground input.
+
+Result:
+
+- `scripts/audit_r_mem0_30d_path_memory_feasibility.py` scans local source
+  parquet metadata, estimates 30-day sidecar volume, and emits the sidecar
+  feature contract.
+- Local audit result:
+  - target date: `2024-04-16`;
+  - requested history window: `2024-03-18` to `2024-04-16`;
+  - local dates available in that window: `1`;
+  - local collectors on the target date: `12`;
+  - source parquet files scanned: `3,235`;
+  - source raw files ready for path-memory key derivation: `2,312`;
+  - observed target-date raw rows: `94,312,168`;
+  - observed target-date raw parquet bytes: `855,827,425`;
+  - estimated 30-day same-collector raw rows: `1,741,147,710`;
+  - estimated 30-day same-collector raw parquet bytes: `15,799,890,900`.
+
+Consequence:
+
+- R-MEM-1 should materialize the 30-day path-memory sidecar on HPC.
+- The sidecar must record origin provenance because raw rows may need to derive
+  `origin_as` from the final AS in `as_path`.
+- R-FOREGROUND-4B should then use the sidecar for a targeted poisoning guard
+  smoke.
+- Do not train learning or claim poisoning robustness until the 30-day memory
+  sidecar and targeted foreground repair pass.

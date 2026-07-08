@@ -83,6 +83,7 @@ Attack families that must remain visible:
 | Paired poisoning/evasion bounded replay | completed; stop-loss triggered | R-POISON-2 | high | Clean retention mean `1.0`, adversarial retention mean `0.8`; path-manipulation history poisoning suppressed 2 adversarial attack events |
 | Retention reason / ablation audit | completed; explains why retained pairs were retained | R-POISON-2A | high | 1 current failure pair, 1 single-signal fragile retained pair, 3 combined-stress fragile retained pairs; next remains targeted foreground repair |
 | Path-memory maturity feasibility audit | completed; broad guard is too expensive | R-FOREGROUND-4A | high | Supplied assignment rows `384,839`; current compression `1.923551x`; broad recent-recurrence guard would drop compression to `1.436905x`; long-term maturity still needs a longer-history sidecar |
+| 30d path-memory sidecar feasibility | completed; local 6h/one-day data is not enough for maturity claims | R-MEM-0 | high | Local target-date scan found 12 collectors and `94,312,168` raw rows; estimated 30d same-collector source volume is `1,741,147,710` raw rows / `15.8GB` parquet; next is HPC sidecar materialization |
 
 ## 4. Active Data / Evidence Contract
 
@@ -243,8 +244,26 @@ Forbidden in new decision logic:
      to `0.304060` and compression to `1.436905`.
    - Therefore R-FOREGROUND-4B must not protect all recent recurrence. It must
      target poisoning-like path-memory transitions.
-   - The current artifact provides within-window maturity proxies only.
-     Formal long-term maturity still requires a longer historical sidecar.
+  - The current artifact provides within-window maturity proxies only.
+    Formal long-term maturity still requires a longer historical sidecar.
+
+5. R-MEM-0 confirms that the next repair needs a 30-day sidecar before policy
+   changes.
+   - Local data in the requested 30-day window covers only `2024-04-16`.
+   - The local tree still contains enough 2024-04-16 source parquet metadata
+     to estimate cost and schema:
+     - 12 collectors in the local target-date inventory;
+     - `94,312,168` observed target-date raw rows;
+     - `855,827,425` observed target-date raw parquet bytes;
+     - estimated 30-day same-collector raw rows: `1,741,147,710`;
+     - estimated 30-day same-collector raw parquet bytes:
+       `15,799,890,900`.
+   - Raw files often lack explicit `origin_as`, but `as_path` is available, so
+     origin can be derived with explicit provenance.
+   - The 30-day history must be a sidecar lookup, not a one-shot foreground
+     input blob.
+   - Per-batch evaluation must report 5m/15m foreground load and p50/p90/p99,
+     not only one aggregate compression number.
 
 5. Historical replay and larger paired poisoning/evasion scenarios are still
    missing.
@@ -262,23 +281,25 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-FOREGROUND-4:
-Implement a targeted path-memory poisoning guard smoke. R-FOREGROUND-4A showed
-that broad recent-recurrence protection would damage compression too much, so
-R-FOREGROUND-4B must repair the path-manipulation poisoning failure without
-retaining every recent recurrent route.
+R-MEM-1:
+Materialize a 30-day path-memory sidecar on HPC, then use it for
+R-FOREGROUND-4B targeted path-memory poisoning guard smoke.
 ```
 
 Allowed scope:
 
+- materialize path-memory as a sidecar, not a full 30-day foreground input;
 - start from the single R-POISON-2 failure mode:
   `pair_path_manipulation_history_poisoning_v01`;
 - use the R-POISON-2A ablation audit to distinguish current failures,
   single-signal fragility, and combined-stress fragility;
 - use the R-FOREGROUND-4A maturity audit to avoid broad recent-recurrence
   retention;
+- use R-MEM-0 to require long-window maturity evidence before a path recurrence
+  can support suppression;
 - protect poisoning-susceptible path-memory transitions when novelty has been
   artificially washed out;
+- report foreground load by 5m/15m micro-batch when the sidecar is used;
 - preserve the existing safety boundary: suppressed attack count must be `0`;
 - preserve useful background compression and avoid reverting to blanket
   retention;
@@ -310,6 +331,9 @@ Forbidden scope:
 - do not claim within-window recurrence is long-term maturity.
 - do not use maturity as an attack score; it is only suppression-permission
   evidence.
+- do not treat 30-day history as labels or as an offline training set.
+- do not enter learning before R-MEM-1 and R-FOREGROUND-4B validate the
+  foreground poisoning repair.
 
 ## 7. Active Experiment Order
 
@@ -336,7 +360,9 @@ R-CLEAN-0
   -> R-POISON-2 [done: bounded replay; stop-loss triggered]
   -> R-POISON-2A [done: retention reason and signal ablation audit]
   -> R-FOREGROUND-4A [done: path-memory maturity feature feasibility audit]
-  -> R-FOREGROUND-4B [next: targeted path-memory poisoning guard smoke]
+  -> R-MEM-0 [done: 30d path-memory sidecar feasibility audit]
+  -> R-MEM-1 [next: materialize 30d path-memory sidecar]
+  -> R-FOREGROUND-4B [then: targeted path-memory poisoning guard smoke]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
   -> R-LEARN-0
@@ -369,6 +395,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-POISON-2 | bounded poisoning/evasion replay | stop-loss triggered: path-manipulation history poisoning dropped from `1.0` clean retention to `0.0` adversarial retention; 2 adversarial attack events suppressed | completed stop-loss | `project_docs/R_POISON_2_BOUNDED_REPLAY.md` |
 | R-POISON-2A | retention reason and signal ablation audit | completed; forged-origin retained pair is AS-rel single-signal fragile, three retained pairs are combined-stress fragile, and path-manipulation history poisoning remains current failure | completed audit | `project_docs/R_POISON_2A_RETENTION_REASON_ABLATION.md` |
 | R-FOREGROUND-4A | path-memory maturity feature feasibility audit | completed; broad guard would hurt compression, and current artifact only supports within-window maturity proxies | completed audit | `project_docs/R_FOREGROUND_4A_PATH_MEMORY_MATURITY_AUDIT.md` |
+| R-MEM-0 | 30d path-memory sidecar feasibility audit | completed; local 6h/one-day data cannot support long-term maturity claim, but schema and cost support an HPC 30d sidecar step | completed audit | `project_docs/R_MEM_0_30D_PATH_MEMORY_FEASIBILITY.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
