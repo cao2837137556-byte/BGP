@@ -84,6 +84,7 @@ Attack families that must remain visible:
 | Retention reason / ablation audit | completed; explains why retained pairs were retained | R-POISON-2A | high | 1 current failure pair, 1 single-signal fragile retained pair, 3 combined-stress fragile retained pairs; next remains targeted foreground repair |
 | Path-memory maturity feasibility audit | completed; broad guard is too expensive | R-FOREGROUND-4A | high | Supplied assignment rows `384,839`; current compression `1.923551x`; broad recent-recurrence guard would drop compression to `1.436905x`; long-term maturity still needs a longer-history sidecar |
 | 30d path-memory sidecar feasibility | completed; local 6h/one-day data is not enough for maturity claims | R-MEM-0 | high | Local target-date scan found 12 collectors and `94,312,168` raw rows; estimated 30d same-collector source volume is `1,741,147,710` raw rows / `15.8GB` parquet; next is HPC sidecar materialization |
+| 10d canonical path-memory sidecar smoke | implemented; local partial smoke passed, HPC source collection pending | R-MEM-1A | active | Canonical collectors are `route-views.sg` and `rrc00`; local partial smoke produced `144,541` sidecar rows from 8 source files; next is HPC 10d source collection and full sidecar materialization |
 
 ## 4. Active Data / Evidence Contract
 
@@ -265,12 +266,25 @@ Forbidden in new decision logic:
    - Per-batch evaluation must report 5m/15m foreground load and p50/p90/p99,
      not only one aggregate compression number.
 
-5. Historical replay and larger paired poisoning/evasion scenarios are still
+6. R-MEM-1A implements the 10-day sidecar smoke path but still needs HPC source
+   collection.
+   - Canonical collectors are `route-views.sg` and `rrc00`.
+   - The sidecar source run is `r_mem1a_10d_sources_v01`.
+   - Local partial smoke intentionally used only 8 source files and
+     `--allow-partial-history`.
+   - It selected `400,000` input rows, processed `374,085` rows, and produced
+     `144,541` sidecar rows.
+   - All local smoke rows are `recent_only`, which is expected because the
+     local run is partial and cannot support maturity.
+   - Formal R-MEM-1A requires HPC collection for the full 10-day canonical
+     source window.
+
+7. Historical replay and larger paired poisoning/evasion scenarios are still
    missing.
    - The 6h reference window cannot prove real-world attack recall or
      poisoning/evasion robustness.
 
-6. Community sidecar has a small join-quality caveat.
+8. Community sidecar has a small join-quality caveat.
    - `partial_record_count_match=10273`;
    - `raw_join_unavailable=1`;
    - the R-ATTACK-0A-3 derived run also has `raw_join_unavailable=1`;
@@ -282,13 +296,15 @@ Forbidden in new decision logic:
 
 ```text
 R-MEM-1:
-Materialize a 30-day path-memory sidecar on HPC, then use it for
-R-FOREGROUND-4B targeted path-memory poisoning guard smoke.
+Run R-MEM-1A on HPC: collect the 10-day canonical source data and materialize
+the path-memory sidecar, then use it for R-FOREGROUND-4B targeted
+path-memory poisoning guard smoke.
 ```
 
 Allowed scope:
 
-- materialize path-memory as a sidecar, not a full 30-day foreground input;
+- collect canonical 10-day raw update source for `route-views.sg` and `rrc00`;
+- materialize path-memory as a sidecar, not a full-history foreground input;
 - start from the single R-POISON-2 failure mode:
   `pair_path_manipulation_history_poisoning_v01`;
 - use the R-POISON-2A ablation audit to distinguish current failures,
@@ -334,6 +350,8 @@ Forbidden scope:
 - do not treat 30-day history as labels or as an offline training set.
 - do not enter learning before R-MEM-1 and R-FOREGROUND-4B validate the
   foreground poisoning repair.
+- do not treat the local R-MEM-1A partial smoke as a complete 10-day maturity
+  result.
 
 ## 7. Active Experiment Order
 
@@ -361,7 +379,8 @@ R-CLEAN-0
   -> R-POISON-2A [done: retention reason and signal ablation audit]
   -> R-FOREGROUND-4A [done: path-memory maturity feature feasibility audit]
   -> R-MEM-0 [done: 30d path-memory sidecar feasibility audit]
-  -> R-MEM-1 [next: materialize 30d path-memory sidecar]
+  -> R-MEM-1A [next: collect/materialize 10d canonical path-memory sidecar on HPC]
+  -> R-MEM-1B [later: scale same contract to 30d]
   -> R-FOREGROUND-4B [then: targeted path-memory poisoning guard smoke]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
@@ -396,6 +415,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-POISON-2A | retention reason and signal ablation audit | completed; forged-origin retained pair is AS-rel single-signal fragile, three retained pairs are combined-stress fragile, and path-manipulation history poisoning remains current failure | completed audit | `project_docs/R_POISON_2A_RETENTION_REASON_ABLATION.md` |
 | R-FOREGROUND-4A | path-memory maturity feature feasibility audit | completed; broad guard would hurt compression, and current artifact only supports within-window maturity proxies | completed audit | `project_docs/R_FOREGROUND_4A_PATH_MEMORY_MATURITY_AUDIT.md` |
 | R-MEM-0 | 30d path-memory sidecar feasibility audit | completed; local 6h/one-day data cannot support long-term maturity claim, but schema and cost support an HPC 30d sidecar step | completed audit | `project_docs/R_MEM_0_30D_PATH_MEMORY_FEASIBILITY.md` |
+| R-MEM-1A | 10d canonical path-memory sidecar smoke | implemented; local partial smoke passed, but full 10d source collection/materialization must run on HPC | active | `project_docs/R_MEM_1A_10D_PATH_MEMORY_SIDECAR_SMOKE.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

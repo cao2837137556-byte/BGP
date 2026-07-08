@@ -1484,3 +1484,58 @@ Consequence:
   smoke.
 - Do not train learning or claim poisoning robustness until the 30-day memory
   sidecar and targeted foreground repair pass.
+
+## R-MEM-1A 10d Canonical Path-Memory Sidecar Decision
+
+Status: implemented; local partial smoke passed; full HPC source collection is
+next.
+
+Decision:
+
+- Use a 10-day canonical path-memory sidecar as the functional bridge between
+  R-MEM-0 and R-FOREGROUND-4B.
+- Keep the first canonical source scope narrow:
+  - `route-views.sg`;
+  - `rrc00`.
+- Use native-like public-data chunking:
+  - `route-views.sg` in 15-minute chunks;
+  - `rrc00` in 5-minute chunks.
+- Keep 30 days as the formal validation target after the 10-day data contract
+  works.
+
+Rationale:
+
+- Seven days is too thin for paper-facing maturity claims.
+- Thirty days is the right formal direction but should not be the first time
+  the source collection and sidecar contract are tested.
+- A 10-day smoke is large enough to expose path-memory and source-coverage
+  issues while keeping debugging affordable.
+- Foreground repair should not proceed from a 6h partial artifact.
+
+Result:
+
+- Added config:
+  `configs/r_mem1a_10d_path_memory_v01.json`.
+- Added source collector:
+  `scripts/collect_r_mem1a_bgpstream_sources.py`.
+- Added sidecar materializer:
+  `scripts/materialize_r_mem1a_path_memory_sidecar.py`.
+- Added HPC wrappers:
+  `scripts/hpc/r_mem1a_collect_10d_sources.slurm`;
+  `scripts/hpc/r_mem1a_materialize_10d_sidecar.slurm`.
+- Local partial materialization smoke passed:
+  - selected source files: `8`;
+  - input source rows: `400,000`;
+  - processed source rows: `374,085`;
+  - sidecar rows: `144,541`;
+  - maturity bucket: `recent_only=144,541`;
+  - complete requested history: `false`.
+
+Consequence:
+
+- The next operational step is to run the HPC source collection array and then
+  the sidecar materialization job.
+- The local partial smoke proves only the data contract and provenance logic.
+  It does not prove 10-day maturity.
+- Do not proceed to learning.
+- Do not run R-FOREGROUND-4B until the 10-day sidecar is complete and joinable.

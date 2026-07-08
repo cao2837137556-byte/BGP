@@ -1,0 +1,80 @@
+{
+  "phase": "R-MEM-1A",
+  "description": "10-day canonical path-memory sidecar smoke for foreground poisoning robustness repair.",
+  "target_date": "2024-04-16",
+  "history_days": 10,
+  "canonical_collectors": [
+    "route-views.sg",
+    "rrc00"
+  ],
+  "source": {
+    "source_root": "data/runs",
+    "source_run_id": "r_mem1a_10d_sources_v01",
+    "file_kind": "raw",
+    "prefer_run_ids": [
+      "r_mem1a_10d_sources_v01",
+      "s2a_baseline_v01_pilot_6h_april16",
+      "s2a_expanded_v01_pilot_6h_april16",
+      "s2a_attack1_family_expansion_6h_april16_v01"
+    ],
+    "deduplicate_by": [
+      "collector",
+      "date",
+      "start_time",
+      "end_time",
+      "file_kind"
+    ],
+    "allow_partial_history_default": false
+  },
+  "source_collection": {
+    "record_type": "updates",
+    "default_chunk_minutes": 15,
+    "collector_chunk_minutes": {
+      "rrc00": 5,
+      "route-views.sg": 15
+    },
+    "max_rows_per_chunk": 0,
+    "skip_existing": true
+  },
+  "path_key": {
+    "prefix_field": "prefix",
+    "as_path_fields": [
+      "as_path_clean",
+      "as_path"
+    ],
+    "origin_policy": "derive_from_final_as_when_origin_missing",
+    "collapse_consecutive_as_prepends": true
+  },
+  "maturity": {
+    "mature_min_active_days": 3,
+    "mature_min_active_micro_batches": 12,
+    "mature_min_collector_days": 3,
+    "mature_min_span_sec": 172800,
+    "recent_only_days": 2,
+    "short_lived_span_sec": 21600
+  },
+  "online_evaluation_contract": {
+    "micro_batch_units": [
+      "5m",
+      "15m"
+    ],
+    "required_metrics": [
+      "overall_compression",
+      "per_batch_foreground_rows_p50",
+      "per_batch_foreground_rows_p90",
+      "per_batch_foreground_rows_p99",
+      "attack_retention_by_family",
+      "adversarial_attack_retention_by_pair",
+      "suppressed_attack_count",
+      "sidecar_lookup_coverage",
+      "sidecar_unavailable_rate"
+    ]
+  },
+  "forbidden_claims": [
+    "10-day memory is not a truth label.",
+    "mature recurrence is not benign truth.",
+    "recent-only recurrence is not attack truth.",
+    "path-memory sidecar does not replace RPKI, AS-rel, or NO_EXPORT evidence.",
+    "R-MEM-1A does not train learning and does not modify foreground policy."
+  ]
+}
