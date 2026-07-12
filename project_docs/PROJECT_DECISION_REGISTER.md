@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-07-08
+Last updated: 2026-07-12
 
 Status: active project-level research decision register.
 
@@ -11,6 +11,24 @@ This document records project-level research decisions, architecture boundaries,
 It exists to prevent important decisions from being scattered across chat history or one-off task reports. New topical documents can still exist, but key decisions must be folded back into this register and the mainline documentation set: `README.md`, `HANDOFF.md`, `EXPERIMENT_MAINLINE.md`, `VERIFIER_REDESIGN_ROADMAP.md`, and `CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`.
 
 R-DOC-1 is a documentation consolidation step. It does not run experiments, modify verifier outputs, download evidence, train learning, or change code logic.
+
+## R-MEM-1A Acquisition Gate
+
+**Decision:** Treat remote BGP source acquisition as a separately qualified
+infrastructure contract before using it for path-memory evidence.
+
+**Rationale:** The first 10-day collection array (`149909`) timed out at the
+eight-hour task limit with zero update parquet files and zero day summaries.
+The current collector performs a broker-backed PyBGPStream call before it can
+write a checkpoint, so a larger wall time would not establish reliable data
+acquisition.
+
+**Consequence:** Run a bounded compute-node probe that separates Broker DNS /
+metadata access from one real Route Views and one real RIS update retrieval.
+Do not restart the 10-day collection until the failure layer is known and the
+collector has a per-window timeout, checkpoint manifest, and retry contract.
+
+**Status:** active blocker.
 
 ## Current Locked Architecture
 

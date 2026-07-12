@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-07-08
+Last updated: 2026-07-12
 
 Status: active authoritative mainline state.
 
@@ -84,7 +84,7 @@ Attack families that must remain visible:
 | Retention reason / ablation audit | completed; explains why retained pairs were retained | R-POISON-2A | high | 1 current failure pair, 1 single-signal fragile retained pair, 3 combined-stress fragile retained pairs; next remains targeted foreground repair |
 | Path-memory maturity feasibility audit | completed; broad guard is too expensive | R-FOREGROUND-4A | high | Supplied assignment rows `384,839`; current compression `1.923551x`; broad recent-recurrence guard would drop compression to `1.436905x`; long-term maturity still needs a longer-history sidecar |
 | 30d path-memory sidecar feasibility | completed; local 6h/one-day data is not enough for maturity claims | R-MEM-0 | high | Local target-date scan found 12 collectors and `94,312,168` raw rows; estimated 30d same-collector source volume is `1,741,147,710` raw rows / `15.8GB` parquet; next is HPC sidecar materialization |
-| 10d canonical path-memory sidecar smoke | implemented; local partial smoke passed, HPC source collection pending | R-MEM-1A | active | Canonical collectors are `route-views.sg` and `rrc00`; local partial smoke produced `144,541` sidecar rows from 8 source files; next is HPC 10d source collection and full sidecar materialization |
+| 10d canonical path-memory sidecar smoke | acquisition blocked pending compute-node probe | R-MEM-1A | active blocker | Canonical collectors are `route-views.sg` and `rrc00`; the first HPC collection array (`149909`) timed out at 8h with zero parquet outputs and zero summaries. Do not extend or rerun it before the bounded broker/raw acquisition probe identifies the failing layer. |
 
 ## 4. Active Data / Evidence Contract
 
