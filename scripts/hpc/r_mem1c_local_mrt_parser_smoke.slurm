@@ -56,14 +56,14 @@ apptainer exec \
 set -euo pipefail
 cd /work
 PY=/opt/venv/bin/python
-$PY -m py_compile scripts/run_r_mem1c_local_mrt_parser_smoke.py
-$PY - <<'PY'
+\$PY -m py_compile scripts/run_r_mem1c_local_mrt_parser_smoke.py
+\$PY - <<'PY'
 import pyarrow
 import pybgpstream
 print('pyarrow_version=' + pyarrow.__version__)
 print('pybgpstream_import=passed')
 PY
-$PY -u scripts/run_r_mem1c_local_mrt_parser_smoke.py \
+\$PY -u scripts/run_r_mem1c_local_mrt_parser_smoke.py \
   --config '$CONFIG' \
   --data-root /data_store \
   --output-dir "/data_store/$OUTPUT_REL" \
