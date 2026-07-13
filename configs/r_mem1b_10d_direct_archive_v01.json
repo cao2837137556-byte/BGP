@@ -1,0 +1,50 @@
+{
+  "phase": "R-MEM-1B",
+  "dataset_id": "r_mem1b_10d_direct_archive_v01",
+  "description": "Direct provider-archive acquisition of the 10-day canonical raw MRT window.",
+  "start_date": "2024-04-07",
+  "end_date": "2024-04-16",
+  "sources": [
+    {
+      "project": "routeviews",
+      "collector": "route-views.sg",
+      "interval_minutes": 15,
+      "extension": ".bz2",
+      "url_template": "https://archive.routeviews.org/route-views.sg/bgpdata/{year_month}/UPDATES/updates.{date_compact}.{time_compact}.bz2"
+    },
+    {
+      "project": "ris",
+      "collector": "rrc00",
+      "interval_minutes": 5,
+      "extension": ".gz",
+      "url_template": "https://data.ris.ripe.net/rrc00/{year_month}/updates.{date_compact}.{time_compact}.gz"
+    }
+  ],
+  "expected": {
+    "day_count": 10,
+    "route-views.sg_files_per_day": 96,
+    "rrc00_files_per_day": 288,
+    "total_files": 3840
+  },
+  "integrity_contract": {
+    "atomic_partial_suffix": ".part",
+    "required_fields": [
+      "source_url",
+      "collector",
+      "archive_timestamp_utc",
+      "local_relative_path",
+      "size_bytes",
+      "sha256",
+      "compression_check"
+    ],
+    "require_nonzero_file": true,
+    "require_compression_check": true,
+    "all_planned_files_required_for_full_run": true
+  },
+  "claim_boundaries": [
+    "Archive acquisition does not establish attack or benign truth.",
+    "A missing archive file is unavailable source data, not an empty observation.",
+    "This dataset does not by itself establish path maturity or poisoning robustness.",
+    "R-MEM-1B does not modify foreground policy and does not train learning."
+  ]
+}

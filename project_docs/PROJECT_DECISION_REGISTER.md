@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-07-12
+Last updated: 2026-07-13
 
 Status: active project-level research decision register.
 
@@ -11,6 +11,34 @@ This document records project-level research decisions, architecture boundaries,
 It exists to prevent important decisions from being scattered across chat history or one-off task reports. New topical documents can still exist, but key decisions must be folded back into this register and the mainline documentation set: `README.md`, `HANDOFF.md`, `EXPERIMENT_MAINLINE.md`, `VERIFIER_REDESIGN_ROADMAP.md`, and `CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`.
 
 R-DOC-1 is a documentation consolidation step. It does not run experiments, modify verifier outputs, download evidence, train learning, or change code logic.
+
+## R-MEM-1B Direct Archive Acquisition Decision
+
+**Decision:** Acquire the 10-day canonical raw MRT window on the local
+egress-capable host through the working proxy, then transfer immutable archives
+and manifests to HPC for local parsing.
+
+**Rationale:** HPC array `149909` timed out after eight hours with zero source
+outputs. Bounded probe `150551` then showed Broker request timeouts and external
+stream timeouts for both Route Views and RIS from compute nodes. Local proxy
+checks reached the real Route Views SG and RRC00 archive objects. Increasing
+Slurm wall time would repeat an egress failure rather than answer the research
+question.
+
+**Consequence:**
+
+- keep the frozen 6h repository data in place for reproducibility;
+- place new large raw MRT and derived history assets under the external data
+  root identified by `configs/data_catalog_v1.json`;
+- require a deterministic 3,840-file plan for `2024-04-07` through
+  `2024-04-16`;
+- require source URL, byte size, SHA256, compressed-stream validation, atomic
+  partial files, and durable receipts;
+- do not parse or materialize the sidecar until the acquisition manifest is
+  complete;
+- use HPC for local compute after transfer, not for blocked internet access.
+
+**Status:** active acquisition.
 
 ## R-MEM-1A Acquisition Gate
 
@@ -28,7 +56,8 @@ metadata access from one real Route Views and one real RIS update retrieval.
 Do not restart the 10-day collection until the failure layer is known and the
 collector has a per-window timeout, checkpoint manifest, and retry contract.
 
-**Status:** active blocker.
+**Status:** completed infrastructure stop-loss; superseded by R-MEM-1B local
+direct archive acquisition.
 
 ## Current Locked Architecture
 

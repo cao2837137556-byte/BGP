@@ -1,0 +1,43 @@
+{
+  "catalog_version": "1.0",
+  "description": "Single logical catalog for frozen repository data and external large BGP assets.",
+  "root_resolution": {
+    "repository_root": ".",
+    "external_data_root_env": "BGP_DATA_ROOT",
+    "recommended_local_external_root": "D:/study/paper/bgp_data_store",
+    "recommended_hpc_external_root": "/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline/data_store"
+  },
+  "datasets": [
+    {
+      "dataset_id": "s2a_baseline_v01_pilot_6h_april16",
+      "role": "frozen_legacy_6h_reference",
+      "root_kind": "repository",
+      "relative_path": "data/runs/s2a_baseline_v01_pilot_6h_april16",
+      "status": "frozen_compatible",
+      "notes": "Keep in place for reproducibility. Legacy workflow fields are not truth labels."
+    },
+    {
+      "dataset_id": "r_mem1b_10d_direct_archive_v01",
+      "role": "immutable_raw_mrt_source",
+      "root_kind": "external",
+      "relative_path": "raw_mrt/r_mem1b_10d_direct_archive_v01",
+      "manifest_path": "manifests/r_mem1b_10d_direct_archive_v01",
+      "status": "active_acquisition",
+      "notes": "Route Views SG and RIPE RIS RRC00 raw update archives for 2024-04-07 through 2024-04-16."
+    },
+    {
+      "dataset_id": "r_mem1b_10d_path_memory_derived_v01",
+      "role": "derived_path_memory_workspace",
+      "root_kind": "external",
+      "relative_path": "derived/r_mem1b_10d_path_memory_v01",
+      "status": "pending_raw_acquisition",
+      "notes": "Must be derived from the immutable raw MRT dataset through a manifest-bound parser run."
+    }
+  ],
+  "guardrails": [
+    "Large raw and derived datasets stay outside git.",
+    "Repository configs and manifests identify every external dataset.",
+    "A missing external dataset is unavailable evidence, never an empty or benign observation.",
+    "Do not silently substitute the frozen 6h reference for the 10-day history dataset."
+  ]
+}
