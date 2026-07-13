@@ -1,0 +1,37 @@
+{
+  "phase": "R-MEM-1C",
+  "dataset_id": "r_mem1b_10d_direct_archive_v01",
+  "description": "Bounded local-MRT parser and schema smoke before full 10-day parsing.",
+  "manifest_relative_path": "manifests/r_mem1b_10d_direct_archive_v01/full/download_manifest.json",
+  "raw_relative_root": "raw_mrt/r_mem1b_10d_direct_archive_v01",
+  "default_output_relative_path": "derived/r_mem1c_local_mrt_parser_smoke_v01",
+  "files_per_collector": 2,
+  "batch_rows": 100000,
+  "preview_rows": 200,
+  "timestamp_grace_sec": 1,
+  "collector_intervals_minutes": {
+    "route-views.sg": 15,
+    "rrc00": 5
+  },
+  "gates": {
+    "required_collectors": [
+      "route-views.sg",
+      "rrc00"
+    ],
+    "minimum_rows_per_file": 1,
+    "minimum_timestamp_coverage": 1.0,
+    "minimum_update_prefix_coverage": 0.999,
+    "minimum_announcement_as_path_coverage": 0.95,
+    "maximum_out_of_window_rows": 0,
+    "require_community_column": true,
+    "require_full_selected_file_parse": true
+  },
+  "claim_boundaries": [
+    "MRT parser smoke is not attack detection or benign labeling.",
+    "A parsed row is not external evidence and is not a truth label.",
+    "NO_EXPORT presence is propagation-control evidence, not attack truth.",
+    "NO_EXPORT absence is not safe evidence.",
+    "Ambiguous AS_SET or confederation path endings must not be converted into a guessed origin ASN.",
+    "R-MEM-1C does not modify foreground policy and does not train learning."
+  ]
+}

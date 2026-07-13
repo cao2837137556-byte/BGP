@@ -32,6 +32,14 @@
       "relative_path": "derived/r_mem1b_10d_path_memory_v01",
       "status": "pending_hpc_local_parsing",
       "notes": "Must be derived from the immutable raw MRT dataset through a manifest-bound parser run."
+    },
+    {
+      "dataset_id": "r_mem1c_local_mrt_parser_smoke_v01",
+      "role": "bounded_parser_schema_qualification",
+      "root_kind": "external",
+      "relative_path": "derived/r_mem1c_local_mrt_parser_smoke_v01",
+      "status": "implementation_ready_hpc_execution_pending",
+      "notes": "Deterministic first/last archive smoke for Route Views SG and RRC00; selected inputs are size/SHA256 checked and fully streamed into provenance-preserving Parquet."
     }
   ],
   "guardrails": [

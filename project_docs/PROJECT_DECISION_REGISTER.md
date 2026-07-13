@@ -12,6 +12,30 @@ It exists to prevent important decisions from being scattered across chat histor
 
 R-DOC-1 is a documentation consolidation step. It does not run experiments, modify verifier outputs, download evidence, train learning, or change code logic.
 
+## R-MEM-1C Local MRT Parser Qualification Decision
+
+**Decision:** Gate the full 10-day parse with a deterministic four-archive
+HPC-local smoke: the first and last archive from Route Views SG and RRC00.
+
+**Rationale:** Archive count, SHA256, and compression validation prove transfer
+integrity but do not prove that the selected BGPStream runtime preserves update
+timestamps, prefixes, AS paths, communities, and source provenance. A bounded
+full-file parse catches parser/runtime/schema failures before a costly full run.
+
+**Consequence:**
+
+- stream provider-compressed MRT directly; do not materialize decompressed MRT;
+- recheck selected input byte size and SHA256 against the frozen manifest;
+- derive origin only from an unambiguous final singleton ASN and leave AS_SET or
+  confederation endings null with explicit provenance;
+- require both collectors, in-window timestamps, prefix/AS-path coverage, and a
+  list-valued communities column;
+- reject capped debug runs as formal evidence;
+- do not modify foreground, train learning, or treat parsed rows as truth.
+
+**Status:** implementation ready; deterministic local plan passed; formal HPC
+parser smoke pending.
+
 ## R-MEM-1B Direct Archive Acquisition Decision
 
 **Decision:** Acquire the 10-day canonical raw MRT window on the local

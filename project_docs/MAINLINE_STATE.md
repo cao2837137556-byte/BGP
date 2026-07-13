@@ -86,6 +86,7 @@ Attack families that must remain visible:
 | 30d path-memory sidecar feasibility | completed; local 6h/one-day data is not enough for maturity claims | R-MEM-0 | high | Local target-date scan found 12 collectors and `94,312,168` raw rows; estimated 30d same-collector source volume is `1,741,147,710` raw rows / `15.8GB` parquet; next is HPC sidecar materialization |
 | 10d canonical path-memory sidecar smoke | compute-node acquisition route rejected | R-MEM-1A | completed stop-loss | Array `149909` timed out with zero outputs; probe `150551` confirmed Broker and stream timeouts from the compute node. Do not retry the same HPC network path. |
 | 10d immutable raw MRT acquisition | complete and integrity-verified | R-MEM-1B | completed | `3,840/3,840` Route Views SG/RRC00 archives cover `2024-04-07` through `2024-04-16`; total `16,502,107,268` bytes; final SHA256/compression revalidation passed with zero failures or partial files. |
+| Local MRT parser/schema qualification | implementation and deterministic local plan passed; formal HPC smoke pending | R-MEM-1C | implementation ready | Plan selects four complete archives: first and last from Route Views SG and RRC00. Formal run must verify selected size/SHA256, stream compressed MRT without extraction, preserve communities/provenance, and pass timestamp/schema gates. |
 
 ## 4. Active Data / Evidence Contract
 
@@ -310,9 +311,9 @@ Forbidden in new decision logic:
 
 ```text
 R-MEM-1C:
-Transfer the verified 10-day raw MRT dataset and manifest to HPC, verify the
-post-transfer checksums, then run a bounded local-MRT parser/schema smoke before
-full path-memory sidecar materialization.
+Run the bounded HPC-local MRT parser/schema smoke against the already
+transferred and checksum-verified 10-day archive before any full parse or
+path-memory sidecar materialization.
 ```
 
 Allowed scope:
@@ -400,7 +401,7 @@ R-CLEAN-0
   -> R-MEM-0 [done: 30d path-memory sidecar feasibility audit]
   -> R-MEM-1A [done: compute-node acquisition path rejected by bounded probe]
   -> R-MEM-1B [done: 3,840/3,840 immutable raw MRT archives verified]
-  -> R-MEM-1C [next: transfer, checksum, and bounded HPC-local parser smoke]
+  -> R-MEM-1C [next: formal bounded HPC-local parser/schema smoke]
   -> R-FOREGROUND-4B [then: targeted path-memory poisoning guard smoke]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
@@ -437,6 +438,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-MEM-0 | 30d path-memory sidecar feasibility audit | completed; local 6h/one-day data cannot support long-term maturity claim, but schema and cost support an HPC 30d sidecar step | completed audit | `project_docs/R_MEM_0_30D_PATH_MEMORY_FEASIBILITY.md` |
 | R-MEM-1A | 10d canonical path-memory sidecar smoke | sidecar contract implemented; compute-node acquisition stop-loss confirmed by array `149909` and probe `150551` | completed stop-loss | `project_docs/R_MEM_1A_COMPUTE_NODE_ACQUISITION_PROBE.md` |
 | R-MEM-1B | 10d direct archive acquisition | complete: 3,840/3,840 archives, 16,502,107,268 bytes, all SHA256/compression checks passed, zero residual partials | completed | `project_docs/R_MEM_1B_10D_DIRECT_ARCHIVE_ACQUISITION.md` |
+| R-MEM-1C | local MRT parser/schema qualification | implementation and deterministic 4-file plan passed locally; formal HPC parse is pending | active | `project_docs/R_MEM_1C_LOCAL_MRT_PARSER_SMOKE.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
