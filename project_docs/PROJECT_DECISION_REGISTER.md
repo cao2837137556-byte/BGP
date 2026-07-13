@@ -38,7 +38,13 @@ question.
   complete;
 - use HPC for local compute after transfer, not for blocked internet access.
 
-**Status:** active acquisition.
+**Result:** The final dataset contains `3,840/3,840` archives (`960` Route
+Views SG and `2,880` RRC00), spans all ten requested UTC dates, and totals
+`16,502,107,268` bytes. Final all-file SHA256 and compressed-stream
+revalidation passed with zero failures and zero residual partial files.
+
+**Status:** completed; R-MEM-1C post-transfer verification and bounded
+HPC-local parsing is next.
 
 ## R-MEM-1A Acquisition Gate
 

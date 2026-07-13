@@ -22,15 +22,15 @@
       "root_kind": "external",
       "relative_path": "raw_mrt/r_mem1b_10d_direct_archive_v01",
       "manifest_path": "manifests/r_mem1b_10d_direct_archive_v01",
-      "status": "active_acquisition",
-      "notes": "Route Views SG and RIPE RIS RRC00 raw update archives for 2024-04-07 through 2024-04-16."
+      "status": "acquired_and_integrity_verified",
+      "notes": "Complete 3,840-file Route Views SG and RIPE RIS RRC00 raw update archive set for 2024-04-07 through 2024-04-16; 16,502,107,268 bytes; final SHA256/compression revalidation passed."
     },
     {
       "dataset_id": "r_mem1b_10d_path_memory_derived_v01",
       "role": "derived_path_memory_workspace",
       "root_kind": "external",
       "relative_path": "derived/r_mem1b_10d_path_memory_v01",
-      "status": "pending_raw_acquisition",
+      "status": "pending_hpc_local_parsing",
       "notes": "Must be derived from the immutable raw MRT dataset through a manifest-bound parser run."
     }
   ],

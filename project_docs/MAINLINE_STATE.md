@@ -85,7 +85,7 @@ Attack families that must remain visible:
 | Path-memory maturity feasibility audit | completed; broad guard is too expensive | R-FOREGROUND-4A | high | Supplied assignment rows `384,839`; current compression `1.923551x`; broad recent-recurrence guard would drop compression to `1.436905x`; long-term maturity still needs a longer-history sidecar |
 | 30d path-memory sidecar feasibility | completed; local 6h/one-day data is not enough for maturity claims | R-MEM-0 | high | Local target-date scan found 12 collectors and `94,312,168` raw rows; estimated 30d same-collector source volume is `1,741,147,710` raw rows / `15.8GB` parquet; next is HPC sidecar materialization |
 | 10d canonical path-memory sidecar smoke | compute-node acquisition route rejected | R-MEM-1A | completed stop-loss | Array `149909` timed out with zero outputs; probe `150551` confirmed Broker and stream timeouts from the compute node. Do not retry the same HPC network path. |
-| 10d immutable raw MRT acquisition | local direct archive route active; smoke passed | R-MEM-1B | in progress | Exactly `3,840` Route Views SG/RRC00 archives are planned for `2024-04-07` through `2024-04-16`; 4-file smoke passed SHA256/compression validation and full local acquisition is running. |
+| 10d immutable raw MRT acquisition | complete and integrity-verified | R-MEM-1B | completed | `3,840/3,840` Route Views SG/RRC00 archives cover `2024-04-07` through `2024-04-16`; total `16,502,107,268` bytes; final SHA256/compression revalidation passed with zero failures or partial files. |
 
 ## 4. Active Data / Evidence Contract
 
@@ -286,6 +286,12 @@ Forbidden in new decision logic:
      wall time.
    - R-MEM-1B stores raw MRT outside git under one cataloged external data root,
      with URL, size, SHA256, compression validation, and restart receipts.
+   - Final acquisition result is `3,840/3,840` complete archives:
+     - Route Views SG: `960`;
+     - RRC00: `2,880`;
+     - compressed bytes: `16,502,107,268`;
+     - final SHA256/compression checks: `3,840/3,840`;
+     - failures and residual `.part` files: `0`.
 
 7. Historical replay and larger paired poisoning/evasion scenarios are still
    missing.
@@ -303,21 +309,20 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-MEM-1B:
-Acquire the 10-day canonical raw MRT archives locally through the working
-proxy, validate the complete manifest, transfer immutable bytes to HPC, then
-parse and materialize the path-memory sidecar from local HPC files.
+R-MEM-1C:
+Transfer the verified 10-day raw MRT dataset and manifest to HPC, verify the
+post-transfer checksums, then run a bounded local-MRT parser/schema smoke before
+full path-memory sidecar materialization.
 ```
 
 Allowed scope:
 
-- collect exactly 960 Route Views SG and 2,880 RRC00 update archives for
-  `2024-04-07` through `2024-04-16`;
-- require source URL, UTC timestamp, byte size, SHA256, compression validation,
-  and restart-safe per-file receipts;
-- keep new large raw data under the cataloged external data root rather than
-  mixing it into the git worktree;
-- use HPC only for local parsing and sidecar materialization after transfer;
+- transfer the exact R-MEM-1B archive tree plus full manifest and receipts;
+- verify file count, total bytes, and SHA256 after transfer before parsing;
+- parse a bounded Route Views and RIS sample from local HPC bytes;
+- audit MRT parser output schema, row counts, timestamps, AS paths, prefixes,
+  collectors, and communities before full materialization;
+- keep immutable raw archives separate from derived parquet and sidecar output;
 - materialize path-memory as a sidecar, not a full-history foreground input;
 - start from the single R-POISON-2 failure mode:
   `pair_path_manipulation_history_poisoning_v01`;
@@ -394,8 +399,8 @@ R-CLEAN-0
   -> R-FOREGROUND-4A [done: path-memory maturity feature feasibility audit]
   -> R-MEM-0 [done: 30d path-memory sidecar feasibility audit]
   -> R-MEM-1A [done: compute-node acquisition path rejected by bounded probe]
-  -> R-MEM-1B [active: direct local acquisition of 10d immutable raw MRT]
-  -> R-MEM-1C [then: HPC-local parsing and 10d sidecar materialization]
+  -> R-MEM-1B [done: 3,840/3,840 immutable raw MRT archives verified]
+  -> R-MEM-1C [next: transfer, checksum, and bounded HPC-local parser smoke]
   -> R-FOREGROUND-4B [then: targeted path-memory poisoning guard smoke]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
@@ -431,7 +436,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-FOREGROUND-4A | path-memory maturity feature feasibility audit | completed; broad guard would hurt compression, and current artifact only supports within-window maturity proxies | completed audit | `project_docs/R_FOREGROUND_4A_PATH_MEMORY_MATURITY_AUDIT.md` |
 | R-MEM-0 | 30d path-memory sidecar feasibility audit | completed; local 6h/one-day data cannot support long-term maturity claim, but schema and cost support an HPC 30d sidecar step | completed audit | `project_docs/R_MEM_0_30D_PATH_MEMORY_FEASIBILITY.md` |
 | R-MEM-1A | 10d canonical path-memory sidecar smoke | sidecar contract implemented; compute-node acquisition stop-loss confirmed by array `149909` and probe `150551` | completed stop-loss | `project_docs/R_MEM_1A_COMPUTE_NODE_ACQUISITION_PROBE.md` |
-| R-MEM-1B | 10d direct archive acquisition | local proxy route selected for 3,840 immutable Route Views SG/RRC00 archives; smoke precedes full acquisition | active | `project_docs/R_MEM_1B_10D_DIRECT_ARCHIVE_ACQUISITION.md` |
+| R-MEM-1B | 10d direct archive acquisition | complete: 3,840/3,840 archives, 16,502,107,268 bytes, all SHA256/compression checks passed, zero residual partials | completed | `project_docs/R_MEM_1B_10D_DIRECT_ARCHIVE_ACQUISITION.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

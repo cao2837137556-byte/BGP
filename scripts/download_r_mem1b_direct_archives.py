@@ -31,6 +31,10 @@ USER_AGENT = "bgp-platform-r-mem1b-archive-acquisition/1.0"
 READ_SIZE = 1024 * 1024
 
 
+class ArchiveIntegrityError(RuntimeError):
+    """The transfer completed, but the resulting compressed stream is invalid."""
+
+
 @dataclass(frozen=True)
 class PlannedFile:
     item_id: str
@@ -60,6 +64,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--retries", type=int, default=4)
     parser.add_argument("--timeout-sec", type=float, default=120.0)
     parser.add_argument("--smoke-files-per-collector", type=int)
+    parser.add_argument(
+        "--only-item-id",
+        action="append",
+        help="Download or repair only the selected deterministic item id.",
+    )
     parser.add_argument("--plan-only", action="store_true")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument(
@@ -156,6 +165,20 @@ def select_smoke(plan: list[PlannedFile], count: int | None) -> list[PlannedFile
             raise ValueError(f"not enough planned files for {collector}")
         selected.extend(candidates[:count])
     return sorted(selected, key=lambda item: (item.collector, item.archive_timestamp_utc))
+
+
+def select_item_ids(
+    plan: list[PlannedFile], item_ids: list[str] | None
+) -> list[PlannedFile]:
+    if not item_ids:
+        return plan
+    requested = set(item_ids)
+    selected = [item for item in plan if item.item_id in requested]
+    found = {item.item_id for item in selected}
+    missing = sorted(requested - found)
+    if missing:
+        raise ValueError(f"unknown --only-item-id values: {missing}")
+    return selected
 
 
 def sha256_file(path: Path) -> str:
@@ -316,11 +339,16 @@ def download_item(
             )
             size_bytes = destination.stat().st_size
             digest = sha256_file(destination)
-            compression_check = (
-                verify_compressed_stream(destination)
-                if require_compression
-                else "skipped"
-            )
+            try:
+                compression_check = (
+                    verify_compressed_stream(destination)
+                    if require_compression
+                    else "skipped"
+                )
+            except (EOFError, OSError) as exc:
+                destination.unlink(missing_ok=True)
+                partial.unlink(missing_ok=True)
+                raise ArchiveIntegrityError(str(exc)) from exc
             receipt = {
                 **base,
                 **transfer,
@@ -335,7 +363,10 @@ def download_item(
             return receipt
         except Exception as exc:  # retain exact type/message in the audit receipt
             last_error = exc
-            if destination.exists() and not partial.exists():
+            if isinstance(exc, ArchiveIntegrityError):
+                destination.unlink(missing_ok=True)
+                partial.unlink(missing_ok=True)
+            elif destination.exists() and not partial.exists():
                 shutil.move(str(destination), str(partial))
             if attempt < retries:
                 time.sleep(min(30.0, 2.0 ** (attempt - 1)))
@@ -372,14 +403,24 @@ def main() -> int:
         raise ValueError(
             f"generated plan has {len(plan)} files; config expects {expected_total}"
         )
+    if args.smoke_files_per_collector and args.only_item_id:
+        raise ValueError(
+            "--smoke-files-per-collector and --only-item-id are mutually exclusive"
+        )
     selected = select_smoke(plan, args.smoke_files_per_collector)
+    selected = select_item_ids(selected, args.only_item_id)
 
     data_root_value = args.data_root or os.environ.get("BGP_DATA_ROOT")
     if not data_root_value:
         raise SystemExit("--data-root or BGP_DATA_ROOT is required")
     data_root = Path(data_root_value).resolve()
     data_root.mkdir(parents=True, exist_ok=True)
-    mode = "smoke" if args.smoke_files_per_collector else "full"
+    if args.only_item_id:
+        mode = "repair"
+    elif args.smoke_files_per_collector:
+        mode = "smoke"
+    else:
+        mode = "full"
     manifest_dir = data_root / "manifests" / config["dataset_id"] / mode
     receipt_dir = data_root / "manifests" / config["dataset_id"] / "receipts"
     manifest_dir.mkdir(parents=True, exist_ok=True)

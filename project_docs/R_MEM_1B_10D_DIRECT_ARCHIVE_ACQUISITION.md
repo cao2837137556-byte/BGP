@@ -93,9 +93,35 @@ The 2026-07-13 local proxy smoke passed:
 - a second run revalidated all four existing archives instead of blindly
   skipping them.
 
-The full acquisition was started only after these checks passed. Its
-authoritative progress and terminal verdict are written beneath
-`manifests/r_mem1b_10d_direct_archive_v01/full` in the external data root.
+The full acquisition was started only after these checks passed.
+
+## Full Acquisition Result
+
+The final full revalidation completed on 2026-07-13:
+
+- planned files: `3,840`;
+- completed files: `3,840`;
+- Route Views SG files: `960`;
+- RRC00 files: `2,880`;
+- covered UTC dates: `10`, from `2024-04-07` through `2024-04-16`;
+- unique item IDs and local paths: `3,840` each;
+- total compressed bytes: `16,502,107,268`;
+- SHA256 and compressed-stream checks passed: `3,840`;
+- failed files: `0`;
+- residual `.part` files: `0`;
+- durable per-file receipts: `3,840`.
+
+One RRC00 transfer (`updates.20240413.0445.gz`) initially ended early. The
+source object advertised `4,156,720` bytes while the partial local transfer had
+only `3,702,188` bytes. The downloader was corrected so a compressed-stream
+integrity failure discards the damaged partial instead of attempting to resume
+from corrupt bytes. The file was then downloaded from byte zero and passed the
+same SHA256 and gzip checks. Finally, all `3,840` archives were re-read and
+revalidated, not merely counted from receipts.
+
+The authoritative terminal verdict is
+`manifests/r_mem1b_10d_direct_archive_v01/full/download_summary.json` beneath
+the external data root.
 
 ## Claim Boundaries
 
@@ -107,7 +133,8 @@ authoritative progress and terminal verdict are written beneath
 
 ## Next Step
 
-After all `3,840` files pass acquisition integrity, run a bounded local-MRT
-parser smoke on HPC. Only a successful parser/schema/coverage audit permits
-full 10-day path-memory sidecar materialization and the subsequent targeted
+R-MEM-1B is complete. Next, transfer the immutable raw archive tree and its
+manifest to HPC, verify SHA256 after transfer, and run a bounded local-MRT
+parser smoke. Only a successful parser/schema/coverage audit permits full
+10-day path-memory sidecar materialization and the subsequent targeted
 R-FOREGROUND-4B poisoning-robustness repair.
