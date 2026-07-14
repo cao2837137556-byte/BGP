@@ -49,6 +49,8 @@ experiment.
 - require `sbatch --test-only` and the repo preflight to pass before submission;
 - require startup and first-element heartbeats, hard timeouts, checkpoints, and
   atomic outputs;
+- treat HPC code trees as potentially archive-only: Git metadata is optional,
+  while a content fingerprint over executable code and config is mandatory;
 - do not rerun a failed command unchanged;
 - formal jobs must answer a scientific question, not discover quoting, path,
   dependency, or parser-startup failures.

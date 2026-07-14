@@ -40,8 +40,24 @@ test ! -e "$OUTPUT_DIR"
 mkdir -p "$BASE/logs" "$JOB_TMP/apptainer-tmp" "$JOB_TMP/apptainer-cache"
 export APPTAINER_TMPDIR=$JOB_TMP/apptainer-tmp
 export APPTAINER_CACHEDIR=$JOB_TMP/apptainer-cache
-export R_MEM1C_CODE_COMMIT
-R_MEM1C_CODE_COMMIT=$(git -C "$REPO" rev-parse HEAD)
+
+test -f "$REPO/scripts/run_r_mem1c_local_mrt_parser_smoke.py"
+test -f "$REPO/$CONFIG"
+test -f "$REPO/scripts/hpc/r_mem1c_complete_file_measure.slurm"
+test -f "$IMG"
+test -f "$DATA_ROOT/manifests/r_mem1b_10d_direct_archive_v01/post_transfer_sha256_audit.json"
+test -f "$DATA_ROOT/derived/r_mem1c_singlefile_liveness_v01/r_mem1c_liveness_summary.json"
+test "$(find "$DATA_ROOT/raw_mrt/r_mem1b_10d_direct_archive_v01" -type f \( -name '*.gz' -o -name '*.bz2' \) | wc -l)" -eq 3840
+test "$(find "$DATA_ROOT/raw_mrt/r_mem1b_10d_direct_archive_v01" -type f -name '*.part' | wc -l)" -eq 0
+
+R_MEM1C_CODE_COMMIT=${R_MEM1C_CODE_COMMIT:-$(git -C "$REPO" rev-parse HEAD 2>/dev/null || true)}
+R_MEM1C_CODE_COMMIT=${R_MEM1C_CODE_COMMIT:-archive-no-git}
+R_MEM1C_CODE_FINGERPRINT=$(sha256sum \
+  "$REPO/scripts/run_r_mem1c_local_mrt_parser_smoke.py" \
+  "$REPO/$CONFIG" \
+  "$REPO/scripts/hpc/r_mem1c_complete_file_measure.slurm" | \
+  sha256sum | awk '{print $1}')
+export R_MEM1C_CODE_COMMIT R_MEM1C_CODE_FINGERPRINT
 exec > >(tee -a "$LIVE_LOG") 2>&1
 
 echo "pair_id=$PAIR_ID"
@@ -49,17 +65,10 @@ echo "job_id=$JOB_ID"
 echo "partition=$PARTITION"
 echo "node_list=$SLURM_NODELIST"
 echo "commit=$R_MEM1C_CODE_COMMIT"
+echo "code_fingerprint=$R_MEM1C_CODE_FINGERPRINT"
 echo "output_dir=$OUTPUT_DIR"
 echo "job_tmp=$JOB_TMP"
 echo "resources=cpus:${SLURM_CPUS_PER_TASK:-1},memory:2G,time:00:10:00"
-
-test -f "$REPO/scripts/run_r_mem1c_local_mrt_parser_smoke.py"
-test -f "$REPO/$CONFIG"
-test -f "$IMG"
-test -f "$DATA_ROOT/manifests/r_mem1b_10d_direct_archive_v01/post_transfer_sha256_audit.json"
-test -f "$DATA_ROOT/derived/r_mem1c_singlefile_liveness_v01/r_mem1c_liveness_summary.json"
-test "$(find "$DATA_ROOT/raw_mrt/r_mem1b_10d_direct_archive_v01" -type f \( -name '*.gz' -o -name '*.bz2' \) | wc -l)" -eq 3840
-test "$(find "$DATA_ROOT/raw_mrt/r_mem1b_10d_direct_archive_v01" -type f -name '*.part' | wc -l)" -eq 0
 
 module purge
 module load apps/apptainer/1.4.5-2

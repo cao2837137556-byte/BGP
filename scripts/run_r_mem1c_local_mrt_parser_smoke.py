@@ -571,6 +571,7 @@ def main() -> int:
         "slurm_node_list": os.environ.get("SLURM_NODELIST"),
         "pair_id": os.environ.get("R_MEM1C_PAIR_ID"),
         "code_commit": os.environ.get("R_MEM1C_CODE_COMMIT"),
+        "code_fingerprint": os.environ.get("R_MEM1C_CODE_FINGERPRINT"),
     }
     plan = {
         "phase": config["phase"],

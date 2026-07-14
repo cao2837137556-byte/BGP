@@ -16,7 +16,6 @@ fi
 
 echo "pair_id=$PAIR_ID"
 echo "repo=$REPO"
-echo "commit=$(git -C "$REPO" rev-parse --short HEAD)"
 echo "pair_root=$PAIR_ROOT"
 
 test -f "$SLURM_SCRIPT"
@@ -30,6 +29,15 @@ if [ -d "$PAIR_ROOT" ] && [ -n "$(find "$PAIR_ROOT" -mindepth 1 -maxdepth 1 -pri
   echo "Refusing duplicate pair ID with existing outputs: $PAIR_ROOT" >&2
   exit 2
 fi
+
+CODE_COMMIT=$(git -C "$REPO" rev-parse HEAD 2>/dev/null || true)
+CODE_COMMIT=${CODE_COMMIT:-archive-no-git}
+CODE_FINGERPRINT=$(sha256sum \
+  "$REPO/scripts/run_r_mem1c_local_mrt_parser_smoke.py" \
+  "$REPO/configs/r_mem1c_complete_file_measure_v01.json" \
+  "$SLURM_SCRIPT" | sha256sum | awk '{print $1}')
+echo "commit=$CODE_COMMIT"
+echo "code_fingerprint=$CODE_FINGERPRINT"
 
 RAW_COUNT=$(find "$DATA_ROOT/raw_mrt/r_mem1b_10d_direct_archive_v01" \
   -type f \( -name '*.gz' -o -name '*.bz2' \) | wc -l)

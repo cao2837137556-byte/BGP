@@ -75,6 +75,14 @@ Parquet is written lazily to a temporary path and atomically promoted only
 after at least one parsed row and a clean writer close. A failed or empty parse
 therefore cannot leave a plausible zero-row Parquet artifact.
 
+The first dual submission (`151384` AMD and `151385` Intel) is rejected as an
+engineering-only failure: both exited in two seconds before parsing because the
+HPC `repo/` tree is an extracted archive without `.git`, while provenance code
+treated `git rev-parse` as mandatory. No MRT file was read and no scientific
+output was produced. The repaired contract records an optional commit when
+available and always records a SHA256 fingerprint over the parser, config, and
+Slurm script. Archive-only checkouts are now an explicit preflight case.
+
 ## Deterministic Sample
 
 The default smoke selects the chronologically first and last archive for each

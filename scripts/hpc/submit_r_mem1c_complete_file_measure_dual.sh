@@ -10,10 +10,17 @@ SUBMISSION_RECORD=$BASE/logs/r_mem1c_measure_pair_${PAIR_ID}.txt
 bash "$REPO/scripts/hpc/r_mem1c_complete_file_measure_preflight.sh" "$PAIR_ID"
 
 mkdir -p "$BASE/logs"
+CODE_COMMIT=$(git -C "$REPO" rev-parse HEAD 2>/dev/null || true)
+CODE_COMMIT=${CODE_COMMIT:-archive-no-git}
+CODE_FINGERPRINT=$(sha256sum \
+  "$REPO/scripts/run_r_mem1c_local_mrt_parser_smoke.py" \
+  "$REPO/configs/r_mem1c_complete_file_measure_v01.json" \
+  "$SLURM_SCRIPT" | sha256sum | awk '{print $1}')
 {
   echo "pair_id=$PAIR_ID"
   echo "submitted_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  echo "commit=$(git -C "$REPO" rev-parse HEAD)"
+  echo "commit=$CODE_COMMIT"
+  echo "code_fingerprint=$CODE_FINGERPRINT"
 } | tee "$SUBMISSION_RECORD"
 
 AMD_JOB=$(sbatch --parsable -p amd -J bgp_r_mem1c_m_amd \
