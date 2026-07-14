@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 Status: active project-level research decision register.
 
@@ -11,6 +11,49 @@ This document records project-level research decisions, architecture boundaries,
 It exists to prevent important decisions from being scattered across chat history or one-off task reports. New topical documents can still exist, but key decisions must be folded back into this register and the mainline documentation set: `README.md`, `HANDOFF.md`, `EXPERIMENT_MAINLINE.md`, `VERIFIER_REDESIGN_ROADMAP.md`, and `CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`.
 
 R-DOC-1 is a documentation consolidation step. It does not run experiments, modify verifier outputs, download evidence, train learning, or change code logic.
+
+## HPC Resource and Fail-fast Decision
+
+**Decision:** Size HPC requests from measured workload needs and require a
+bounded real-input liveness gate before a queued formal parser job.
+
+**Rationale:** R-MEM-1C job `151319` consumed about `0.117` CPU seconds during
+an hour of wall time and never returned the first BGP element. More CPU, memory,
+or wall time would hide an I/O/runtime startup defect rather than improve the
+experiment.
+
+**Consequence:**
+
+- do not request larger resources without throughput or memory evidence;
+- run syntax/import checks, a real-input first-element probe, and a short smoke
+  before formal work;
+- require `sbatch --test-only` and the repo preflight to pass before submission;
+- require startup and first-element heartbeats, hard timeouts, checkpoints, and
+  atomic outputs;
+- do not rerun a failed command unchanged;
+- formal jobs must answer a scientific question, not discover quoting, path,
+  dependency, or parser-startup failures.
+
+**Status:** active long-term engineering guardrail.
+
+## R-MEM-1C Single-file Liveness Decision
+
+**Decision:** Insert a two-format, dual-backend liveness gate before repeating
+the R-MEM-1C complete-file parser smoke.
+
+**Rationale:** The failed four-file attempt established a stall before the
+first element, but did not distinguish a PyBGPStream wrapper issue from a
+libBGPStream/WandIO/container issue. The official `bgpreader` CLI provides a
+same-library reference path on the same immutable bytes.
+
+**Consequence:** Probe one Route Views `.bz2` and one RRC00 `.gz` with the
+documented PyBGPStream single-file configuration and `bgpreader`, cap each at
+`100` elements and `60` seconds, write no Parquet, and use only `1` CPU / `2 GB`
+for at most `10` minutes. If only `bgpreader` works, repair the Python wrapper;
+if neither works, qualify a maintained alternative parser. Complete-file work
+is prohibited until liveness passes.
+
+**Status:** implemented locally; HPC liveness result pending.
 
 ## R-MEM-1C Local MRT Parser Qualification Decision
 
@@ -33,8 +76,9 @@ full-file parse catches parser/runtime/schema failures before a costly full run.
 - reject capped debug runs as formal evidence;
 - do not modify foreground, train learning, or treat parsed rows as truth.
 
-**Status:** implementation ready; deterministic local plan passed; formal HPC
-parser smoke pending.
+**Status:** deterministic plan passed, but formal job `151319` stalled before
+the first element and is rejected. Superseded operationally by the single-file
+liveness gate above; complete-file qualification remains pending.
 
 ## R-MEM-1B Direct Archive Acquisition Decision
 

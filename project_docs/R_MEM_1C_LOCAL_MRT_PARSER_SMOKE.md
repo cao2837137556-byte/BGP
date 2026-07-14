@@ -20,6 +20,35 @@ and later evidence layers.
 A bounded smoke prevents a multi-hour full parse from silently producing zero
 rows, wrong timestamps, missing AS paths, or dropped communities.
 
+## Failed Formal Attempt and Revised Entry Gate
+
+Formal job `151319` timed out after `01:00:04`, but used only about `0.117`
+CPU seconds, emitted no parsed-row heartbeat, and left only a four-byte Parquet
+header. Imports and deterministic file selection had already passed. The
+supported conclusion is therefore narrow: the process blocked during
+single-file startup or first-element retrieval. This run produced no parser
+qualification result and increasing CPU, memory, or wall time would not address
+the observed failure mode.
+
+Before another complete-file smoke, R-MEM-1C now requires a fail-fast liveness
+gate:
+
+- one immutable Route Views `.bz2` and one RRC00 `.gz` archive;
+- byte-size and SHA256 verification against the frozen manifest;
+- the documented PyBGPStream single-file configuration compared with the
+  official `bgpreader` CLI on the same bytes;
+- at most `100` elements per backend and a `60`-second hard timeout;
+- heartbeats before each backend and at first-element completion;
+- no Parquet materialization;
+- `1` CPU, `2 GB` memory, and a `10`-minute Slurm limit.
+
+The liveness job is diagnostic. A timeout is recorded in its result package
+instead of leaving an empty output directory. Only a passing backend may move
+to a measured one-complete-file parse. Submission is additionally gated by
+`scripts/hpc/r_mem1c_singlefile_liveness_preflight.sh`, which checks shell
+syntax, paths, the 3,840-file archive contract, container imports, timeout
+self-tests, and Slurm admission without submitting the job.
+
 ## Deterministic Sample
 
 The default smoke selects the chronologically first and last archive for each
@@ -80,6 +109,9 @@ be estimated before allocating the full job.
 
 ## Next Step
 
-If the formal smoke passes, implement checkpointed full 10-day local-MRT
-parsing with one immutable output partition per source archive. Then materialize
-the path-memory sidecar and run the targeted R-FOREGROUND-4B poisoning repair.
+Run `scripts/hpc/r_mem1c_singlefile_liveness.slurm`. If PyBGPStream and/or
+`bgpreader` returns elements for both compressed formats, parse one complete
+file with the passing backend and measure throughput and peak memory. Use those
+measurements to size the later four-file smoke. If neither backend passes, stop
+the current parser route and qualify a maintained alternative before any full
+parse or path-memory materialization.
