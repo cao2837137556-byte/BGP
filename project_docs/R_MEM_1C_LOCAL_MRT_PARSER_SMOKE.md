@@ -49,6 +49,32 @@ to a measured one-complete-file parse. Submission is additionally gated by
 syntax, paths, the 3,840-file archive contract, container imports, timeout
 self-tests, and Slurm admission without submitting the job.
 
+The repaired liveness job `151381` completed in four seconds. On the same
+manifest-bound first archive per collector, PyBGPStream returned `100` elements
+in `0.327068` seconds for Route Views SG `.bz2` and `0.095424` seconds for RRC00
+`.gz`; `bgpreader` returned `100` elements in `0.173462` and `0.031762`
+seconds, respectively. Source integrity and all four backend-format probes
+passed. These numbers qualify startup and first-element retrieval only; they
+are not complete-file throughput measurements.
+
+## Complete-file Measurement Gate
+
+The next job parses exactly one complete archive per collector: the same
+chronologically first `.bz2` and `.gz` files qualified by the liveness gate.
+This isolates complete-file throughput, output size, schema coverage, and peak
+memory before restoring the four-file smoke. It uses `1` CPU, `2 GB` memory,
+and a `10`-minute limit, with an internal eight-minute timeout.
+
+AMD and Intel copies are submitted separately under one `pair_id`. Their
+outputs, temporary directories, job logs, and result packages are isolated by
+`partition/job_id`. They use the same immutable inputs and commit. If both
+finish, they are redundant executions for reproducibility comparison, not two
+independent scientific samples.
+
+Parquet is written lazily to a temporary path and atomically promoted only
+after at least one parsed row and a clean writer close. A failed or empty parse
+therefore cannot leave a plausible zero-row Parquet artifact.
+
 ## Deterministic Sample
 
 The default smoke selects the chronologically first and last archive for each
@@ -109,9 +135,9 @@ be estimated before allocating the full job.
 
 ## Next Step
 
-Run `scripts/hpc/r_mem1c_singlefile_liveness.slurm`. If PyBGPStream and/or
-`bgpreader` returns elements for both compressed formats, parse one complete
-file with the passing backend and measure throughput and peak memory. Use those
-measurements to size the later four-file smoke. If neither backend passes, stop
-the current parser route and qualify a maintained alternative before any full
-parse or path-memory materialization.
+Run the dual-partition complete-file measurement through
+`scripts/hpc/submit_r_mem1c_complete_file_measure_dual.sh`. Use the first
+completed valid run to measure full-file throughput and output size; cancel the
+later run when convenient. If both finish, compare their scientific summaries.
+Only a passing measurement may size and enter the later four-file parser/schema
+smoke. No 10-day full parse is authorized at this gate.

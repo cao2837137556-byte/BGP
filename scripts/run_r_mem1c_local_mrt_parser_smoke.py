@@ -13,8 +13,10 @@ import csv
 import hashlib
 import json
 import math
+import os
 import re
 import shutil
+import time
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -189,17 +191,9 @@ def element_to_row(
 def open_singlefile_stream(path: Path):
     import pybgpstream  # type: ignore
 
-    options = {"upd-file": str(path)}
-    try:
-        return pybgpstream.BGPStream(
-            data_interface="singlefile",
-            data_interface_options=options,
-        )
-    except TypeError:
-        stream = pybgpstream.BGPStream()
-        stream.set_data_interface("singlefile")
-        stream.set_data_interface_option("singlefile", "upd-file", str(path))
-        return stream
+    stream = pybgpstream.BGPStream(data_interface="singlefile")
+    stream.set_data_interface_option("singlefile", "upd-file", str(path))
+    return stream
 
 
 def output_path(output_dir: Path, source: dict[str, Any], interval_minutes: int) -> Path:
@@ -312,6 +306,8 @@ def parse_file(
     interval_minutes = int(config["collector_intervals_minutes"][source["collector"]])
     output = output_path(output_dir, source, interval_minutes)
     output.parent.mkdir(parents=True, exist_ok=True)
+    temporary_output = output.with_suffix(output.suffix + ".tmp")
+    temporary_output.unlink(missing_ok=True)
     expected_start = parse_utc(source["archive_timestamp_utc"])
     grace = float(config.get("timestamp_grace_sec", 0))
     expected_end = expected_start + timedelta(minutes=interval_minutes, seconds=grace)
@@ -334,11 +330,23 @@ def parse_file(
         "origin_provenance_counts": Counter(),
     }
     schema = parquet_schema()
-    writer = pq.ParquetWriter(output, schema=schema, compression="zstd")
+    writer: pq.ParquetWriter | None = None
     batch: list[dict[str, Any]] = []
     parse_error: Exception | None = None
+    parse_started = time.monotonic()
+    first_element_latency_sec: float | None = None
     try:
+        print(
+            f"heartbeat=file_stream_config_start collector={source['collector']} "
+            f"source={source_relative}",
+            flush=True,
+        )
         stream = open_singlefile_stream(source_path)
+        print(
+            f"heartbeat=file_stream_configured collector={source['collector']} "
+            f"source={source_relative}",
+            flush=True,
+        )
         for elem in stream:
             row = element_to_row(elem, source, source_relative)
             update_stats(
@@ -347,23 +355,43 @@ def parse_file(
                 expected_start.timestamp(),
                 expected_end.timestamp(),
             )
+            if stats["rows"] == 1:
+                first_element_latency_sec = time.monotonic() - parse_started
+                print(
+                    f"heartbeat=file_first_element collector={source['collector']} "
+                    f"latency_sec={first_element_latency_sec:.6f}",
+                    flush=True,
+                )
             if len(preview) < int(config.get("preview_rows", 200)):
                 preview.append({**row, "communities": "|".join(row["communities"])})
             batch.append(row)
             if len(batch) >= int(config.get("batch_rows", 100000)):
+                if writer is None:
+                    writer = pq.ParquetWriter(
+                        temporary_output, schema=schema, compression="zstd"
+                    )
                 writer.write_table(pa.Table.from_pylist(batch, schema=schema))
                 batch.clear()
             if max_rows and stats["rows"] >= max_rows:
                 break
         if batch:
+            if writer is None:
+                writer = pq.ParquetWriter(
+                    temporary_output, schema=schema, compression="zstd"
+                )
             writer.write_table(pa.Table.from_pylist(batch, schema=schema))
     except Exception as exc:
         parse_error = exc
     finally:
-        writer.close()
+        if writer is not None:
+            try:
+                writer.close()
+            except Exception as exc:
+                if parse_error is None:
+                    parse_error = exc
 
     if parse_error is not None:
-        output.unlink(missing_ok=True)
+        temporary_output.unlink(missing_ok=True)
         return {
             "file_path": source_relative,
             "collector": source["collector"],
@@ -372,9 +400,28 @@ def parse_file(
             "error_type": type(parse_error).__name__,
             "error": str(parse_error),
             "compressed_size_bytes": source_path.stat().st_size if source_path.exists() else None,
+            "first_element_latency_sec": first_element_latency_sec,
+            "parse_elapsed_sec": round(time.monotonic() - parse_started, 6),
         }
 
     rows = int(stats["rows"])
+    if rows == 0:
+        temporary_output.unlink(missing_ok=True)
+        return {
+            "file_path": source_relative,
+            "collector": source["collector"],
+            "archive_timestamp_utc": source["archive_timestamp_utc"],
+            "status": "failed",
+            "error_type": "NoParsedElements",
+            "error": "single-file stream returned no elements",
+            "compressed_size_bytes": actual_size,
+            "source_size_verified": True,
+            "source_sha256_verified": True,
+            "first_element_latency_sec": None,
+            "parse_elapsed_sec": round(time.monotonic() - parse_started, 6),
+        }
+    temporary_output.replace(output)
+    parse_elapsed_sec = time.monotonic() - parse_started
     update_rows = int(stats["update_rows"])
     announcement_rows = int(stats["announcement_rows"])
     result = {
@@ -390,6 +437,9 @@ def parse_file(
         "source_sha256_verified": True,
         "parquet_size_bytes": output.stat().st_size,
         "rows": rows,
+        "first_element_latency_sec": first_element_latency_sec,
+        "parse_elapsed_sec": round(parse_elapsed_sec, 6),
+        "rows_per_sec": round(rows / parse_elapsed_sec, 3) if parse_elapsed_sec else None,
         "type_counts": json.dumps(dict(stats["type_counts"]), sort_keys=True),
         "announcement_rows": announcement_rows,
         "withdrawal_rows": int(stats["type_counts"].get("W", 0)),
@@ -465,7 +515,7 @@ def schema_payload() -> dict[str, Any]:
 
 
 def render_report(summary: dict[str, Any]) -> str:
-    return f"""# R-MEM-1C Local MRT Parser Smoke Report
+    return f"""# {summary['phase']} Local MRT Parser Report
 
 ## Result
 
@@ -478,6 +528,8 @@ def render_report(summary: dict[str, Any]) -> str:
 - rows with communities: `{summary['community_nonempty_rows']}`
 - compressed input bytes: `{summary['compressed_input_bytes']}`
 - Parquet output bytes: `{summary['parquet_output_bytes']}`
+- summed parse seconds: `{summary['summed_parse_elapsed_sec']}`
+- aggregate rows per second: `{summary['aggregate_rows_per_sec']}`
 - gate failures: `{summary['gate_failures']}`
 
 ## Boundaries
@@ -513,6 +565,13 @@ def main() -> int:
         raise ValueError("manifest contains duplicate local_relative_path values")
     selected = select_files(manifest, files_per_collector)
     prepare_output(output_dir, args.overwrite, args.plan_only)
+    execution = {
+        "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
+        "slurm_partition": os.environ.get("SLURM_JOB_PARTITION"),
+        "slurm_node_list": os.environ.get("SLURM_NODELIST"),
+        "pair_id": os.environ.get("R_MEM1C_PAIR_ID"),
+        "code_commit": os.environ.get("R_MEM1C_CODE_COMMIT"),
+    }
     plan = {
         "phase": config["phase"],
         "dataset_id": config["dataset_id"],
@@ -525,6 +584,7 @@ def main() -> int:
         "selected_by_collector": dict(Counter(row["collector"] for row in selected)),
         "selected_files": selected,
         "plan_only": args.plan_only,
+        "execution": execution,
     }
     write_json(output_dir / "r_mem1c_parse_plan.json", plan)
     print(json.dumps(plan, ensure_ascii=False, indent=2, sort_keys=True))
@@ -543,6 +603,17 @@ def main() -> int:
             preview,
         )
         audits.append(result)
+        write_json(
+            output_dir / "r_mem1c_progress.json",
+            {
+                "phase": config["phase"],
+                "dataset_id": config["dataset_id"],
+                "execution": execution,
+                "completed_file_count": len(audits),
+                "selected_file_count": len(selected),
+                "file_audits": audits,
+            },
+        )
         print(
             f"parsed={index}/{len(selected)} collector={source['collector']} "
             f"status={result['status']} rows={result.get('rows', 0)}",
@@ -556,6 +627,10 @@ def main() -> int:
         )
         passed = False
     parsed = [row for row in audits if row["status"] == "parsed"]
+    total_rows = sum(int(row["rows"]) for row in parsed)
+    summed_parse_elapsed_sec = sum(
+        float(row.get("parse_elapsed_sec", 0.0)) for row in parsed
+    )
     summary = {
         "phase": config["phase"],
         "dataset_id": config["dataset_id"],
@@ -564,7 +639,7 @@ def main() -> int:
         "parsed_file_count": len(parsed),
         "failed_file_count": len(audits) - len(parsed),
         "selected_by_collector": dict(Counter(row["collector"] for row in selected)),
-        "total_parsed_rows": sum(int(row["rows"]) for row in parsed),
+        "total_parsed_rows": total_rows,
         "announcement_rows": sum(int(row["announcement_rows"]) for row in parsed),
         "withdrawal_rows": sum(int(row["withdrawal_rows"]) for row in parsed),
         "community_nonempty_rows": sum(int(row["community_nonempty_rows"]) for row in parsed),
@@ -575,13 +650,25 @@ def main() -> int:
         ),
         "compressed_input_bytes": sum(int(row["compressed_size_bytes"]) for row in parsed),
         "parquet_output_bytes": sum(int(row["parquet_size_bytes"]) for row in parsed),
+        "summed_parse_elapsed_sec": round(summed_parse_elapsed_sec, 6),
+        "aggregate_rows_per_sec": (
+            round(total_rows / summed_parse_elapsed_sec, 3)
+            if summed_parse_elapsed_sec
+            else None
+        ),
         "gate_failures": failures,
         "max_rows_per_file": args.max_rows_per_file,
         "full_parse_per_selected_file": args.max_rows_per_file == 0,
+        "execution": execution,
         "recommended_next_step": (
-            "run full 10-day local-MRT parsing with checkpointed per-file outputs"
+            (
+                "use measured throughput and memory to size the four-file "
+                "parser/schema smoke"
+                if config["phase"] == "R-MEM-1C-MEASURE"
+                else "run full 10-day local-MRT parsing with checkpointed per-file outputs"
+            )
             if passed
-            else "repair parser/schema contract before any full parse"
+            else "repair parser/schema contract before any larger parse"
         ),
         "claims": {
             "attack_or_benign_truth_produced": False,

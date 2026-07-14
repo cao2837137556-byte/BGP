@@ -8,9 +8,28 @@ Status: active project-level research decision register.
 
 This document records project-level research decisions, architecture boundaries, naming constraints, experiment ordering, and reviewer-risk defenses.
 
-It exists to prevent important decisions from being scattered across chat history or one-off task reports. New topical documents can still exist, but key decisions must be folded back into this register and the mainline documentation set: `README.md`, `HANDOFF.md`, `EXPERIMENT_MAINLINE.md`, `VERIFIER_REDESIGN_ROADMAP.md`, and `CCFA_TARGET_LINE_AND_EXPERIMENT_GUARDRAILS.md`.
+It exists to prevent important decisions from being scattered across chat history or one-off task reports. New topical documents can still exist, but route-changing conclusions must be folded back into this register and `MAINLINE_STATE.md`. The older README/HANDOFF/roadmap documents are navigation or historical references, not per-experiment ledgers.
 
 R-DOC-1 is a documentation consolidation step. It does not run experiments, modify verifier outputs, download evidence, train learning, or change code logic.
+
+## Dual-partition HPC Execution Contract
+
+**Decision:** Queue each approved formal HPC task separately on AMD and Intel
+with the same immutable scientific input and one shared logical `pair_id`, but
+with partition/job-specific output, temporary, log, checkpoint, and package
+paths.
+
+**Rationale:** Either partition may start substantially earlier. Dual submission
+reduces queue latency without allowing concurrent jobs to overwrite one
+another or silently change the experiment contract.
+
+**Consequence:** The user normally cancels the later-starting copy. If both run
+or finish, both must remain valid and their scientific summaries must be
+compared. They are redundant executions, not independent samples, replicates,
+or extra evidence for a paper claim. Shared evidence and raw inputs remain
+read-only. Overwrite flags are not an isolation mechanism.
+
+**Status:** active for future HPC submissions.
 
 ## HPC Resource and Fail-fast Decision
 
@@ -53,7 +72,8 @@ for at most `10` minutes. If only `bgpreader` works, repair the Python wrapper;
 if neither works, qualify a maintained alternative parser. Complete-file work
 is prohibited until liveness passes.
 
-**Status:** implemented locally; HPC liveness result pending.
+**Status:** passed on HPC job `151381`; source integrity and all four
+backend-format liveness probes passed in four seconds.
 
 ## R-MEM-1C Local MRT Parser Qualification Decision
 
