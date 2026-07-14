@@ -5,6 +5,7 @@ BASE=${BASE:-/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline}
 REPO=${REPO:-$BASE/repo}
 DATA_ROOT=${DATA_ROOT:-$BASE/data_store}
 IMG=${IMG:-$BASE/containers/bgpstream-py-e9a.sif}
+OUTPUT_DIR=${OUTPUT_DIR:-$DATA_ROOT/derived/r_mem1c_singlefile_liveness_v01}
 SLURM_SCRIPT=$REPO/scripts/hpc/r_mem1c_singlefile_liveness.slurm
 PROBE_SCRIPT=$REPO/scripts/probe_r_mem1c_singlefile_liveness.py
 
@@ -12,12 +13,17 @@ echo "repo=$REPO"
 echo "commit=$(git -C "$REPO" rev-parse --short HEAD)"
 echo "data_root=$DATA_ROOT"
 echo "image=$IMG"
+echo "output_dir=$OUTPUT_DIR"
 
 test -f "$SLURM_SCRIPT"
 test -f "$PROBE_SCRIPT"
 test -f "$IMG"
 test -f "$DATA_ROOT/manifests/r_mem1b_10d_direct_archive_v01/full/download_manifest.json"
 test -f "$DATA_ROOT/manifests/r_mem1b_10d_direct_archive_v01/post_transfer_sha256_audit.json"
+if [ -d "$OUTPUT_DIR" ] && [ -n "$(find "$OUTPUT_DIR" -mindepth 1 -maxdepth 1 -print -quit)" ]; then
+  echo "Refusing to submit: output directory is not empty: $OUTPUT_DIR" >&2
+  exit 2
+fi
 
 RAW_COUNT=$(find "$DATA_ROOT/raw_mrt/r_mem1b_10d_direct_archive_v01" \
   -type f \( -name '*.gz' -o -name '*.bz2' \) | wc -l)
