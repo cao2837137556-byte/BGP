@@ -238,7 +238,18 @@ def update_stats(stats: dict[str, Any], row: dict[str, Any], start: float, end: 
     stats["timestamp_present"] += int(math.isfinite(ts))
     stats["timestamp_min"] = ts if stats["timestamp_min"] is None else min(stats["timestamp_min"], ts)
     stats["timestamp_max"] = ts if stats["timestamp_max"] is None else max(stats["timestamp_max"], ts)
-    stats["out_of_window_rows"] += int(ts < start or ts >= end)
+    if ts < start:
+        stats["out_of_window_rows"] += 1
+        stats["early_boundary_rows"] += 1
+        stats["maximum_early_boundary_offset_sec"] = max(
+            stats["maximum_early_boundary_offset_sec"], start - ts
+        )
+    elif ts >= end:
+        stats["out_of_window_rows"] += 1
+        stats["late_boundary_rows"] += 1
+        stats["maximum_late_boundary_offset_sec"] = max(
+            stats["maximum_late_boundary_offset_sec"], ts - end
+        )
     if element_type in {"A", "W"}:
         stats["update_rows"] += 1
         stats["update_prefix_present"] += int(bool(row["prefix"]))
@@ -310,7 +321,9 @@ def parse_file(
     temporary_output.unlink(missing_ok=True)
     expected_start = parse_utc(source["archive_timestamp_utc"])
     grace = float(config.get("timestamp_grace_sec", 0))
-    expected_end = expected_start + timedelta(minutes=interval_minutes, seconds=grace)
+    expected_end = expected_start + timedelta(
+        minutes=interval_minutes, seconds=grace
+    )
     stats: dict[str, Any] = {
         "rows": 0,
         "update_rows": 0,
@@ -319,6 +332,10 @@ def parse_file(
         "timestamp_min": None,
         "timestamp_max": None,
         "out_of_window_rows": 0,
+        "early_boundary_rows": 0,
+        "late_boundary_rows": 0,
+        "maximum_early_boundary_offset_sec": 0.0,
+        "maximum_late_boundary_offset_sec": 0.0,
         "update_prefix_present": 0,
         "announcement_as_path_present": 0,
         "community_nonempty_rows": 0,
@@ -433,6 +450,8 @@ def parse_file(
         "expected_interval_minutes": interval_minutes,
         "status": "parsed",
         "compressed_size_bytes": actual_size,
+        "source_size_bytes": int(source["size_bytes"]),
+        "source_sha256": expected_sha256,
         "source_size_verified": True,
         "source_sha256_verified": True,
         "parquet_size_bytes": output.stat().st_size,
@@ -448,6 +467,19 @@ def parse_file(
         "timestamp_max": stats["timestamp_max"],
         "timestamp_coverage": stats["timestamp_present"] / rows if rows else 0.0,
         "out_of_window_rows": stats["out_of_window_rows"],
+        "out_of_window_rate": stats["out_of_window_rows"] / rows if rows else 0.0,
+        "early_boundary_rows": stats["early_boundary_rows"],
+        "late_boundary_rows": stats["late_boundary_rows"],
+        "maximum_early_boundary_offset_sec": stats[
+            "maximum_early_boundary_offset_sec"
+        ],
+        "maximum_late_boundary_offset_sec": stats[
+            "maximum_late_boundary_offset_sec"
+        ],
+        "maximum_boundary_offset_sec": max(
+            stats["maximum_early_boundary_offset_sec"],
+            stats["maximum_late_boundary_offset_sec"],
+        ),
         "update_prefix_coverage": stats["update_prefix_present"] / update_rows if update_rows else 0.0,
         "announcement_as_path_coverage": stats["announcement_as_path_present"] / announcement_rows if announcement_rows else 0.0,
         "community_nonempty_rows": stats["community_nonempty_rows"],
@@ -492,7 +524,27 @@ def evaluate_gates(
             gates["minimum_announcement_as_path_coverage"]
         ):
             failures.append(f"{label}: announcement AS_PATH coverage below gate")
-        if int(row["out_of_window_rows"]) > int(gates["maximum_out_of_window_rows"]):
+        temporal = config.get("temporal_alignment", {})
+        if temporal:
+            out_of_window_rate = float(
+                row.get(
+                    "out_of_window_rate",
+                    int(row["out_of_window_rows"]) / int(row["rows"])
+                    if int(row["rows"])
+                    else 0.0,
+                )
+            )
+            if out_of_window_rate > float(
+                temporal["maximum_out_of_window_rate_per_file"]
+            ):
+                failures.append(f"{label}: archive-boundary row rate above gate")
+            if float(row.get("maximum_boundary_offset_sec", 0.0)) > float(
+                temporal["maximum_boundary_offset_sec"]
+            ):
+                failures.append(f"{label}: archive-boundary offset above gate")
+        elif int(row["out_of_window_rows"]) > int(
+            gates["maximum_out_of_window_rows"]
+        ):
             failures.append(f"{label}: timestamps outside archive interval")
     return not failures, failures
 

@@ -15,6 +15,7 @@ import copy
 import hashlib
 import json
 import os
+import shutil
 from collections import Counter
 from datetime import date, timedelta
 from pathlib import Path
@@ -22,7 +23,10 @@ from typing import Any
 
 from run_r_mem1c_local_mrt_parser_smoke import (
     evaluate_gates,
+    output_path,
+    parquet_schema,
     parse_file,
+    parse_utc,
     schema_payload,
     write_csv,
     write_json,
@@ -41,6 +45,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--collector", required=True)
     parser.add_argument("--date", required=True)
+    parser.add_argument(
+        "--adopt-from",
+        help="Existing collector-day output whose verified Parquet files may be hard-linked.",
+    )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--plan-only", action="store_true")
     parser.add_argument("--max-files", type=int, default=0)
@@ -113,6 +121,109 @@ def load_completed_checkpoint(
     return payload
 
 
+def enrich_temporal_alignment(
+    payload: dict[str, Any], source: dict[str, Any], config: dict[str, Any]
+) -> dict[str, Any]:
+    result = copy.deepcopy(payload)
+    rows = int(result.get("rows", 0))
+    outside = int(result.get("out_of_window_rows", 0))
+    interval_minutes = int(config["collector_intervals_minutes"][source["collector"]])
+    start = parse_utc(source["archive_timestamp_utc"]).timestamp()
+    end = start + interval_minutes * 60 + float(config.get("timestamp_grace_sec", 0))
+    timestamp_min = result.get("timestamp_min")
+    timestamp_max = result.get("timestamp_max")
+    early_offset = (
+        max(0.0, start - float(timestamp_min)) if timestamp_min is not None else 0.0
+    )
+    late_offset = (
+        max(0.0, float(timestamp_max) - end) if timestamp_max is not None else 0.0
+    )
+    result["out_of_window_rate"] = outside / rows if rows else 0.0
+    result["source_size_bytes"] = int(source["size_bytes"])
+    result["source_sha256"] = str(source["sha256"]).lower()
+    result.setdefault("early_boundary_rows", None)
+    result.setdefault("late_boundary_rows", None)
+    result["maximum_early_boundary_offset_sec"] = early_offset
+    result["maximum_late_boundary_offset_sec"] = late_offset
+    result["maximum_boundary_offset_sec"] = max(early_offset, late_offset)
+    return result
+
+
+def adopt_existing_checkpoint(
+    adopt_from: Path,
+    output_dir: Path,
+    source: dict[str, Any],
+    config: dict[str, Any],
+) -> dict[str, Any] | None:
+    import pyarrow.parquet as pq
+
+    source_checkpoint = checkpoint_path(adopt_from, source)
+    if not source_checkpoint.is_file():
+        return None
+    payload = json.loads(source_checkpoint.read_text(encoding="utf-8"))
+    if payload.get("status") != "parsed":
+        return None
+    if payload.get("file_path") != str(source["local_relative_path"]):
+        return None
+    if payload.get("source_size_verified") is not True:
+        return None
+    if payload.get("source_sha256_verified") is not True:
+        return None
+
+    existing_output = Path(str(payload.get("output_path", "")))
+    if not existing_output.is_file():
+        return None
+    if existing_output.stat().st_size != int(payload.get("parquet_size_bytes", -1)):
+        return None
+    parquet = pq.ParquetFile(existing_output)
+    if parquet.metadata.num_rows != int(payload.get("rows", -1)):
+        return None
+    if not parquet.schema_arrow.equals(parquet_schema()):
+        return None
+
+    interval_minutes = int(config["collector_intervals_minutes"][source["collector"]])
+    adopted_output = output_path(output_dir, source, interval_minutes)
+    adopted_output.parent.mkdir(parents=True, exist_ok=True)
+    if adopted_output.exists():
+        if os.path.samefile(existing_output, adopted_output):
+            adoption_mode = "hardlink_resume"
+        else:
+            resumed_parquet = pq.ParquetFile(adopted_output)
+            copied_output_valid = (
+                bool(config.get("allow_adoption_copy_fallback", False))
+                and adopted_output.stat().st_size == existing_output.stat().st_size
+                and resumed_parquet.metadata.num_rows == int(payload.get("rows", -1))
+                and resumed_parquet.schema_arrow.equals(parquet_schema())
+            )
+            if not copied_output_valid:
+                raise FileExistsError(
+                    f"unverified adoption target already exists: {adopted_output}"
+                )
+            adoption_mode = "copy_resume"
+    else:
+        try:
+            os.link(existing_output, adopted_output)
+            adoption_mode = "hardlink"
+        except OSError as exc:
+            if not bool(config.get("allow_adoption_copy_fallback", False)):
+                raise OSError(
+                    f"hard-link adoption failed and copy fallback is disabled: {exc}"
+                ) from exc
+            shutil.copy2(existing_output, adopted_output)
+            adoption_mode = "copy"
+
+    result = enrich_temporal_alignment(payload, source, config)
+    original_execution = copy.deepcopy(result.get("checkpoint_execution", {}))
+    result["output_path"] = str(adopted_output)
+    result["parquet_size_bytes"] = adopted_output.stat().st_size
+    result["resumed_from_checkpoint"] = False
+    result["adopted_from_existing"] = True
+    result["adoption_mode"] = adoption_mode
+    result["adopted_from_output_path"] = str(existing_output)
+    result["adopted_from_checkpoint_execution"] = original_execution
+    return result
+
+
 def prepare_output(output_dir: Path, resume: bool) -> None:
     if output_dir.exists() and any(output_dir.iterdir()) and not resume:
         raise FileExistsError(
@@ -144,9 +255,14 @@ def report(summary: dict[str, Any]) -> str:
 - expected files: `{summary['expected_file_count']}`
 - parsed files: `{summary['parsed_file_count']}`
 - resumed files: `{summary['resumed_file_count']}`
+- adopted files: `{summary['adopted_file_count']}`
+- newly parsed files: `{summary['newly_parsed_file_count']}`
 - total rows: `{summary['total_parsed_rows']}`
 - parse seconds: `{summary['summed_parse_elapsed_sec']}`
 - aggregate rows/second: `{summary['aggregate_rows_per_sec']}`
+- archive-boundary warning files: `{summary['temporal_alignment_warning_file_count']}`
+- archive-boundary warning rows: `{summary['temporal_alignment_warning_row_count']}`
+- maximum bounded archive offset seconds: `{summary['maximum_boundary_offset_sec']}`
 - gate failures: `{summary['gate_failures']}`
 
 This task creates no attack/benign truth, does not modify foreground policy,
@@ -160,6 +276,7 @@ def main() -> int:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     data_root = Path(args.data_root).resolve()
     output_dir = Path(args.output_dir).resolve()
+    adopt_from = Path(args.adopt_from).resolve() if args.adopt_from else None
     manifest_path = (
         Path(args.manifest).resolve()
         if args.manifest
@@ -170,6 +287,8 @@ def main() -> int:
         raise ValueError(f"collector is outside the frozen contract: {args.collector}")
     if args.date not in allowed_dates(config):
         raise ValueError(f"date is outside the frozen contract: {args.date}")
+    if adopt_from is not None and not adopt_from.is_dir():
+        raise FileNotFoundError(f"adoption source does not exist: {adopt_from}")
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     if len(manifest) != 3840:
@@ -203,6 +322,7 @@ def main() -> int:
         "resume": args.resume,
         "plan_only": args.plan_only,
         "max_files": args.max_files,
+        "adopt_from": str(adopt_from) if adopt_from else None,
         "execution": execution_payload(),
     }
     if args.plan_only:
@@ -241,15 +361,22 @@ def main() -> int:
     for index, source in enumerate(selected, start=1):
         checkpoint = checkpoint_path(output_dir, source)
         result = load_completed_checkpoint(checkpoint, source) if args.resume else None
+        if result is not None:
+            result = enrich_temporal_alignment(result, source, runtime_config)
         if result is None:
-            result = parse_file(
-                source,
-                data_root,
-                output_dir,
-                runtime_config,
-                0,
-                preview,
-            )
+            if adopt_from is not None:
+                result = adopt_existing_checkpoint(
+                    adopt_from, output_dir, source, runtime_config
+                )
+            if result is None:
+                result = parse_file(
+                    source,
+                    data_root,
+                    output_dir,
+                    runtime_config,
+                    0,
+                    preview,
+                )
             result["checkpoint_execution"] = execution_payload()
             write_json(checkpoint, result)
         audits.append(result)
@@ -268,7 +395,9 @@ def main() -> int:
         print(
             f"progress={index}/{len(selected)} collector={args.collector} "
             f"date={args.date} status={result['status']} "
-            f"rows={result.get('rows', 0)} resumed={result.get('resumed_from_checkpoint', False)}",
+            f"rows={result.get('rows', 0)} "
+            f"resumed={result.get('resumed_from_checkpoint', False)} "
+            f"adopted={result.get('adopted_from_existing', False)}",
             flush=True,
         )
         if result["status"] != "parsed":
@@ -300,6 +429,18 @@ def main() -> int:
         gate_passed = False
 
     parsed = [row for row in audits if row["status"] == "parsed"]
+    temporal_warnings = [
+        {
+            "file_path": row["file_path"],
+            "out_of_window_rows": int(row.get("out_of_window_rows", 0)),
+            "out_of_window_rate": float(row.get("out_of_window_rate", 0.0)),
+            "maximum_boundary_offset_sec": float(
+                row.get("maximum_boundary_offset_sec", 0.0)
+            ),
+        }
+        for row in parsed
+        if int(row.get("out_of_window_rows", 0)) > 0
+    ]
     total_rows = sum(int(row["rows"]) for row in parsed)
     parse_seconds = sum(float(row.get("parse_elapsed_sec", 0.0)) for row in parsed)
     summary = {
@@ -316,6 +457,16 @@ def main() -> int:
         "failed_file_count": len(audits) - len(parsed),
         "resumed_file_count": sum(
             int(bool(row.get("resumed_from_checkpoint"))) for row in parsed
+        ),
+        "adopted_file_count": sum(
+            int(bool(row.get("adopted_from_existing"))) for row in parsed
+        ),
+        "newly_parsed_file_count": sum(
+            int(
+                not bool(row.get("resumed_from_checkpoint"))
+                and not bool(row.get("adopted_from_existing"))
+            )
+            for row in parsed
         ),
         "total_parsed_rows": total_rows,
         "announcement_rows": sum(int(row["announcement_rows"]) for row in parsed),
@@ -336,6 +487,18 @@ def main() -> int:
             round(total_rows / parse_seconds, 3) if parse_seconds else None
         ),
         "gate_failures": gate_failures,
+        "temporal_alignment_warning_file_count": len(temporal_warnings),
+        "temporal_alignment_warning_row_count": sum(
+            row["out_of_window_rows"] for row in temporal_warnings
+        ),
+        "maximum_boundary_offset_sec": max(
+            (
+                float(row.get("maximum_boundary_offset_sec", 0.0))
+                for row in parsed
+            ),
+            default=0.0,
+        ),
+        "temporal_alignment_warnings": temporal_warnings,
         "execution": execution_payload(),
         "claims": {
             "attack_or_benign_truth_produced": False,

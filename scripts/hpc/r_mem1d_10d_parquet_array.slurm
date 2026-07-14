@@ -21,6 +21,7 @@ PAIR_ID=${R_MEM1D_PAIR_ID:?R_MEM1D_PAIR_ID must be exported by the dual submitte
 PARTITION=${SLURM_JOB_PARTITION:?SLURM_JOB_PARTITION is required}
 ARRAY_JOB_ID=${SLURM_ARRAY_JOB_ID:?SLURM_ARRAY_JOB_ID is required}
 TASK_ID=${SLURM_ARRAY_TASK_ID:?SLURM_ARRAY_TASK_ID is required}
+ADOPT_ROOT=${R_MEM1D_ADOPT_ROOT:-}
 
 if [[ ! "$PAIR_ID" =~ ^[A-Za-z0-9._-]+$ ]]; then
   echo "Invalid R_MEM1D_PAIR_ID: $PAIR_ID" >&2
@@ -44,6 +45,17 @@ OUTPUT_ROOT=$DATA_ROOT/derived/r_mem1d_10d_parquet_v01
 ARRAY_ROOT=$OUTPUT_ROOT/pair=$PAIR_ID/partition=$PARTITION/array_job=$ARRAY_JOB_ID
 OUTPUT_DIR=$ARRAY_ROOT/task=$TASK_ID/collector=$SAFE_COLLECTOR/date=$DATE
 OUTPUT_REL=${OUTPUT_DIR#"$DATA_ROOT"/}
+ADOPT_DIR=
+ADOPT_REL=
+if [[ -n "$ADOPT_ROOT" ]]; then
+  case "$ADOPT_ROOT" in
+    "$DATA_ROOT"/*) ;;
+    *) echo "R_MEM1D_ADOPT_ROOT must be under DATA_ROOT: $ADOPT_ROOT" >&2; exit 2 ;;
+  esac
+  ADOPT_DIR=$ADOPT_ROOT/task=$TASK_ID/collector=$SAFE_COLLECTOR/date=$DATE
+  test -d "$ADOPT_DIR"
+  ADOPT_REL=${ADOPT_DIR#"$DATA_ROOT"/}
+fi
 JOB_TMP=$BASE/tmp/r_mem1d/$PAIR_ID/$PARTITION/$ARRAY_JOB_ID/$TASK_ID
 LIVE_LOG=$BASE/logs/r_mem1d_${PAIR_ID}_${PARTITION}_${ARRAY_JOB_ID}_${TASK_ID}.live.log
 
@@ -86,6 +98,7 @@ echo "node_list=$SLURM_NODELIST"
 echo "commit=$R_MEM1D_CODE_COMMIT"
 echo "code_fingerprint=$R_MEM1D_CODE_FINGERPRINT"
 echo "output_dir=$OUTPUT_DIR"
+echo "adopt_from=${ADOPT_DIR:-none}"
 echo "job_tmp=$JOB_TMP"
 echo "resources=cpus:${SLURM_CPUS_PER_TASK:-1},memory:2G,time:02:00:00"
 
@@ -112,6 +125,10 @@ if [[ -f "$OUTPUT_DIR/r_mem1d_task_summary.json" ]]; then
 fi
 
 echo "heartbeat=collector_day_materialization_start"
+ADOPT_ARGS=()
+if [[ -n "$ADOPT_REL" ]]; then
+  ADOPT_ARGS=(--adopt-from "/data_store/$ADOPT_REL")
+fi
 timeout --signal=TERM --kill-after=30s 110m \
   apptainer exec "${COMMON_BIND[@]}" "$IMG" \
   /opt/venv/bin/python -u \
@@ -121,6 +138,7 @@ timeout --signal=TERM --kill-after=30s 110m \
   --output-dir "/data_store/$OUTPUT_REL" \
   --collector "$COLLECTOR" \
   --date "$DATE" \
+  "${ADOPT_ARGS[@]}" \
   --resume
 echo "heartbeat=collector_day_materialization_complete"
 

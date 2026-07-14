@@ -129,6 +129,40 @@ filter routing rows or make attack/background judgments.
 **Status:** implementation and local contract tests passed; HPC execution is
 next.
 
+### R-MEM-1D-R1 Incremental Recovery Amendment
+
+**Decision:** Preserve and revalidate every completed R-MEM-1D Parquet, parse
+only missing archives, and separate archive-container timing from row event
+time. Do not rerun the complete 10-day parse from zero.
+
+**Rationale:** The first dual-partition execution established that RRC00 and
+the MRT parser are healthy. Its failure was concentrated in the Route Views
+archive-boundary gate: across `490` parsed Route Views archives, only `31`
+files contained bounded spill, totaling `94` rows with a maximum offset of
+`13` seconds. The completed outputs have no observed parse, schema, or source
+integrity failure. Discarding them would add compute without improving the
+scientific contract.
+
+**Consequence:**
+
+- adopt an old output only after checkpoint status, source size/SHA flags,
+  Parquet byte size, footer row count, and exact schema all pass;
+- use hard links so adoption does not duplicate large data;
+- make adoption resumable if a job stops between link creation and checkpoint
+  promotion;
+- keep all rows and use row `ts` for downstream time windows;
+- allow only empirically bounded archive spill, then compare spill rows with
+  adjacent archives and stop on any potential duplicate;
+- stop if spill occurs at an outer dataset boundary without an adjacent guard
+  archive; missing data cannot establish non-duplication;
+- require exact `3,840`-source manifest coverage and re-open every Parquet
+  footer before promotion;
+- run isolated AMD and Intel copies with measured resources; either copy must
+  remain independently valid.
+
+**Status:** implementation and local adoption/overlap/validator tests passed;
+incremental HPC recovery and final qualification are next.
+
 ## R-MEM-1B Direct Archive Acquisition Decision
 
 **Decision:** Acquire the 10-day canonical raw MRT window on the local

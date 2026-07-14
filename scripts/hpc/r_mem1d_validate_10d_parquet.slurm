@@ -34,6 +34,7 @@ VALIDATION_DIR=$DATA_ROOT/derived/r_mem1d_10d_parquet_v01/pair=$PAIR_ID/validati
 MATERIALIZATION_REL=${MATERIALIZATION_ROOT#"$DATA_ROOT"/}
 VALIDATION_REL=${VALIDATION_DIR#"$DATA_ROOT"/}
 JOB_TMP=$BASE/tmp/r_mem1d_validation/$PAIR_ID/$PARTITION/$JOB_ID
+TEMPORAL_DIR=$JOB_TMP/temporal_alignment
 LIVE_LOG=$BASE/logs/r_mem1d_validation_${PAIR_ID}_${PARTITION}_${JOB_ID}.live.log
 
 test ! -e "$VALIDATION_DIR"
@@ -42,6 +43,7 @@ export APPTAINER_TMPDIR=$JOB_TMP/apptainer-tmp
 export APPTAINER_CACHEDIR=$JOB_TMP/apptainer-cache
 exec > >(tee -a "$LIVE_LOG") 2>&1
 
+test -f "$REPO/scripts/audit_r_mem1d_temporal_alignment.py"
 test -f "$REPO/scripts/validate_r_mem1d_10d_parquet.py"
 test -f "$REPO/$CONFIG"
 test -f "$IMG"
@@ -58,21 +60,43 @@ echo "resources=cpus:${SLURM_CPUS_PER_TASK:-1},memory:2G,time:00:10:00"
 
 module purge
 module load apps/apptainer/1.4.5-2
-COMMON_BIND=(--bind "$REPO":/work --bind "$DATA_ROOT":/data_store)
+COMMON_BIND=(
+  --bind "$REPO":/work
+  --bind "$DATA_ROOT":/data_store
+  --bind "$BASE/tmp":/hpc_tmp
+)
 
 apptainer exec "${COMMON_BIND[@]}" "$IMG" \
-  /opt/venv/bin/python -m py_compile /work/scripts/validate_r_mem1d_10d_parquet.py
+  /opt/venv/bin/python -m py_compile \
+  /work/scripts/audit_r_mem1d_temporal_alignment.py \
+  /work/scripts/validate_r_mem1d_10d_parquet.py
+TEMPORAL_REL=${TEMPORAL_DIR#"$BASE/tmp"/}
+apptainer exec "${COMMON_BIND[@]}" "$IMG" \
+  /opt/venv/bin/python -u /work/scripts/audit_r_mem1d_temporal_alignment.py \
+  --config "/work/$CONFIG" \
+  --materialization-root "/data_store/$MATERIALIZATION_REL" \
+  --output-dir "/hpc_tmp/$TEMPORAL_REL"
 apptainer exec "${COMMON_BIND[@]}" "$IMG" \
   /opt/venv/bin/python -u /work/scripts/validate_r_mem1d_10d_parquet.py \
   --config "/work/$CONFIG" \
   --materialization-root "/data_store/$MATERIALIZATION_REL" \
   --output-dir "/data_store/$VALIDATION_REL" \
+  --source-manifest "/data_store/manifests/r_mem1b_10d_direct_archive_v01/full/download_manifest.json" \
+  --temporal-alignment-summary "/hpc_tmp/$TEMPORAL_REL/r_mem1d_temporal_alignment_summary.json" \
   --expected-array-job-id "$ARRAY_JOB_ID"
+
+cp "$TEMPORAL_DIR"/r_mem1d_temporal_alignment_summary.json "$VALIDATION_DIR"/
+cp "$TEMPORAL_DIR"/r_mem1d_temporal_alignment_audit.csv "$VALIDATION_DIR"/
+cp "$TEMPORAL_DIR"/r_mem1d_potential_duplicate_examples.csv "$VALIDATION_DIR"/
 
 SMALL=$VALIDATION_DIR/r_mem1d_validation_small_results.tar.gz
 tar -czf "$SMALL" -C "$VALIDATION_DIR" \
   r_mem1d_validation_summary.json \
   r_mem1d_task_validation_audit.csv \
+  r_mem1d_canonical_source_manifest.csv \
+  r_mem1d_temporal_alignment_summary.json \
+  r_mem1d_temporal_alignment_audit.csv \
+  r_mem1d_potential_duplicate_examples.csv \
   r_mem1d_validation_report.md
 echo "validation_summary=$VALIDATION_DIR/r_mem1d_validation_summary.json"
 echo "small_results=$SMALL"

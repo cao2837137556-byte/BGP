@@ -11,6 +11,7 @@ ARRAY_SCRIPT=$REPO/scripts/hpc/r_mem1d_10d_parquet_array.slurm
 VALIDATOR_SCRIPT=$REPO/scripts/hpc/r_mem1d_validate_10d_parquet.slurm
 SUBMIT_SCRIPT=$REPO/scripts/hpc/submit_r_mem1d_10d_parquet_dual.sh
 PAIR_ROOT=$DATA_ROOT/derived/r_mem1d_10d_parquet_v01/pair=$PAIR_ID
+ADOPT_ROOT=${R_MEM1D_ADOPT_ROOT:-}
 
 if [[ ! "$PAIR_ID" =~ ^[A-Za-z0-9._-]+$ ]]; then
   echo "Invalid pair ID: $PAIR_ID" >&2
@@ -24,6 +25,7 @@ fi
 for path in \
   "$REPO/scripts/run_r_mem1c_local_mrt_parser_smoke.py" \
   "$REPO/scripts/materialize_r_mem1d_10d_parquet.py" \
+  "$REPO/scripts/audit_r_mem1d_temporal_alignment.py" \
   "$REPO/scripts/validate_r_mem1d_10d_parquet.py" \
   "$REPO/$CONFIG" \
   "$ARRAY_SCRIPT" \
@@ -42,6 +44,24 @@ echo "partial_file_count=$PART_COUNT"
 test "$RAW_COUNT" -eq 3840
 test "$PART_COUNT" -eq 0
 
+if [[ -n "$ADOPT_ROOT" ]]; then
+  case "$ADOPT_ROOT" in
+    "$DATA_ROOT"/*) ;;
+    *) echo "R_MEM1D_ADOPT_ROOT must be under DATA_ROOT" >&2; exit 2 ;;
+  esac
+  test -d "$ADOPT_ROOT"
+  test "$(find "$ADOPT_ROOT" -type f -name r_mem1d_task_summary.json | wc -l)" -eq 20
+  ADOPT_SAMPLE=$(find "$ADOPT_ROOT" -type f -name '*.parquet' -print -quit)
+  test -n "$ADOPT_SAMPLE"
+  HARDLINK_PROBE=$(mktemp -d "$DATA_ROOT/derived/r_mem1d_adoption_probe.XXXXXX")
+  trap 'rm -rf "${HARDLINK_PROBE:-}"' EXIT
+  ln "$ADOPT_SAMPLE" "$HARDLINK_PROBE/sample.parquet"
+  test "$ADOPT_SAMPLE" -ef "$HARDLINK_PROBE/sample.parquet"
+  rm -rf "$HARDLINK_PROBE"
+  trap - EXIT
+  echo "adoption_hardlink_probe=passed"
+fi
+
 bash -n "$ARRAY_SCRIPT"
 bash -n "$VALIDATOR_SCRIPT"
 bash -n "$SUBMIT_SCRIPT"
@@ -53,6 +73,7 @@ COMMON_BIND=(--bind "$REPO":/work --bind "$DATA_ROOT":/data_store)
 apptainer exec "${COMMON_BIND[@]}" "$IMG" /opt/venv/bin/python -m py_compile \
   /work/scripts/run_r_mem1c_local_mrt_parser_smoke.py \
   /work/scripts/materialize_r_mem1d_10d_parquet.py \
+  /work/scripts/audit_r_mem1d_temporal_alignment.py \
   /work/scripts/validate_r_mem1d_10d_parquet.py
 
 apptainer exec "${COMMON_BIND[@]}" "$IMG" /opt/venv/bin/python -c \
@@ -98,9 +119,9 @@ apptainer exec "${COMMON_BIND[@]}" --bind "$BASE/tmp":/hpc_tmp "$IMG" \
 test -f "$PREFLIGHT_TMP/plan/r_mem1d_task_plan.json"
 
 sbatch --test-only -p amd -J bgp_r_mem1d_amd --array=0-19%4 \
-  --export=ALL,R_MEM1D_PAIR_ID="$PAIR_ID" "$ARRAY_SCRIPT"
+  --export=ALL,R_MEM1D_PAIR_ID="$PAIR_ID",R_MEM1D_ADOPT_ROOT="$ADOPT_ROOT" "$ARRAY_SCRIPT"
 sbatch --test-only -p intel -J bgp_r_mem1d_intel --array=0-19%4 \
-  --export=ALL,R_MEM1D_PAIR_ID="$PAIR_ID" "$ARRAY_SCRIPT"
+  --export=ALL,R_MEM1D_PAIR_ID="$PAIR_ID",R_MEM1D_ADOPT_ROOT="$ADOPT_ROOT" "$ARRAY_SCRIPT"
 sbatch --test-only -p amd -J bgp_r_mem1d_val_amd \
   --export=ALL,R_MEM1D_PAIR_ID="$PAIR_ID",R_MEM1D_SOURCE_PARTITION=amd,R_MEM1D_ARRAY_JOB_ID=999999 \
   "$VALIDATOR_SCRIPT"

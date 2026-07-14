@@ -93,9 +93,47 @@ One partition run passes only if the validator observes:
 - one consistent code fingerprint across all tasks;
 - the expected array-job provenance on every task.
 
+The final validator also reopens all `3,840` Parquet footers, checks exact
+schema and row-count agreement, reconciles all source paths against the frozen
+download manifest, and emits a canonical source-to-Parquet manifest.
+
 The validator reads metadata and file counts, not all Parquet rows.
 It is submitted with an `afterany` dependency, so it also writes an explicit
 missing-task/file report when an array does not finish cleanly.
+
+## First Execution Audit and R-MEM-1D-R1 Recovery
+
+The first materialization attempt is not a qualified 10-day asset, but its
+completed outputs are valid reusable work:
+
+- RRC00 complete: `2,880 / 2,880` files;
+- Route Views parsed: `490 / 960` files;
+- reusable total: `3,370 / 3,840` Parquets;
+- remaining parse work: `470` Route Views files;
+- Route Views files with archive-boundary spill: `31`;
+- bounded spill rows: `94`;
+- maximum observed boundary offset: `13` seconds;
+- observed parse/schema/source-integrity failures in completed outputs: `0`.
+
+The failure came from treating a provider archive filename as an exact row-time
+partition. MRT row timestamps remain the event-time authority. R-MEM-1D-R1
+therefore uses this recovery contract:
+
+1. Revalidate old checkpoints and Parquet footers before adoption.
+2. Hard-link valid outputs into a new isolated run root.
+3. Parse only files without a valid adoptable result.
+4. Preserve all bounded spill rows; never silently trim them.
+5. Compare spill-row fingerprints with the adjacent archive and stop if a
+   potential duplicate is present.
+6. Stop if an affected outer-boundary file has no adjacent guard archive to
+   audit; do not infer non-duplication from missing data.
+7. Promote the asset only after exact `3,840`-file source-manifest, footer,
+   schema, provenance, and temporal-alignment validation passes.
+
+The boundary allowance is not a data-cleaning shortcut and is not an attack
+signal. It is an archive-container alignment rule guarded by a separate
+overlap audit. Until final validation passes, the 10-day asset remains an
+active blocker and must not feed path-memory claims.
 
 ## Outputs
 
@@ -121,7 +159,8 @@ output is committed.
 
 ## Next Step
 
-After one partition produces a passing 20-task validation summary, build the
+Run R-MEM-1D-R1 incremental recovery first. After one partition produces a
+passing 20-task validation summary and canonical source manifest, build the
 10-day path-memory sidecar from the qualified Parquet asset. Only then return
 to the targeted path-history poisoning repair in R-FOREGROUND-4B. Evidence
 attachment and learning remain downstream steps.

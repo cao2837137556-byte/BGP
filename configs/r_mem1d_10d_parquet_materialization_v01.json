@@ -18,6 +18,12 @@
   "batch_rows": 50000,
   "preview_rows": 100,
   "timestamp_grace_sec": 1,
+  "temporal_alignment": {
+    "maximum_boundary_offset_sec": 60,
+    "maximum_out_of_window_rate_per_file": 0.0001,
+    "preserve_out_of_window_rows": true,
+    "partition_semantics": "archive_container_time; downstream windows must use row ts"
+  },
   "collector_intervals_minutes": {
     "route-views.sg": 15,
     "rrc00": 5
