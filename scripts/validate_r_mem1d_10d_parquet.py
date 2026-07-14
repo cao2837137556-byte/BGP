@@ -168,8 +168,10 @@ def main() -> int:
             for row in audit_rows
         ):
             failures.append(f"{collector}:{day}: file audit integrity flag failed")
-        if summary.get("early_gate", {}).get("passed") is not True:
-            failures.append(f"{collector}:{day}: early gate did not pass")
+        if summary.get("boundary_parser_precheck", {}).get("passed") is not True:
+            failures.append(
+                f"{collector}:{day}: boundary parser precheck did not pass"
+            )
         execution = summary.get("execution", {})
         if args.expected_array_job_id and str(
             execution.get("slurm_array_job_id")

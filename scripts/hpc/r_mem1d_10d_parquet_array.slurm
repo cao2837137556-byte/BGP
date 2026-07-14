@@ -131,7 +131,7 @@ SMALL=$OUTPUT_DIR/r_mem1d_task_small_results.tar.gz
 tar -czf "$SMALL" -C "$OUTPUT_DIR" \
   r_mem1d_task_plan.json \
   r_mem1d_task_progress.json \
-  r_mem1d_early_gate.json \
+  r_mem1d_boundary_parser_precheck.json \
   r_mem1d_task_summary.json \
   r_mem1d_schema.json \
   r_mem1d_file_audit.csv \

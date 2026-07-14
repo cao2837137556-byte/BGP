@@ -87,7 +87,7 @@ Attack families that must remain visible:
 | 10d canonical path-memory sidecar smoke | compute-node acquisition route rejected | R-MEM-1A | completed stop-loss | Array `149909` timed out with zero outputs; probe `150551` confirmed Broker and stream timeouts from the compute node. Do not retry the same HPC network path. |
 | 10d immutable raw MRT acquisition | complete and integrity-verified | R-MEM-1B | completed | `3,840/3,840` Route Views SG/RRC00 archives cover `2024-04-07` through `2024-04-16`; total `16,502,107,268` bytes; final SHA256/compression revalidation passed with zero failures or partial files. |
 | Local MRT parser/schema qualification | complete-file dual measurement passed | R-MEM-1C | completed | Jobs `151396/151397` parsed `2/2` complete files and `966,702` rows per execution; all gates passed with identical code fingerprint. |
-| 10d MRT-to-Parquet materialization | checkpointed dual-partition array prepared | R-MEM-1D | next | 20 collector-day tasks; first/last archive early gate; 3,840-file validator; no manual decompression. |
+| 10d MRT-to-Parquet materialization | checkpointed dual-partition array prepared | R-MEM-1D | next | 20 collector-day tasks; first/last archive boundary parser precheck; 3,840-file validator; no manual decompression. |
 
 ## 4. Active Data / Evidence Contract
 

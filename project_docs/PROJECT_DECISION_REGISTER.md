@@ -109,9 +109,10 @@ uncompressed MRT copy and do not queue a separate four-file smoke.
 
 **Rationale:** R-MEM-1C already qualified complete-file parsing on both
 collectors and measured sufficient one-CPU throughput. Each real collector-day
-task can perform a stronger first/last archive early gate before its middle
-files, so a separate queue cycle would add delay without adding a distinct
-scientific check.
+task can perform a first/last archive boundary parser precheck before its
+middle files, so a separate queue cycle would add delay without adding a
+distinct scientific check. This precheck is parser/data QA only; it does not
+filter routing rows or make attack/background judgments.
 
 **Consequence:**
 

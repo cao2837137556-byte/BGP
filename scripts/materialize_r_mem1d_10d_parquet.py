@@ -2,9 +2,10 @@
 """Materialize one collector-day of verified local MRT into Parquet.
 
 The task consumes the immutable R-MEM-1B manifest, parses the first and last
-archive first as an early gate, and then processes the remaining files. Each
-file receives an atomic Parquet output and an atomic audit checkpoint so a
-requeued Slurm task can resume without overwriting completed work.
+archive first as a boundary parser precheck, and then processes the remaining
+files. Each file receives an atomic Parquet output and an atomic audit
+checkpoint so a requeued Slurm task can resume without overwriting completed
+work.
 """
 
 from __future__ import annotations
@@ -235,7 +236,7 @@ def main() -> int:
     runtime_config["gates"]["required_collectors"] = [args.collector]
     preview: list[dict[str, Any]] = []
     audits: list[dict[str, Any]] = []
-    early_gate: dict[str, Any] | None = None
+    boundary_parser_precheck: dict[str, Any] | None = None
 
     for index, source in enumerate(selected, start=1):
         checkpoint = checkpoint_path(output_dir, source)
@@ -274,14 +275,17 @@ def main() -> int:
             break
         if index == min(2, len(selected)):
             gate_passed, gate_failures = evaluate_gates(audits, runtime_config)
-            early_gate = {
+            boundary_parser_precheck = {
                 "passed": gate_passed,
                 "file_count": len(audits),
                 "file_paths": [row["file_path"] for row in audits],
                 "gate_failures": gate_failures,
             }
-            write_json(output_dir / "r_mem1d_early_gate.json", early_gate)
-            print(f"early_gate_passed={gate_passed}", flush=True)
+            write_json(
+                output_dir / "r_mem1d_boundary_parser_precheck.json",
+                boundary_parser_precheck,
+            )
+            print(f"boundary_parser_precheck_passed={gate_passed}", flush=True)
             if not gate_passed:
                 break
 
@@ -304,7 +308,7 @@ def main() -> int:
         "collector": args.collector,
         "date": args.date,
         "materialization_passed": gate_passed,
-        "early_gate": early_gate,
+        "boundary_parser_precheck": boundary_parser_precheck,
         "expected_file_count": expected_count,
         "selected_file_count": len(selected),
         "processed_file_count": len(audits),

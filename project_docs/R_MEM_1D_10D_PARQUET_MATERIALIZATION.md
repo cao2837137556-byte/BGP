@@ -50,7 +50,7 @@ The full run uses `20` independent collector-day tasks:
 This request follows measured single-file throughput and memory behavior. It is
 not enlarged speculatively.
 
-## Early Gate and Resume Contract
+## Boundary Parser Precheck and Resume Contract
 
 Each task processes files in this order:
 
@@ -88,7 +88,7 @@ One partition run passes only if the validator observes:
 - exactly `20` unique collector-day summaries;
 - exactly `3,840` unique source archives;
 - exactly `3,840` successful file audits and Parquet outputs;
-- no failed collector-day task or early gate;
+- no failed collector-day task or boundary parser precheck;
 - source-integrity verification for all files;
 - one consistent code fingerprint across all tasks;
 - the expected array-job provenance on every task.
