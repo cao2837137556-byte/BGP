@@ -83,6 +83,21 @@ output was produced. The repaired contract records an optional commit when
 available and always records a SHA256 fingerprint over the parser, config, and
 Slurm script. Archive-only checkouts are now an explicit preflight case.
 
+The repaired dual run completed successfully:
+
+- AMD job `151396`: `COMPLETED`, `23` seconds;
+- Intel job `151397`: `COMPLETED`, `25` seconds;
+- both parsed `2/2` complete archives and produced `966,702` rows;
+- both passed source-integrity, timestamp, prefix, AS-path, communities, and
+  full-file gates;
+- aggregate throughput was about `53,073` rows/s on AMD and `44,449` rows/s on
+  Intel;
+- both executions used the same code fingerprint and isolated outputs.
+
+The jobs are redundant engineering executions, not independent scientific
+samples. Their matching row counts and gates qualify the parser for the 10-day
+materialization step.
+
 ## Deterministic Sample
 
 The default smoke selects the chronologically first and last archive for each
@@ -143,9 +158,8 @@ be estimated before allocating the full job.
 
 ## Next Step
 
-Run the dual-partition complete-file measurement through
-`scripts/hpc/submit_r_mem1c_complete_file_measure_dual.sh`. Use the first
-completed valid run to measure full-file throughput and output size; cancel the
-later run when convenient. If both finish, compare their scientific summaries.
-Only a passing measurement may size and enter the later four-file parser/schema
-smoke. No 10-day full parse is authorized at this gate.
+Proceed to R-MEM-1D, the checkpointed 10-day MRT-to-Parquet materialization.
+The separate four-file smoke is not queued: every R-MEM-1D collector-day task
+parses its chronologically first and last archives first and must pass the same
+schema/integrity gates before parsing the middle files. This preserves the
+intended early failure detection without adding another queued job.

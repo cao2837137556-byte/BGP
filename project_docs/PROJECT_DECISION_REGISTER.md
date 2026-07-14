@@ -98,9 +98,35 @@ full-file parse catches parser/runtime/schema failures before a costly full run.
 - reject capped debug runs as formal evidence;
 - do not modify foreground, train learning, or treat parsed rows as truth.
 
-**Status:** deterministic plan passed, but formal job `151319` stalled before
-the first element and is rejected. Superseded operationally by the single-file
-liveness gate above; complete-file qualification remains pending.
+**Status:** completed. Jobs `151396/151397` each parsed `2/2` complete archives
+and `966,702` rows; all source-integrity and schema gates passed.
+
+## R-MEM-1D Checkpointed 10-day Materialization Decision
+
+**Decision:** Stream all `3,840` immutable provider-compressed MRT archives
+directly into Parquet using 20 collector-day tasks. Do not create an
+uncompressed MRT copy and do not queue a separate four-file smoke.
+
+**Rationale:** R-MEM-1C already qualified complete-file parsing on both
+collectors and measured sufficient one-CPU throughput. Each real collector-day
+task can perform a stronger first/last archive early gate before its middle
+files, so a separate queue cycle would add delay without adding a distinct
+scientific check.
+
+**Consequence:**
+
+- process first archive, last archive, then chronological middle files;
+- use per-file atomic Parquet and JSON checkpoints;
+- allow same-job requeue to resume only after output-size/checkpoint validation;
+- require exactly 20 collector-day summaries and 3,840 unique source, audit,
+  and Parquet records before promotion;
+- submit isolated AMD and Intel arrays with one logical pair ID;
+- use measured resources: 1 CPU, 2 GB, 2 hours per task, concurrency 4;
+- build the path-memory sidecar only after one partition validates completely;
+- do not attach evidence, alter foreground, create truth, or train learning.
+
+**Status:** implementation and local contract tests passed; HPC execution is
+next.
 
 ## R-MEM-1B Direct Archive Acquisition Decision
 
