@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 Status: active project-level research decision register.
 
@@ -160,8 +160,36 @@ scientific contract.
 - run isolated AMD and Intel copies with measured resources; either copy must
   remain independently valid.
 
-**Status:** implementation and local adoption/overlap/validator tests passed;
-incremental HPC recovery and final qualification are next.
+**Status:** HPC recovery completed independently on AMD and Intel. Each produced
+`3,840` Parquets. Final qualification stopped on the same `83` adjacent-archive
+base-fingerprint matches and now proceeds to R-MEM-1D-QA2.
+
+### R-MEM-1D-QA2 Observation Identity Amendment
+
+**Decision:** Do not delete or canonicalize adjacent-archive fingerprint
+matches until raw MRT replay recovers peer identity and reconciles exact row
+multiplicity.
+
+**Rationale:** R-MEM-1D-R1 found `83` reproducible base-fingerprint matches,
+but the current Parquet schema records `peer_asn` without `peer_address`.
+Different peers in one ASN can therefore collapse to the same current
+fingerprint. The arbitrary per-file spill-rate threshold also cannot decide
+whether the observations are duplicates.
+
+**Consequence:**
+
+- preserve both complete 3,840-file materializations unchanged;
+- replay only implicated raw archives and recover peer address plus available
+  router identity;
+- canonicalize communities order for QA fingerprinting;
+- classify same-identity overlap separately from distinct-peer collision;
+- if identities differ, add peer address to the canonical observation schema;
+- if all identities match, design a non-destructive overlap-exclusion sidecar;
+- stop on unresolved raw/Parquet multiplicity;
+- do not build path memory before observation identity is qualified.
+
+**Status:** implementation and local contract tests passed; bounded dual-HPC
+audit is next.
 
 ## R-MEM-1B Direct Archive Acquisition Decision
 

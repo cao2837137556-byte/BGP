@@ -1,0 +1,19 @@
+{
+  "phase": "R-MEM-1D-QA2",
+  "description": "Bounded observation-identity audit for adjacent MRT archive overlap candidates.",
+  "materialization_config": "configs/r_mem1d_10d_parquet_materialization_v01.json",
+  "expected_source_file_count": 3840,
+  "maximum_workers": 4,
+  "raw_identity_fields": [
+    "peer_address",
+    "router",
+    "router_ip"
+  ],
+  "claim_boundaries": [
+    "A base-row fingerprint match is not sufficient to delete a routing observation.",
+    "Matching peer identity is an archive-overlap duplicate candidate, not automatic proof that two protocol messages are identical.",
+    "Distinct peer identities sharing one base fingerprint are legitimate separate observations unless stronger evidence proves otherwise.",
+    "This audit does not create attack or benign truth.",
+    "This audit does not modify the 10-day Parquet materialization, foreground policy, evidence state, or learning layer."
+  ]
+}

@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 Status: active authoritative mainline state.
 
@@ -87,7 +87,7 @@ Attack families that must remain visible:
 | 10d canonical path-memory sidecar smoke | compute-node acquisition route rejected | R-MEM-1A | completed stop-loss | Array `149909` timed out with zero outputs; probe `150551` confirmed Broker and stream timeouts from the compute node. Do not retry the same HPC network path. |
 | 10d immutable raw MRT acquisition | complete and integrity-verified | R-MEM-1B | completed | `3,840/3,840` Route Views SG/RRC00 archives cover `2024-04-07` through `2024-04-16`; total `16,502,107,268` bytes; final SHA256/compression revalidation passed with zero failures or partial files. |
 | Local MRT parser/schema qualification | complete-file dual measurement passed | R-MEM-1C | completed | Jobs `151396/151397` parsed `2/2` complete files and `966,702` rows per execution; all gates passed with identical code fingerprint. |
-| 10d MRT-to-Parquet materialization | partial execution audited; incremental recovery prepared | R-MEM-1D-R1 | active blocker | 3,370 verified Parquets are reusable; only 470 missing Route Views files require parsing; final 3,840-file validation remains pending. |
+| 10d MRT-to-Parquet materialization | both redundant executions completed; observation-identity QA required | R-MEM-1D-R1 / QA2 | active blocker | AMD and Intel each produced 3,840 Parquets. Bounded spill is reproducible, but 83 adjacent-archive base-fingerprint matches cannot be classified safely without peer-address recovery. |
 
 ## 4. Active Data / Evidence Contract
 
@@ -309,10 +309,18 @@ Forbidden in new decision logic:
      - the old zero-spill gate was stricter than provider archive-container
        semantics and caused five complete Route Views days to be rejected and
        five earlier days to stop after their boundary precheck.
-   - R-MEM-1D-R1 is now the only next data action: hard-link and revalidate the
-     `3,370` completed Parquets, parse only the `470` missing Route Views
-     archives, audit adjacent-file overlap, and emit one canonical source
-     manifest. No manual decompression or full blind replay is allowed.
+   - R-MEM-1D-R1 completed both redundant executions:
+     - AMD and Intel each produced `20` summaries and `3,840` Parquets;
+     - both observed `919` bounded boundary rows in `64` files, with maximum
+       offset `12` seconds;
+     - both found the same `83` adjacent-archive base-fingerprint matches across
+       `14` Route Views source files;
+     - three collector-day summaries failed only because the per-file spill
+       rate slightly exceeded `0.0001`.
+   - The data are parsed and reproducible, but not yet qualified. The current
+     schema has `peer_asn` without `peer_address`, so the `83` matches may be
+     either real archive overlap or separate peers in one ASN. Direct deletion,
+     blind gate relaxation, and another full replay are all prohibited.
 
 7. Historical replay and larger paired poisoning/evasion scenarios are still
    missing.
@@ -330,28 +338,24 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-MEM-1D-R1 incremental 10-day MRT-to-Parquet recovery:
-Reuse only footer/schema/source-verified outputs from array `151433`, parse
-only missing archives, audit bounded timestamp spill against adjacent files,
-then require one partition's canonical 3,840-file validation to pass.
+R-MEM-1D-QA2 boundary observation identity audit:
+Read the completed R-MEM-1D-R1 Parquets, replay only raw MRT archives implicated
+by adjacent base-fingerprint matches, recover peer/router identity, and decide
+whether the next action is a non-destructive overlap-exclusion sidecar or a
+peer-address schema repair.
 ```
 
 Allowed scope:
 
-- use the already transferred and integrity-verified R-MEM-1B archive tree;
-- split work into 10 dates times 2 collectors;
-- preserve completed work through verified hard links, not by trusting a task
-  summary alone;
-- parse only sources without a valid adoptable checkpoint and Parquet footer;
-- preserve row timestamps even when they cross an archive filename boundary;
-- block promotion if the adjacent-file audit finds potential duplicate rows;
-- use `1` CPU, `2 GB`, and `2` hours per array task with concurrency `4`;
-- write per-file atomic Parquet and checkpoint files so a requeued task resumes;
-- require exactly 20 collector-day summaries and 3,840 Parquet outputs;
-- record rows, parse time, schema coverage, communities, input bytes, output
-  bytes, source-integrity coverage, and code fingerprint;
-- write Parquet through an atomic temporary path so a failed parse leaves no
-  plausible output;
+- preserve both complete R-MEM-1D-R1 materializations as immutable candidates;
+- canonicalize communities order only inside the QA fingerprint;
+- recover `peer_address`, router, and router IP from raw MRT only for implicated
+  files;
+- reconcile raw and Parquet multiplicity for every candidate;
+- classify candidates as same-identity overlap, distinct-peer collision,
+  mixed identity, or unresolved;
+- do not delete or rewrite rows in QA2;
+- use `4` CPU, `6 GB`, and at most `4` hours per QA job;
 - submit separate AMD and Intel jobs under one `pair_id`, with isolated
   partition/job output, temp, log, and package paths;
 - normally cancel the later-starting copy, but require both copies to remain
@@ -437,7 +441,8 @@ R-CLEAN-0
   -> R-MEM-1A [done: compute-node acquisition path rejected by bounded probe]
   -> R-MEM-1B [done: 3,840/3,840 immutable raw MRT archives verified]
   -> R-MEM-1C [done: liveness and dual complete-file measurement passed]
-  -> R-MEM-1D-R1 [next: incremental adoption, missing-file parse, temporal audit]
+  -> R-MEM-1D-R1 [done: both 3,840-file parses completed; identity ambiguity found]
+  -> R-MEM-1D-QA2 [next: bounded raw peer-identity audit of boundary matches]
   -> R-FOREGROUND-4B [then: targeted path-memory poisoning guard smoke]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
@@ -475,7 +480,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-MEM-1A | 10d canonical path-memory sidecar smoke | sidecar contract implemented; compute-node acquisition stop-loss confirmed by array `149909` and probe `150551` | completed stop-loss | `project_docs/R_MEM_1A_COMPUTE_NODE_ACQUISITION_PROBE.md` |
 | R-MEM-1B | 10d direct archive acquisition | complete: 3,840/3,840 archives, 16,502,107,268 bytes, all SHA256/compression checks passed, zero residual partials | completed | `project_docs/R_MEM_1B_10D_DIRECT_ARCHIVE_ACQUISITION.md` |
 | R-MEM-1C | local MRT parser/schema qualification | jobs `151396/151397` completed; both parsed 2/2 complete files and 966,702 rows with all gates passed | completed | `project_docs/R_MEM_1C_LOCAL_MRT_PARSER_SMOKE.md` |
-| R-MEM-1D/R1 | 10d MRT-to-Parquet materialization | first execution preserved 3,370 valid Parquets but exposed an over-strict archive-boundary gate; incremental recovery now revalidates completed work, parses 470 missing files, audits adjacent overlap, and emits a canonical manifest | active blocker | `project_docs/R_MEM_1D_10D_PARQUET_MATERIALIZATION.md` |
+| R-MEM-1D/R1 | 10d MRT-to-Parquet materialization | both AMD and Intel completed 3,840 Parquets; reproducible bounded spill includes 83 base-fingerprint matches that cannot yet be safely classified | completed parse, qualification blocked | `project_docs/R_MEM_1D_10D_PARQUET_MATERIALIZATION.md` |
+| R-MEM-1D-QA2 | boundary observation identity audit | implementation ready to recover peer identity only for implicated raw archives; no row deletion or full replay | next | `project_docs/R_MEM_1D_QA2_BOUNDARY_OBSERVATION_IDENTITY_AUDIT.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

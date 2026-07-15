@@ -159,8 +159,9 @@ output is committed.
 
 ## Next Step
 
-Run R-MEM-1D-R1 incremental recovery first. After one partition produces a
-passing 20-task validation summary and canonical source manifest, build the
-10-day path-memory sidecar from the qualified Parquet asset. Only then return
-to the targeted path-history poisoning repair in R-FOREGROUND-4B. Evidence
-attachment and learning remain downstream steps.
+R-MEM-1D-R1 completed both 3,840-file materializations, but final qualification
+stopped on 83 adjacent-archive base-fingerprint matches. Run R-MEM-1D-QA2 to
+recover peer identity from only the implicated raw archives. Do not delete rows,
+relax the validator, or replay all 3,840 archives. Build the 10-day path-memory
+sidecar only after observation identity and canonical overlap handling are
+qualified. Evidence attachment and learning remain downstream steps.
