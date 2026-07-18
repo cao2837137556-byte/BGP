@@ -13,10 +13,12 @@ from pathlib import Path
 from typing import Any, Callable
 
 from run_r_mem1c_local_mrt_parser_smoke import parse_utc, parquet_schema
+from r_mem_canonical_observation_v2 import parquet_schema_v2
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = "configs/r_mem1d_10d_parquet_materialization_v01.json"
+ACTIVE_SCHEMA_BUILDER = parquet_schema
 
 
 def parse_args() -> argparse.Namespace:
@@ -25,6 +27,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--materialization-root", required=True)
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--schema-version", choices=("v1", "v2"), default="v1")
     return parser.parse_args()
 
 
@@ -78,9 +81,11 @@ def scalar(value: Any) -> Any:
 def fingerprint(row: dict[str, Any]) -> str:
     payload = {
         field: scalar(row.get(field))
-        for field in parquet_schema().names
+        for field in ACTIVE_SCHEMA_BUILDER().names
         if field not in {"source_file", "archive_timestamp_utc"}
     }
+    if "observation_id" in payload and not payload["observation_id"]:
+        payload["non_deduplicable_source_file"] = scalar(row.get("source_file"))
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True, default=str).encode("utf-8")
     ).hexdigest()
@@ -94,7 +99,7 @@ def read_filtered_rows(
     import pyarrow.parquet as pq
 
     parquet = pq.ParquetFile(path)
-    fields = parquet_schema().names
+    fields = ACTIVE_SCHEMA_BUILDER().names
     ts_index = parquet.schema_arrow.names.index("ts")
     rows: list[dict[str, Any]] = []
     for group_index in range(parquet.num_row_groups):
@@ -113,7 +118,11 @@ def read_filtered_rows(
 
 
 def main() -> int:
+    global ACTIVE_SCHEMA_BUILDER
     args = parse_args()
+    ACTIVE_SCHEMA_BUILDER = (
+        parquet_schema_v2 if args.schema_version == "v2" else parquet_schema
+    )
     config = json.loads(resolve_repo_path(args.config).read_text(encoding="utf-8"))
     root = Path(args.materialization_root).resolve()
     output_dir = Path(args.output_dir).resolve()
@@ -132,6 +141,8 @@ def main() -> int:
     }
     results: list[dict[str, Any]] = []
     duplicate_examples: list[dict[str, Any]] = []
+    duplicate_exclusions: list[dict[str, Any]] = []
+    exclusion_keys: set[tuple[str, str]] = set()
     failures: list[str] = []
 
     for row in audits:
@@ -199,10 +210,11 @@ def main() -> int:
             neighbor_fingerprints = {fingerprint(item) for item in neighbor_rows}
             duplicates = sorted(spill_fingerprints & neighbor_fingerprints)
             if duplicates:
-                failures.append(
-                    f"{row['file_path']}: {len(duplicates)} potential adjacent duplicates"
-                )
-                for digest in duplicates[:5]:
+                if args.schema_version == "v1":
+                    failures.append(
+                        f"{row['file_path']}: {len(duplicates)} potential adjacent duplicates"
+                    )
+                for digest in duplicates:
                     duplicate_examples.append(
                         {
                             "source_file": row["file_path"],
@@ -211,6 +223,21 @@ def main() -> int:
                             "fingerprint": digest,
                         }
                     )
+                    exclusion_key = (str(row["file_path"]), digest)
+                    if exclusion_key not in exclusion_keys:
+                        exclusion_keys.add(exclusion_key)
+                        duplicate_exclusions.append(
+                            {
+                                "source_file_to_exclude": row["file_path"],
+                                "canonical_neighbor_file": (
+                                    neighbor.get("file_path") if neighbor else ""
+                                ),
+                                "direction": direction,
+                                "observation_fingerprint": digest,
+                                "exclusion_reason": "adjacent_archive_overlap",
+                                "schema_version": args.schema_version,
+                            }
+                        )
             results.append(
                 {
                     "collector": collector,
@@ -229,8 +256,10 @@ def main() -> int:
             )
 
     summary = {
-        "phase": "R-MEM-1D-R1",
+        "canonical_schema_version": args.schema_version,
+        "phase": config["phase"],
         "temporal_alignment_passed": not failures,
+        "source_complete_materialization_passed": not failures,
         "materialization_root": str(root),
         "file_audit_row_count": len(audits),
         "boundary_warning_file_count": sum(
@@ -243,18 +272,29 @@ def main() -> int:
         "potential_duplicate_count": sum(
             int(row["potential_duplicate_count"]) for row in results
         ),
+        "canonical_exclusion_count": len(duplicate_exclusions),
+        "canonical_view_ready_without_exclusions": (
+            not failures and not duplicate_exclusions
+        ),
+        "canonical_view_requires_exclusion_sidecar": bool(duplicate_exclusions),
         "missing_adjacent_file_check_count": sum(
             int(not bool(row["neighbor_available"])) for row in results
         ),
         "failures": failures,
         "claims": {
             "boundary_warning_is_attack_signal": False,
+            "adjacent_archive_overlap_is_attack_signal": False,
+            "duplicate_rows_silently_deleted": False,
             "rows_deleted": False,
             "attack_or_benign_truth_produced": False,
         },
     }
     write_csv(output_dir / "r_mem1d_temporal_alignment_audit.csv", results)
     write_csv(output_dir / "r_mem1d_potential_duplicate_examples.csv", duplicate_examples)
+    write_csv(
+        output_dir / "r_mem1d_duplicate_exclusion_sidecar.csv",
+        duplicate_exclusions,
+    )
     write_json(output_dir / "r_mem1d_temporal_alignment_summary.json", summary)
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0 if not failures else 2

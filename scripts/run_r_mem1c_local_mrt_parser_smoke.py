@@ -271,6 +271,9 @@ def parse_file(
     config: dict[str, Any],
     max_rows: int,
     preview: list[dict[str, Any]],
+    *,
+    row_builder=None,
+    schema_builder=None,
 ) -> dict[str, Any]:
     import pyarrow as pa
     import pyarrow.parquet as pq
@@ -346,7 +349,9 @@ def parse_file(
         "type_counts": Counter(),
         "origin_provenance_counts": Counter(),
     }
-    schema = parquet_schema()
+    row_builder = row_builder or element_to_row
+    schema_builder = schema_builder or parquet_schema
+    schema = schema_builder()
     writer: pq.ParquetWriter | None = None
     batch: list[dict[str, Any]] = []
     parse_error: Exception | None = None
@@ -365,7 +370,7 @@ def parse_file(
             flush=True,
         )
         for elem in stream:
-            row = element_to_row(elem, source, source_relative)
+            row = row_builder(elem, source, source_relative)
             update_stats(
                 stats,
                 row,

@@ -31,6 +31,12 @@ from run_r_mem1c_local_mrt_parser_smoke import (
     write_csv,
     write_json,
 )
+from r_mem_canonical_observation_v2 import (
+    SCHEMA_VERSION as SCHEMA_VERSION_V2,
+    element_to_row_v2,
+    parquet_schema_v2,
+    schema_payload_v2,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -52,6 +58,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--plan-only", action="store_true")
     parser.add_argument("--max-files", type=int, default=0)
+    parser.add_argument(
+        "--schema-version",
+        choices=("v1", "v2"),
+        default="v1",
+        help="Use v2 for peer-aware canonical observations; v1 preserves legacy behavior.",
+    )
     return parser.parse_args()
 
 
@@ -97,14 +109,24 @@ def checkpoint_path(output_dir: Path, source: dict[str, Any]) -> Path:
 
 
 def load_completed_checkpoint(
-    path: Path, source: dict[str, Any]
+    path: Path,
+    source: dict[str, Any],
+    expected_schema,
+    schema_version: str,
 ) -> dict[str, Any] | None:
+    import pyarrow.parquet as pq
+
     if not path.is_file():
         return None
     payload = json.loads(path.read_text(encoding="utf-8"))
     if payload.get("status") != "parsed":
         return None
     if payload.get("file_path") != str(source["local_relative_path"]):
+        return None
+    checkpoint_schema = payload.get("canonical_schema_version")
+    if schema_version == "v2" and checkpoint_schema != SCHEMA_VERSION_V2:
+        return None
+    if schema_version == "v1" and checkpoint_schema not in (None, "v1"):
         return None
     current_fingerprint = os.environ.get("R_MEM1D_CODE_FINGERPRINT")
     checkpoint_fingerprint = payload.get("checkpoint_execution", {}).get(
@@ -116,6 +138,9 @@ def load_completed_checkpoint(
     if not output.is_file() or output.stat().st_size != int(
         payload.get("parquet_size_bytes", -1)
     ):
+        return None
+    parquet = pq.ParquetFile(output)
+    if not parquet.schema_arrow.equals(expected_schema):
         return None
     payload["resumed_from_checkpoint"] = True
     return payload
@@ -154,6 +179,7 @@ def adopt_existing_checkpoint(
     output_dir: Path,
     source: dict[str, Any],
     config: dict[str, Any],
+    expected_schema,
 ) -> dict[str, Any] | None:
     import pyarrow.parquet as pq
 
@@ -178,7 +204,7 @@ def adopt_existing_checkpoint(
     parquet = pq.ParquetFile(existing_output)
     if parquet.metadata.num_rows != int(payload.get("rows", -1)):
         return None
-    if not parquet.schema_arrow.equals(parquet_schema()):
+    if not parquet.schema_arrow.equals(expected_schema):
         return None
 
     interval_minutes = int(config["collector_intervals_minutes"][source["collector"]])
@@ -193,7 +219,7 @@ def adopt_existing_checkpoint(
                 bool(config.get("allow_adoption_copy_fallback", False))
                 and adopted_output.stat().st_size == existing_output.stat().st_size
                 and resumed_parquet.metadata.num_rows == int(payload.get("rows", -1))
-                and resumed_parquet.schema_arrow.equals(parquet_schema())
+                and resumed_parquet.schema_arrow.equals(expected_schema)
             )
             if not copied_output_valid:
                 raise FileExistsError(
@@ -274,6 +300,18 @@ def main() -> int:
     args = parse_args()
     config_path = resolve_repo_path(args.config)
     config = json.loads(config_path.read_text(encoding="utf-8"))
+    if args.schema_version == "v2":
+        expected_schema = parquet_schema_v2()
+        row_builder = element_to_row_v2
+        schema_builder = parquet_schema_v2
+        selected_schema_payload = schema_payload_v2()
+        canonical_schema_version = SCHEMA_VERSION_V2
+    else:
+        expected_schema = parquet_schema()
+        row_builder = None
+        schema_builder = None
+        selected_schema_payload = schema_payload()
+        canonical_schema_version = "v1"
     data_root = Path(args.data_root).resolve()
     output_dir = Path(args.output_dir).resolve()
     adopt_from = Path(args.adopt_from).resolve() if args.adopt_from else None
@@ -323,6 +361,7 @@ def main() -> int:
         "plan_only": args.plan_only,
         "max_files": args.max_files,
         "adopt_from": str(adopt_from) if adopt_from else None,
+        "canonical_schema_version": canonical_schema_version,
         "execution": execution_payload(),
     }
     if args.plan_only:
@@ -360,13 +399,23 @@ def main() -> int:
 
     for index, source in enumerate(selected, start=1):
         checkpoint = checkpoint_path(output_dir, source)
-        result = load_completed_checkpoint(checkpoint, source) if args.resume else None
+        result = (
+            load_completed_checkpoint(
+                checkpoint, source, expected_schema, args.schema_version
+            )
+            if args.resume
+            else None
+        )
         if result is not None:
             result = enrich_temporal_alignment(result, source, runtime_config)
         if result is None:
             if adopt_from is not None:
                 result = adopt_existing_checkpoint(
-                    adopt_from, output_dir, source, runtime_config
+                    adopt_from,
+                    output_dir,
+                    source,
+                    runtime_config,
+                    expected_schema,
                 )
             if result is None:
                 result = parse_file(
@@ -376,7 +425,10 @@ def main() -> int:
                     runtime_config,
                     0,
                     preview,
+                    row_builder=row_builder,
+                    schema_builder=schema_builder,
                 )
+            result["canonical_schema_version"] = canonical_schema_version
             result["checkpoint_execution"] = execution_payload()
             write_json(checkpoint, result)
         audits.append(result)
@@ -446,6 +498,7 @@ def main() -> int:
     summary = {
         "phase": config["phase"],
         "dataset_id": config["dataset_id"],
+        "canonical_schema_version": canonical_schema_version,
         "collector": args.collector,
         "date": args.date,
         "materialization_passed": gate_passed,
@@ -508,7 +561,7 @@ def main() -> int:
         },
     }
     write_json(output_dir / "r_mem1d_task_summary.json", summary)
-    write_json(output_dir / "r_mem1d_schema.json", schema_payload())
+    write_json(output_dir / "r_mem1d_schema.json", selected_schema_payload)
     write_csv(output_dir / "r_mem1d_file_audit.csv", audits)
     write_csv(output_dir / "r_mem1d_preview.csv", preview)
     (output_dir / "r_mem1d_task_report.md").write_text(

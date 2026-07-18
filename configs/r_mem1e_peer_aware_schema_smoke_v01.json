@@ -1,0 +1,34 @@
+{
+  "phase": "R-MEM-1E",
+  "schema_version": "canonical_observation_v2",
+  "expected_qa2_metrics": {
+    "unique_candidate_count": 84,
+    "raw_match_row_count": 258,
+    "same_peer_duplicate_copy_count": 80,
+    "distinct_neighbor_observations_preserved": 91,
+    "canonical_observations_after_pair_dedup": 178,
+    "peer_address_missing_count": 0,
+    "observation_identity_mismatch_count": 0,
+    "candidate_identity_incomplete_count": 0
+  },
+  "background_contamination_contract": {
+    "dataset_role": "unlabeled_operational_background",
+    "allowed_claim": "no known or identified incident under the declared audit sources",
+    "forbidden_claims": [
+      "the 10-day window is attack-free",
+      "all unflagged rows are benign",
+      "RPKI valid means benign",
+      "AS-rel matched means benign",
+      "NO_EXPORT absent means safe"
+    ],
+    "required_follow_up_audits": [
+      "known incident and public event overlap",
+      "time-aligned RPKI origin evidence",
+      "time-aligned AS-rel path diagnostics",
+      "community and NO_EXPORT availability",
+      "origin path and visibility novelty",
+      "quarantine sidecar for suspicious or unresolved intervals"
+    ],
+    "negative_label_policy": "public background rows are not negative truth without explicit qualification"
+  }
+}

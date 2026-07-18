@@ -188,8 +188,53 @@ whether the observations are duplicates.
 - stop on unresolved raw/Parquet multiplicity;
 - do not build path memory before observation identity is qualified.
 
-**Status:** implementation and local contract tests passed; bounded dual-HPC
-audit is next.
+**Status:** completed. QA2 replayed 28 implicated raw archives and classified
+84 candidates: 43 exact archive-overlap candidates, 6 distinct-peer
+collisions, and 35 mixed-identity overlaps. All 258 matches recovered
+`peer_address`; the old fingerprint is not safe for deletion.
+
+### R-MEM-1E Peer-aware Canonical Schema Amendment
+
+**Decision:** Promote `peer_address` into canonical observation schema v2 and
+derive a stable `observation_id` from the semantic update payload plus peer
+address. Keep source provenance outside the observation identity and keep
+deduplication separate from parsing.
+
+**Rationale:** The QA2 result proves that identical old fingerprints can
+represent both same-peer archive overlap and legitimate observations from
+different peer sessions. The R-MEM-1E contract smoke identifies exactly 80
+same-peer duplicate copies while preserving 91 distinct-peer neighbor
+observations, with zero missing peer identities or ID mismatches.
+
+**Consequence:**
+
+- preserve R-MEM-1D-R1 outputs as immutable v1 artifacts;
+- require explicit `--schema-version v2` for peer-aware rematerialization;
+- never auto-deduplicate a row whose peer address is missing;
+- materialize source-complete v2 rows before creating a reversible canonical
+  deduplication view;
+- do not build the path-memory sidecar from v1 observations.
+
+**Status:** schema contract and targeted smoke passed locally; full v2
+materialization and whole-window validation are next.
+
+### 10-day Background Contamination Boundary
+
+**Decision:** Treat the 10-day Route Views / RIS window as
+`unlabeled_operational_background`, never as certified benign or attack-free
+data.
+
+**Rationale:** Public monitors report real routing observations but do not
+provide complete attack ground truth. Absence from a known-event list, RPKI
+validity, an AS-rel match, or absence of NO_EXPORT cannot prove benignness.
+
+**Consequence:** After v2 materialization, run a provenance-recorded
+contamination audit and quarantine known, suspicious, or unresolved intervals
+through a sidecar. The strongest allowed statement is "no known or identified
+incident under the declared audit sources." Controlled injection and confirmed
+historical replay remain the truth-bearing evaluation tracks.
+
+**Status:** active guardrail; contamination audit follows v2 qualification.
 
 ## R-MEM-1B Direct Archive Acquisition Decision
 

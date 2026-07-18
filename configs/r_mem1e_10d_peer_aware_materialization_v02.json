@@ -1,0 +1,60 @@
+{
+  "phase": "R-MEM-1E",
+  "dataset_id": "r_mem1e_10d_peer_aware_v02",
+  "description": "Versioned 10-day peer-aware MRT-to-Parquet materialization with stable observation identity.",
+  "manifest_relative_path": "manifests/r_mem1b_10d_direct_archive_v01/full/download_manifest.json",
+  "raw_relative_root": "raw_mrt/r_mem1b_10d_direct_archive_v01",
+  "default_output_relative_path": "derived/r_mem1e_10d_peer_aware_v02",
+  "start_date": "2024-04-07",
+  "end_date": "2024-04-16",
+  "collectors": [
+    "route-views.sg",
+    "rrc00"
+  ],
+  "expected_files_per_collector_day": {
+    "route-views.sg": 96,
+    "rrc00": 288
+  },
+  "batch_rows": 50000,
+  "preview_rows": 100,
+  "timestamp_grace_sec": 1,
+  "temporal_alignment": {
+    "maximum_boundary_offset_sec": 60,
+    "maximum_out_of_window_rate_per_file": 0.0001,
+    "preserve_out_of_window_rows": true,
+    "partition_semantics": "archive_container_time; downstream windows must use row ts"
+  },
+  "collector_intervals_minutes": {
+    "route-views.sg": 15,
+    "rrc00": 5
+  },
+  "gates": {
+    "required_collectors": [],
+    "minimum_rows_per_file": 1,
+    "minimum_timestamp_coverage": 1.0,
+    "minimum_update_prefix_coverage": 0.999,
+    "minimum_announcement_as_path_coverage": 0.95,
+    "maximum_out_of_window_rows": 0,
+    "require_community_column": true,
+    "require_full_selected_file_parse": true
+  },
+  "identity_contract": {
+    "schema_version": "canonical_observation_v2",
+    "peer_address_required_for_auto_deduplication": true,
+    "deduplication_is_a_separate_reversible_view": true
+  },
+  "background_contract": {
+    "dataset_role": "unlabeled_operational_background",
+    "attack_free_claim_allowed": false,
+    "negative_truth_claim_allowed": false,
+    "contamination_audit_required_before_negative_sampling": true
+  },
+  "claim_boundaries": [
+    "R-MEM-1E materializes routing observations; it does not create attack or benign truth.",
+    "The 10-day public-monitor window is not guaranteed attack-free.",
+    "NO_EXPORT presence remains propagation-control evidence, not attack truth.",
+    "NO_EXPORT absence remains non-conclusive.",
+    "R-MEM-1E does not modify foreground policy or train learning.",
+    "Path maturity and poisoning robustness remain unproven until the later sidecar and controlled evaluation pass."
+  ]
+}

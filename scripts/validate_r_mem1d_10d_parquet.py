@@ -25,6 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--temporal-alignment-summary", required=True)
     parser.add_argument("--expected-array-job-id")
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--schema-version", choices=("v1", "v2"), default="v1")
     return parser.parse_args()
 
 
@@ -73,6 +74,7 @@ def render_report(summary: dict[str, Any]) -> str:
     return f"""# R-MEM-1D 10-day Parquet Validation Report
 
 - validation passed: `{str(summary['validation_passed']).lower()}`
+- canonical schema: `{summary['canonical_schema_version']}`
 - task summaries: `{summary['task_summary_count']}` / `{summary['expected_task_count']}`
 - parsed files: `{summary['parsed_file_count']}` / `{summary['expected_file_count']}`
 - Parquet files: `{summary['actual_parquet_file_count']}`
@@ -86,6 +88,8 @@ def render_report(summary: dict[str, Any]) -> str:
 - archive-boundary warning files: `{summary['archive_boundary_warning_file_count']}`
 - archive-boundary warning rows: `{summary['archive_boundary_warning_row_count']}`
 - maximum bounded archive offset seconds: `{summary['maximum_boundary_offset_sec']}`
+- adjacent overlap exclusions: `{summary['canonical_exclusion_count']}`
+- canonical view requires exclusion sidecar: `{str(summary['canonical_view_requires_exclusion_sidecar']).lower()}`
 - gate failures: `{summary['gate_failures']}`
 
 This validation qualifies a 10-day routing-observation data asset only. It
@@ -140,9 +144,23 @@ def main() -> int:
 
     import pyarrow.parquet as pq
     from run_r_mem1c_local_mrt_parser_smoke import parquet_schema
+    from r_mem_canonical_observation_v2 import parquet_schema_v2
+
+    expected_schema = (
+        parquet_schema_v2() if args.schema_version == "v2" else parquet_schema()
+    )
+    expected_schema_version = (
+        "canonical_observation_v2" if args.schema_version == "v2" else "v1"
+    )
 
     if temporal_summary.get("temporal_alignment_passed") is not True:
         failures.append("temporal alignment audit did not pass")
+    temporal_schema_version = temporal_summary.get("canonical_schema_version")
+    if temporal_schema_version != args.schema_version:
+        failures.append(
+            "temporal alignment schema mismatch: "
+            f"found={temporal_schema_version} expected={args.schema_version}"
+        )
     if int(temporal_summary.get("file_audit_row_count", -1)) != expected_files:
         failures.append("temporal alignment audit did not cover every source file")
     if Path(str(temporal_summary.get("materialization_root", ""))).resolve() != root:
@@ -176,6 +194,8 @@ def main() -> int:
         expected_task_files = int(
             config["expected_files_per_collector_day"].get(collector, -1)
         )
+        if summary.get("canonical_schema_version") != expected_schema_version:
+            failures.append(f"{collector}:{day}: canonical schema version mismatch")
         if summary.get("materialization_passed") is not True:
             failures.append(f"{collector}:{day}: materialization did not pass")
         if int(summary.get("parsed_file_count", -1)) != expected_task_files:
@@ -214,7 +234,7 @@ def main() -> int:
                     and output_path.stat().st_size
                     == int(audit_row.get("parquet_size_bytes", -1))
                     and parquet.metadata.num_rows == int(audit_row.get("rows", -1))
-                    and parquet.schema_arrow.equals(parquet_schema())
+                    and parquet.schema_arrow.equals(expected_schema)
                 )
                 if not footer_ok:
                     footer_error = "size, row-count, or schema mismatch"
@@ -343,6 +363,7 @@ def main() -> int:
     summary = {
         "phase": config["phase"],
         "dataset_id": config["dataset_id"],
+        "canonical_schema_version": expected_schema_version,
         "validation_passed": not failures,
         "materialization_root": str(root),
         "expected_task_count": len(expected_matrix),
@@ -388,6 +409,12 @@ def main() -> int:
         ),
         "potential_adjacent_duplicate_count": temporal_summary.get(
             "potential_duplicate_count"
+        ),
+        "canonical_exclusion_count": temporal_summary.get(
+            "canonical_exclusion_count", 0
+        ),
+        "canonical_view_requires_exclusion_sidecar": temporal_summary.get(
+            "canonical_view_requires_exclusion_sidecar", False
         ),
         "missing_source_files": missing_sources,
         "unexpected_source_files": unexpected_sources,

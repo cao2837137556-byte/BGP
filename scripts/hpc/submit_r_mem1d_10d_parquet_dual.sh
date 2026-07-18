@@ -5,6 +5,9 @@ BASE=${BASE:-/public/home/jiangxinwei.zr/work/bgp-platform-exp-mainline}
 REPO=${REPO:-$BASE/repo}
 PAIR_ID=${1:-r_mem1d_$(date -u +%Y%m%dT%H%M%SZ)}
 ADOPT_ROOT=${R_MEM1D_ADOPT_ROOT:-}
+CONFIG=${CONFIG:-configs/r_mem1d_10d_parquet_materialization_v01.json}
+SCHEMA_VERSION=${R_MEM1D_SCHEMA_VERSION:-v1}
+OUTPUT_DATASET=${R_MEM1D_OUTPUT_DATASET:-r_mem1d_10d_parquet_v01}
 ARRAY_SCRIPT=$REPO/scripts/hpc/r_mem1d_10d_parquet_array.slurm
 VALIDATOR_SCRIPT=$REPO/scripts/hpc/r_mem1d_validate_10d_parquet.slurm
 RECORD=$BASE/logs/r_mem1d_pair_${PAIR_ID}.txt
@@ -23,10 +26,11 @@ CODE_COMMIT=$(git -C "$REPO" rev-parse HEAD 2>/dev/null || true)
 CODE_COMMIT=${CODE_COMMIT:-archive-no-git}
 CODE_FINGERPRINT=$(sha256sum \
   "$REPO/scripts/run_r_mem1c_local_mrt_parser_smoke.py" \
+  "$REPO/scripts/r_mem_canonical_observation_v2.py" \
   "$REPO/scripts/materialize_r_mem1d_10d_parquet.py" \
   "$REPO/scripts/audit_r_mem1d_temporal_alignment.py" \
   "$REPO/scripts/validate_r_mem1d_10d_parquet.py" \
-  "$REPO/configs/r_mem1d_10d_parquet_materialization_v01.json" \
+  "$REPO/$CONFIG" \
   "$REPO/scripts/hpc/r_mem1d_10d_parquet_preflight.sh" \
   "$REPO/scripts/hpc/submit_r_mem1d_10d_parquet_dual.sh" \
   "$ARRAY_SCRIPT" "$VALIDATOR_SCRIPT" | sha256sum | awk '{print $1}')
@@ -37,6 +41,9 @@ CODE_FINGERPRINT=$(sha256sum \
   echo "commit=$CODE_COMMIT"
   echo "code_fingerprint=$CODE_FINGERPRINT"
   echo "adopt_root=${ADOPT_ROOT:-none}"
+  echo "config=$CONFIG"
+  echo "schema_version=$SCHEMA_VERSION"
+  echo "output_dataset=$OUTPUT_DATASET"
 } | tee "$RECORD"
 
 AMD_ARRAY=$(sbatch --parsable -p amd -J bgp_r_mem1d_amd --array=0-19%4 \

@@ -17,11 +17,23 @@ REPO=${REPO:-$BASE/repo}
 DATA_ROOT=${DATA_ROOT:-$BASE/data_store}
 IMG=${IMG:-$BASE/containers/bgpstream-py-e9a.sif}
 CONFIG=${CONFIG:-configs/r_mem1d_10d_parquet_materialization_v01.json}
+SCHEMA_VERSION=${R_MEM1D_SCHEMA_VERSION:-v1}
+OUTPUT_DATASET=${R_MEM1D_OUTPUT_DATASET:-r_mem1d_10d_parquet_v01}
 PAIR_ID=${R_MEM1D_PAIR_ID:?R_MEM1D_PAIR_ID must be exported by the dual submitter}
 PARTITION=${SLURM_JOB_PARTITION:?SLURM_JOB_PARTITION is required}
 ARRAY_JOB_ID=${SLURM_ARRAY_JOB_ID:?SLURM_ARRAY_JOB_ID is required}
 TASK_ID=${SLURM_ARRAY_TASK_ID:?SLURM_ARRAY_TASK_ID is required}
 ADOPT_ROOT=${R_MEM1D_ADOPT_ROOT:-}
+
+case "$SCHEMA_VERSION" in
+  v1) EXPECTED_CANONICAL_SCHEMA=v1 ;;
+  v2) EXPECTED_CANONICAL_SCHEMA=canonical_observation_v2 ;;
+  *) echo "Invalid R_MEM1D_SCHEMA_VERSION: $SCHEMA_VERSION" >&2; exit 2 ;;
+esac
+if [[ ! "$OUTPUT_DATASET" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "Invalid R_MEM1D_OUTPUT_DATASET: $OUTPUT_DATASET" >&2
+  exit 2
+fi
 
 if [[ ! "$PAIR_ID" =~ ^[A-Za-z0-9._-]+$ ]]; then
   echo "Invalid R_MEM1D_PAIR_ID: $PAIR_ID" >&2
@@ -41,7 +53,7 @@ else
   COLLECTOR=rrc00
 fi
 SAFE_COLLECTOR=${COLLECTOR//[^A-Za-z0-9._-]/_}
-OUTPUT_ROOT=$DATA_ROOT/derived/r_mem1d_10d_parquet_v01
+OUTPUT_ROOT=$DATA_ROOT/derived/$OUTPUT_DATASET
 ARRAY_ROOT=$OUTPUT_ROOT/pair=$PAIR_ID/partition=$PARTITION/array_job=$ARRAY_JOB_ID
 OUTPUT_DIR=$ARRAY_ROOT/task=$TASK_ID/collector=$SAFE_COLLECTOR/date=$DATE
 OUTPUT_REL=${OUTPUT_DIR#"$DATA_ROOT"/}
@@ -71,6 +83,7 @@ exec > >(tee -a "$LIVE_LOG") 2>&1
 
 test -f "$REPO/scripts/materialize_r_mem1d_10d_parquet.py"
 test -f "$REPO/scripts/run_r_mem1c_local_mrt_parser_smoke.py"
+test -f "$REPO/scripts/r_mem_canonical_observation_v2.py"
 test -f "$REPO/$CONFIG"
 test -f "$IMG"
 test -f "$DATA_ROOT/manifests/r_mem1b_10d_direct_archive_v01/full/download_manifest.json"
@@ -82,6 +95,7 @@ R_MEM1D_CODE_COMMIT=${R_MEM1D_CODE_COMMIT:-$(git -C "$REPO" rev-parse HEAD 2>/de
 R_MEM1D_CODE_COMMIT=${R_MEM1D_CODE_COMMIT:-archive-no-git}
 R_MEM1D_CODE_FINGERPRINT=$(sha256sum \
   "$REPO/scripts/run_r_mem1c_local_mrt_parser_smoke.py" \
+  "$REPO/scripts/r_mem_canonical_observation_v2.py" \
   "$REPO/scripts/materialize_r_mem1d_10d_parquet.py" \
   "$REPO/$CONFIG" \
   "$REPO/scripts/hpc/r_mem1d_10d_parquet_array.slurm" | \
@@ -98,6 +112,8 @@ echo "node_list=$SLURM_NODELIST"
 echo "commit=$R_MEM1D_CODE_COMMIT"
 echo "code_fingerprint=$R_MEM1D_CODE_FINGERPRINT"
 echo "output_dir=$OUTPUT_DIR"
+echo "schema_version=$SCHEMA_VERSION"
+echo "output_dataset=$OUTPUT_DATASET"
 echo "adopt_from=${ADOPT_DIR:-none}"
 echo "job_tmp=$JOB_TMP"
 echo "resources=cpus:${SLURM_CPUS_PER_TASK:-1},memory:2G,time:02:00:00"
@@ -114,12 +130,13 @@ echo "heartbeat=static_checks_start"
 apptainer exec "${COMMON_BIND[@]}" "$IMG" \
   /opt/venv/bin/python -m py_compile \
   /work/scripts/run_r_mem1c_local_mrt_parser_smoke.py \
+  /work/scripts/r_mem_canonical_observation_v2.py \
   /work/scripts/materialize_r_mem1d_10d_parquet.py
 echo "heartbeat=static_checks_complete"
 
 if [[ -f "$OUTPUT_DIR/r_mem1d_task_summary.json" ]]; then
   if apptainer exec "${COMMON_BIND[@]}" "$IMG" /opt/venv/bin/python -c \
-    "import json; from pathlib import Path; s=json.loads(Path('/data_store/$OUTPUT_REL/r_mem1d_task_summary.json').read_text()); assert s['materialization_passed'] is True; assert s['execution']['code_fingerprint'] == '$R_MEM1D_CODE_FINGERPRINT'; assert str(s['execution']['slurm_array_job_id']) == '$ARRAY_JOB_ID'; assert str(s['execution']['slurm_array_task_id']) == '$TASK_ID'; print('existing_completed_task=passed')"; then
+    "import json; from pathlib import Path; s=json.loads(Path('/data_store/$OUTPUT_REL/r_mem1d_task_summary.json').read_text()); assert s['materialization_passed'] is True; assert s['canonical_schema_version'] == '$EXPECTED_CANONICAL_SCHEMA'; assert s['execution']['code_fingerprint'] == '$R_MEM1D_CODE_FINGERPRINT'; assert str(s['execution']['slurm_array_job_id']) == '$ARRAY_JOB_ID'; assert str(s['execution']['slurm_array_task_id']) == '$TASK_ID'; print('existing_completed_task=passed')"; then
     exit 0
   fi
 fi
@@ -138,12 +155,13 @@ timeout --signal=TERM --kill-after=30s 110m \
   --output-dir "/data_store/$OUTPUT_REL" \
   --collector "$COLLECTOR" \
   --date "$DATE" \
+  --schema-version "$SCHEMA_VERSION" \
   "${ADOPT_ARGS[@]}" \
   --resume
 echo "heartbeat=collector_day_materialization_complete"
 
 apptainer exec "${COMMON_BIND[@]}" "$IMG" /opt/venv/bin/python -c \
-  "import json; from pathlib import Path; p=Path('/data_store/$OUTPUT_REL/r_mem1d_task_summary.json'); s=json.loads(p.read_text()); assert s['materialization_passed'] is True; assert s['parsed_file_count'] == s['expected_file_count']; print('task_validation=passed')"
+  "import json; from pathlib import Path; p=Path('/data_store/$OUTPUT_REL/r_mem1d_task_summary.json'); s=json.loads(p.read_text()); assert s['materialization_passed'] is True; assert s['canonical_schema_version'] == '$EXPECTED_CANONICAL_SCHEMA'; assert s['parsed_file_count'] == s['expected_file_count']; print('task_validation=passed')"
 
 SMALL=$OUTPUT_DIR/r_mem1d_task_small_results.tar.gz
 tar -czf "$SMALL" -C "$OUTPUT_DIR" \

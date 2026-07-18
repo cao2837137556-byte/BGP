@@ -87,7 +87,8 @@ Attack families that must remain visible:
 | 10d canonical path-memory sidecar smoke | compute-node acquisition route rejected | R-MEM-1A | completed stop-loss | Array `149909` timed out with zero outputs; probe `150551` confirmed Broker and stream timeouts from the compute node. Do not retry the same HPC network path. |
 | 10d immutable raw MRT acquisition | complete and integrity-verified | R-MEM-1B | completed | `3,840/3,840` Route Views SG/RRC00 archives cover `2024-04-07` through `2024-04-16`; total `16,502,107,268` bytes; final SHA256/compression revalidation passed with zero failures or partial files. |
 | Local MRT parser/schema qualification | complete-file dual measurement passed | R-MEM-1C | completed | Jobs `151396/151397` parsed `2/2` complete files and `966,702` rows per execution; all gates passed with identical code fingerprint. |
-| 10d MRT-to-Parquet materialization | both redundant executions completed; observation-identity QA required | R-MEM-1D-R1 / QA2 | active blocker | AMD and Intel each produced 3,840 Parquets. Bounded spill is reproducible, but 83 adjacent-archive base-fingerprint matches cannot be classified safely without peer-address recovery. |
+| 10d MRT-to-Parquet materialization | v1 parse complete; peer-identity ambiguity resolved | R-MEM-1D-R1 / QA2 | completed diagnostic asset | AMD and Intel each produced 3,840 v1 Parquets. QA2 recovered all 258 peer identities and proved the old fingerprint unsafe for deletion. |
+| Peer-aware canonical observation schema | v2 contract smoke passed | R-MEM-1E | active next | Exactly 80 same-peer duplicate copies are identifiable while 91 distinct-peer observations are preserved; full v2 materialization and contamination audit remain. |
 
 ## 4. Active Data / Evidence Contract
 
@@ -317,10 +318,14 @@ Forbidden in new decision logic:
        `14` Route Views source files;
      - three collector-day summaries failed only because the per-file spill
        rate slightly exceeded `0.0001`.
-   - The data are parsed and reproducible, but not yet qualified. The current
-     schema has `peer_asn` without `peer_address`, so the `83` matches may be
-     either real archive overlap or separate peers in one ASN. Direct deletion,
-     blind gate relaxation, and another full replay are all prohibited.
+   - QA2 has now resolved the identity ambiguity without rewriting v1:
+     - `84` candidate identities produced `258` targeted raw matches;
+     - `80` are same-peer duplicate copies;
+     - `91` are distinct-peer neighbor observations that must be preserved;
+     - no matched row lacks `peer_address`.
+   - Therefore v1 remains a reproducible diagnostic asset, but it is not safe
+     for canonical deduplication or path-memory construction. R-MEM-1E v2 must
+     be materialized before downstream history experiments.
 
 7. Historical replay and larger paired poisoning/evasion scenarios are still
    missing.
@@ -338,30 +343,32 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-MEM-1D-QA2 boundary observation identity audit:
-Read the completed R-MEM-1D-R1 Parquets, replay only raw MRT archives implicated
-by adjacent base-fingerprint matches, recover peer/router identity, and decide
-whether the next action is a non-destructive overlap-exclusion sidecar or a
-peer-address schema repair.
+R-MEM-1E peer-aware full materialization and qualification:
+Materialize a new versioned Parquet asset from the already verified 3,840 raw
+archives with `peer_address` and stable `observation_id`, validate whole-window
+identity and reversible overlap handling, then run a background-contamination
+audit before the data can support path memory or any negative-label sampling.
 ```
 
 Allowed scope:
 
-- preserve both complete R-MEM-1D-R1 materializations as immutable candidates;
-- canonicalize communities order only inside the QA fingerprint;
-- recover `peer_address`, router, and router IP from raw MRT only for implicated
-  files;
-- reconcile raw and Parquet multiplicity for every candidate;
-- classify candidates as same-identity overlap, distinct-peer collision,
-  mixed identity, or unresolved;
-- do not delete or rewrite rows in QA2;
-- use `4` CPU, `6 GB`, and at most `4` hours per QA job;
+- preserve both complete R-MEM-1D-R1 materializations as immutable v1 assets;
+- require explicit schema v2 and isolated output paths for the new parse;
+- preserve `peer_address`, canonical community ordering, source provenance,
+  and stable `observation_id`;
+- keep parsing source-complete and create deduplication as a reversible view;
+- never auto-deduplicate observations with missing peer address;
+- validate the QA2 invariant: identify 80 same-peer duplicate copies while
+  preserving 91 distinct-peer neighbor observations;
+- call the window `unlabeled_operational_background`, not clean or benign;
+- quarantine known, suspicious, and unresolved intervals through a sidecar;
 - submit separate AMD and Intel jobs under one `pair_id`, with isolated
   partition/job output, temp, log, and package paths;
 - normally cancel the later-starting copy, but require both copies to remain
   valid and comparable if both complete;
 - treat both copies as redundant execution, never independent science samples;
-- after one complete partition validates, build the 10-day path-memory sidecar;
+- after one complete v2 partition and contamination audit validate, build the
+  10-day path-memory sidecar;
 - keep immutable raw archives separate from derived parquet and sidecar output;
 - materialize path-memory as a sidecar, not a full-history foreground input;
 - start from the single R-POISON-2 failure mode:
@@ -442,7 +449,8 @@ R-CLEAN-0
   -> R-MEM-1B [done: 3,840/3,840 immutable raw MRT archives verified]
   -> R-MEM-1C [done: liveness and dual complete-file measurement passed]
   -> R-MEM-1D-R1 [done: both 3,840-file parses completed; identity ambiguity found]
-  -> R-MEM-1D-QA2 [next: bounded raw peer-identity audit of boundary matches]
+  -> R-MEM-1D-QA2 [done: raw peer identity recovered; old fingerprint rejected]
+  -> R-MEM-1E [next: peer-aware v2 materialization and contamination audit]
   -> R-FOREGROUND-4B [then: targeted path-memory poisoning guard smoke]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
@@ -480,8 +488,9 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-MEM-1A | 10d canonical path-memory sidecar smoke | sidecar contract implemented; compute-node acquisition stop-loss confirmed by array `149909` and probe `150551` | completed stop-loss | `project_docs/R_MEM_1A_COMPUTE_NODE_ACQUISITION_PROBE.md` |
 | R-MEM-1B | 10d direct archive acquisition | complete: 3,840/3,840 archives, 16,502,107,268 bytes, all SHA256/compression checks passed, zero residual partials | completed | `project_docs/R_MEM_1B_10D_DIRECT_ARCHIVE_ACQUISITION.md` |
 | R-MEM-1C | local MRT parser/schema qualification | jobs `151396/151397` completed; both parsed 2/2 complete files and 966,702 rows with all gates passed | completed | `project_docs/R_MEM_1C_LOCAL_MRT_PARSER_SMOKE.md` |
-| R-MEM-1D/R1 | 10d MRT-to-Parquet materialization | both AMD and Intel completed 3,840 Parquets; reproducible bounded spill includes 83 base-fingerprint matches that cannot yet be safely classified | completed parse, qualification blocked | `project_docs/R_MEM_1D_10D_PARQUET_MATERIALIZATION.md` |
-| R-MEM-1D-QA2 | boundary observation identity audit | implementation ready to recover peer identity only for implicated raw archives; no row deletion or full replay | next | `project_docs/R_MEM_1D_QA2_BOUNDARY_OBSERVATION_IDENTITY_AUDIT.md` |
+| R-MEM-1D/R1 | 10d MRT-to-Parquet materialization | both AMD and Intel completed 3,840 v1 Parquets; retained as immutable diagnostic assets | completed parse | `project_docs/R_MEM_1D_10D_PARQUET_MATERIALIZATION.md` |
+| R-MEM-1D-QA2 | boundary observation identity audit | 84 candidates resolved from 28 raw archives; 43 exact-overlap, 6 distinct-peer, 35 mixed; all 258 matches have peer address | completed | `project_docs/R_MEM_1D_QA2_BOUNDARY_OBSERVATION_IDENTITY_AUDIT.md` |
+| R-MEM-1E | peer-aware canonical schema | targeted contract smoke passed: 80 duplicate copies identifiable, 91 distinct-peer observations preserved, zero identity mismatch | active next | `project_docs/R_MEM_1E_PEER_AWARE_CANONICAL_SCHEMA.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

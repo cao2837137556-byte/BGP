@@ -6,17 +6,25 @@ REPO=${REPO:-$BASE/repo}
 DATA_ROOT=${DATA_ROOT:-$BASE/data_store}
 IMG=${IMG:-$BASE/containers/bgpstream-py-e9a.sif}
 PAIR_ID=${1:?usage: r_mem1d_10d_parquet_preflight.sh PAIR_ID}
-CONFIG=configs/r_mem1d_10d_parquet_materialization_v01.json
+CONFIG=${CONFIG:-configs/r_mem1d_10d_parquet_materialization_v01.json}
+SCHEMA_VERSION=${R_MEM1D_SCHEMA_VERSION:-v1}
+OUTPUT_DATASET=${R_MEM1D_OUTPUT_DATASET:-r_mem1d_10d_parquet_v01}
 ARRAY_SCRIPT=$REPO/scripts/hpc/r_mem1d_10d_parquet_array.slurm
 VALIDATOR_SCRIPT=$REPO/scripts/hpc/r_mem1d_validate_10d_parquet.slurm
 SUBMIT_SCRIPT=$REPO/scripts/hpc/submit_r_mem1d_10d_parquet_dual.sh
-PAIR_ROOT=$DATA_ROOT/derived/r_mem1d_10d_parquet_v01/pair=$PAIR_ID
+PAIR_ROOT=$DATA_ROOT/derived/$OUTPUT_DATASET/pair=$PAIR_ID
 ADOPT_ROOT=${R_MEM1D_ADOPT_ROOT:-}
 
 if [[ ! "$PAIR_ID" =~ ^[A-Za-z0-9._-]+$ ]]; then
   echo "Invalid pair ID: $PAIR_ID" >&2
   exit 2
 fi
+case "$SCHEMA_VERSION" in
+  v1) EXPECTED_CANONICAL_SCHEMA=v1 ;;
+  v2) EXPECTED_CANONICAL_SCHEMA=canonical_observation_v2 ;;
+  *) echo "Invalid R_MEM1D_SCHEMA_VERSION: $SCHEMA_VERSION" >&2; exit 2 ;;
+esac
+[[ "$OUTPUT_DATASET" =~ ^[A-Za-z0-9._-]+$ ]]
 if [ -d "$PAIR_ROOT" ] && [ -n "$(find "$PAIR_ROOT" -mindepth 1 -maxdepth 1 -print -quit)" ]; then
   echo "Refusing duplicate pair ID with existing outputs: $PAIR_ROOT" >&2
   exit 2
@@ -24,6 +32,7 @@ fi
 
 for path in \
   "$REPO/scripts/run_r_mem1c_local_mrt_parser_smoke.py" \
+  "$REPO/scripts/r_mem_canonical_observation_v2.py" \
   "$REPO/scripts/materialize_r_mem1d_10d_parquet.py" \
   "$REPO/scripts/audit_r_mem1d_temporal_alignment.py" \
   "$REPO/scripts/validate_r_mem1d_10d_parquet.py" \
@@ -51,6 +60,21 @@ if [[ -n "$ADOPT_ROOT" ]]; then
   esac
   test -d "$ADOPT_ROOT"
   test "$(find "$ADOPT_ROOT" -type f -name r_mem1d_task_summary.json | wc -l)" -eq 20
+  python - "$ADOPT_ROOT" "$EXPECTED_CANONICAL_SCHEMA" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+expected = sys.argv[2]
+for path in root.rglob("r_mem1d_task_summary.json"):
+    actual = json.loads(path.read_text()).get("canonical_schema_version")
+    if expected == "v1":
+        assert actual in (None, "v1"), (path, actual)
+    else:
+        assert actual == expected, (path, actual)
+print("adoption_schema=passed")
+PY
   ADOPT_SAMPLE=$(find "$ADOPT_ROOT" -type f -name '*.parquet' -print -quit)
   test -n "$ADOPT_SAMPLE"
   HARDLINK_PROBE=$(mktemp -d "$DATA_ROOT/derived/r_mem1d_adoption_probe.XXXXXX")
@@ -72,6 +96,7 @@ module load apps/apptainer/1.4.5-2
 COMMON_BIND=(--bind "$REPO":/work --bind "$DATA_ROOT":/data_store)
 apptainer exec "${COMMON_BIND[@]}" "$IMG" /opt/venv/bin/python -m py_compile \
   /work/scripts/run_r_mem1c_local_mrt_parser_smoke.py \
+  /work/scripts/r_mem_canonical_observation_v2.py \
   /work/scripts/materialize_r_mem1d_10d_parquet.py \
   /work/scripts/audit_r_mem1d_temporal_alignment.py \
   /work/scripts/validate_r_mem1d_10d_parquet.py
@@ -115,6 +140,7 @@ apptainer exec "${COMMON_BIND[@]}" --bind "$BASE/tmp":/hpc_tmp "$IMG" \
   --output-dir "/hpc_tmp/${PREFLIGHT_REL#tmp/}/plan" \
   --collector route-views.sg \
   --date 2024-04-07 \
+  --schema-version "$SCHEMA_VERSION" \
   --plan-only >/dev/null
 test -f "$PREFLIGHT_TMP/plan/r_mem1d_task_plan.json"
 
