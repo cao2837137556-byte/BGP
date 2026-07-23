@@ -1,0 +1,42 @@
+{
+  "phase": "R-DATA-FREEZE-0",
+  "dataset_id": "r_data_freeze0_9d_peer_aware_v01",
+  "source_dataset_id": "r_mem1e_10d_peer_aware_v02",
+  "source_pair_id": "r_mem1e_20260721T130846Z",
+  "source_schema_version": "canonical_observation_v2",
+  "requested_start_date": "2024-04-07",
+  "requested_end_date": "2024-04-16",
+  "freeze_start_date": "2024-04-07",
+  "freeze_end_date": "2024-04-15",
+  "required_collectors": [
+    "route-views.sg",
+    "rrc00"
+  ],
+  "expected_files_per_collector_day": {
+    "route-views.sg": 96,
+    "rrc00": 288
+  },
+  "minimum_complete_freeze_days": 9,
+  "maximum_archive_boundary_offset_sec": 60,
+  "accepted_boundary_failure_suffix": "archive-boundary row rate above gate",
+  "temporal_consumption_contract": {
+    "partition_semantics": "archive container time",
+    "analysis_window_semantics": "row ts",
+    "row_time_rewindow_required": true,
+    "preserve_boundary_rows_before_rewindow": true
+  },
+  "canonical_view_contract": {
+    "peer_address_required": true,
+    "observation_id_required": true,
+    "duplicate_exclusion_is_reversible": true,
+    "duplicate_exclusion_sidecar_required": true
+  },
+  "dataset_role": "unlabeled_operational_background",
+  "claim_boundaries": {
+    "attack_free_claim_allowed": false,
+    "confirmed_benign_claim_allowed": false,
+    "negative_training_ready": false,
+    "controlled_injection_background_allowed_after_freeze": true,
+    "contamination_audit_required_before_negative_sampling": true
+  }
+}

@@ -87,10 +87,28 @@ tracks; the 10-day window supplies operational background and history only.
 
 ## Current Result and Next Step
 
-The local deterministic smoke over the pulled QA2 artifacts passed. The next
-step is a versioned full schema-v2 materialization from the already verified
-3,840 raw archives, followed by peer-aware whole-window validation and the
-background contamination audit. No raw archive needs to be downloaded again.
+The local deterministic smoke over the pulled QA2 artifacts passed. A later
+full execution materialized the peer-aware v2 schema for 19 of 20
+collector-days on AMD:
+
+- `3,552` source files;
+- `1,851,186,204` parsed rows;
+- zero source-integrity failures;
+- zero Parquet-footer failures;
+- maximum bounded archive offset of `12` seconds;
+- `80` peer-aware adjacent-archive exclusions;
+- missing task: `rrc00/2024-04-16`.
+
+Six complete dates passed the original zero-boundary gate exactly. Three more
+complete dates contained only bounded archive-container spill rows and are
+safe for development when consumers reassign windows from row `ts`.
+R-DATA-FREEZE-0 therefore freezes `2024-04-07` through `2024-04-15` as a
+nine-day dual-collector development asset and excludes the incomplete final
+date.
+
+No raw archive needs to be downloaded again. Completing the tenth day and a
+formal contamination audit are parallel follow-ups, not blockers for bounded
+system development.
 
 This phase does not attach attack truth, modify foreground policy, train the
 learning layer, or claim poisoning robustness.

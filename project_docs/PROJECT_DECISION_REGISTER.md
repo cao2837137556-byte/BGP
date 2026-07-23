@@ -1816,3 +1816,41 @@ Consequence:
   It does not prove 10-day maturity.
 - Do not proceed to learning.
 - Do not run R-FOREGROUND-4B until the 10-day sidecar is complete and joinable.
+
+## R-DATA-FREEZE-0 Bounded Development Asset Decision
+
+Status: active and passed.
+
+Decision:
+
+- Freeze `2024-04-07` through `2024-04-15` as the current peer-aware,
+  dual-collector development asset.
+- Exclude `2024-04-16` because its R-MEM-1E `rrc00` collector-day is missing.
+- Accept three dates with bounded archive-container spill only when every
+  consumer reassigns windows from row `ts`.
+- Apply a reversible 80-copy exclusion sidecar derived from the QA2 raw
+  peer-identity audit.
+- Stop blocking bounded system work on tenth-day repair or 30-day expansion.
+
+Rationale:
+
+- The best R-MEM-1E execution completed 19 of 20 collector-days and all 3,552
+  generated Parquet files passed source-integrity and footer checks.
+- “Only six usable days” described strict passage of the old zero-boundary
+  gate. Three additional complete days have at most 12-second archive boundary
+  offsets, preserve all rows, and pass temporal alignment over all 19 available
+  collector-days.
+- Discarding those dates would confuse archive container time with routing
+  observation time.
+- Continuing open-ended parser work has lower research value than beginning a
+  bounded mature-frontend fit audit on a versioned asset.
+
+Consequence:
+
+- The frozen asset contains nine dates, 3,456 source files, and
+  1,779,700,135 parsed rows before canonical exclusions.
+- Its role is `unlabeled_operational_background`; it is not confirmed benign
+  and is not negative training truth.
+- Controlled injection and deterministic component-fit replay may begin.
+- Contamination audit remains required before negative sampling.
+- The next mainline action is `N-FRONTEND-FIT-0`, not another parser rewrite.

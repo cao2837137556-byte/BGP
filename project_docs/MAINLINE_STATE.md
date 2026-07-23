@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-07-15
+Last updated: 2026-07-23
 
 Status: active authoritative mainline state.
 
@@ -88,7 +88,8 @@ Attack families that must remain visible:
 | 10d immutable raw MRT acquisition | complete and integrity-verified | R-MEM-1B | completed | `3,840/3,840` Route Views SG/RRC00 archives cover `2024-04-07` through `2024-04-16`; total `16,502,107,268` bytes; final SHA256/compression revalidation passed with zero failures or partial files. |
 | Local MRT parser/schema qualification | complete-file dual measurement passed | R-MEM-1C | completed | Jobs `151396/151397` parsed `2/2` complete files and `966,702` rows per execution; all gates passed with identical code fingerprint. |
 | 10d MRT-to-Parquet materialization | v1 parse complete; peer-identity ambiguity resolved | R-MEM-1D-R1 / QA2 | completed diagnostic asset | AMD and Intel each produced 3,840 v1 Parquets. QA2 recovered all 258 peer identities and proved the old fingerprint unsafe for deletion. |
-| Peer-aware canonical observation schema | v2 contract smoke passed | R-MEM-1E | active next | Exactly 80 same-peer duplicate copies are identifiable while 91 distinct-peer observations are preserved; full v2 materialization and contamination audit remain. |
+| Peer-aware canonical observation schema | v2 materialization substantially complete | R-MEM-1E | completed source for bounded freeze | AMD produced 19/20 collector-days, 3,552 Parquets, and 1,851,186,204 rows; only `rrc00/2024-04-16` is missing. |
+| Nine-day development data freeze | passed | R-DATA-FREEZE-0 | active development asset | Nine complete dual-collector dates, 3,456 source files, and 1,779,700,135 rows; 80 reversible overlap exclusions; role is `unlabeled_operational_background`, not benign truth. |
 
 ## 4. Active Data / Evidence Contract
 
@@ -343,81 +344,35 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-R-MEM-1E peer-aware full materialization and qualification:
-Materialize a new versioned Parquet asset from the already verified 3,840 raw
-archives with `peer_address` and stable `observation_id`, validate whole-window
-identity and reversible overlap handling, then run a background-contamination
-audit before the data can support path memory or any negative-label sampling.
+N-FRONTEND-FIT-0 mature frontend fit audit:
+Use the frozen nine-day peer-aware asset for deterministic offline replay and
+classify mature frontend components as reuse / adapt / baseline / reject.
+Select one bounded foreground-extraction path before adding new custom logic.
 ```
 
 Allowed scope:
 
-- preserve both complete R-MEM-1D-R1 materializations as immutable v1 assets;
-- require explicit schema v2 and isolated output paths for the new parse;
-- preserve `peer_address`, canonical community ordering, source provenance,
-  and stable `observation_id`;
-- keep parsing source-complete and create deduplication as a reversible view;
-- never auto-deduplicate observations with missing peer address;
-- validate the QA2 invariant: identify 80 same-peer duplicate copies while
-  preserving 91 distinct-peer neighbor observations;
+- use only frozen dates `2024-04-07` through `2024-04-15`;
+- require both `route-views.sg` and `rrc00`;
+- select analysis windows by row `ts`, never archive filename time;
+- apply the 80-row reversible duplicate-exclusion sidecar;
 - call the window `unlabeled_operational_background`, not clean or benign;
-- quarantine known, suspicious, and unresolved intervals through a sidecar;
-- submit separate AMD and Intel jobs under one `pair_id`, with isolated
-  partition/job output, temp, log, and package paths;
-- normally cancel the later-starting copy, but require both copies to remain
-  valid and comparable if both complete;
-- treat both copies as redundant execution, never independent science samples;
-- after one complete v2 partition and contamination audit validate, build the
-  10-day path-memory sidecar;
-- keep immutable raw archives separate from derived parquet and sidecar output;
-- materialize path-memory as a sidecar, not a full-history foreground input;
-- start from the single R-POISON-2 failure mode:
-  `pair_path_manipulation_history_poisoning_v01`;
-- use the R-POISON-2A ablation audit to distinguish current failures,
-  single-signal fragility, and combined-stress fragility;
-- use the R-FOREGROUND-4A maturity audit to avoid broad recent-recurrence
-  retention;
-- use R-MEM-0 to require long-window maturity evidence before a path recurrence
-  can support suppression;
-- protect poisoning-susceptible path-memory transitions when novelty has been
-  artificially washed out;
-- report foreground load by 5m/15m micro-batch when the sidecar is used;
-- preserve the existing safety boundary: suppressed attack count must be `0`;
-- preserve useful background compression and avoid reverting to blanket
-  retention;
-- keep truth metadata evaluation-only;
-- keep route-leak policy poisoning blocked until policy semantics are bounded.
+- preserve provenance and deterministic offline replay;
+- compare maintained mature components before implementing paper-specific
+  adaptations;
+- keep controlled attack truth separate from operational background;
+- keep missing-day repair and 30-day scale validation as parallel follow-ups.
 
 Forbidden scope:
 
 - do not modify old seven-layer pipeline;
 - do not use legacy final/high/needs/low as truth or guard;
 - do not train learning;
-- do not claim NO_EXPORT attack, NO_EXPORT absence as safe, or route-leak
-  truth;
-- do not run production suppression;
-- do not treat R-NOISE-1 or R-NOISE-CLEAN-1 as final;
-- do not use candidate as the mainline compression layer;
-- do not treat candidate retention as a hard mainline gate;
-- do not claim route-leak truth from AS-rel diagnostics;
-- do not start `R-TRAIN-DATA-0` or learning before poisoning/historical gates
-  are planned;
-- do not use community absence or unavailable state as a benign/safe feature.
-- do not reuse the archived R-NOISE-1 implementation unchanged because it
-  references legacy final labels and old `rel_*` fields.
-- do not materialize the route-leak policy poisoning pair until its policy
-  semantics contract is bounded.
-- do not count public-invisible variants as foreground misses.
-- do not train learning or expand historical replay until the R-POISON-2
-  stop-loss is repaired.
-- do not claim within-window recurrence is long-term maturity.
-- do not use maturity as an attack score; it is only suppression-permission
-  evidence.
-- do not treat 30-day history as labels or as an offline training set.
-- do not enter learning before R-MEM-1 and R-FOREGROUND-4B validate the
-  foreground poisoning repair.
-- do not treat the local R-MEM-1A partial smoke as a complete 10-day maturity
-  result.
+- do not call the frozen asset attack-free or confirmed benign;
+- do not use it as negative training truth before contamination audit;
+- do not include the incomplete `2024-04-16` collector-day;
+- do not write another custom frontend before mature-component fit is measured;
+- do not let tenth-day repair or 30-day expansion block the bounded fit audit.
 
 ## 7. Active Experiment Order
 
@@ -450,7 +405,9 @@ R-CLEAN-0
   -> R-MEM-1C [done: liveness and dual complete-file measurement passed]
   -> R-MEM-1D-R1 [done: both 3,840-file parses completed; identity ambiguity found]
   -> R-MEM-1D-QA2 [done: raw peer identity recovered; old fingerprint rejected]
-  -> R-MEM-1E [next: peer-aware v2 materialization and contamination audit]
+  -> R-MEM-1E [done: peer-aware v2 source substantially materialized]
+  -> R-DATA-FREEZE-0 [done: nine-day dual-collector development asset frozen]
+  -> N-FRONTEND-FIT-0 [next: mature frontend reuse/adapt/baseline/reject audit]
   -> R-FOREGROUND-4B [then: targeted path-memory poisoning guard smoke]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
@@ -490,7 +447,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-MEM-1C | local MRT parser/schema qualification | jobs `151396/151397` completed; both parsed 2/2 complete files and 966,702 rows with all gates passed | completed | `project_docs/R_MEM_1C_LOCAL_MRT_PARSER_SMOKE.md` |
 | R-MEM-1D/R1 | 10d MRT-to-Parquet materialization | both AMD and Intel completed 3,840 v1 Parquets; retained as immutable diagnostic assets | completed parse | `project_docs/R_MEM_1D_10D_PARQUET_MATERIALIZATION.md` |
 | R-MEM-1D-QA2 | boundary observation identity audit | 84 candidates resolved from 28 raw archives; 43 exact-overlap, 6 distinct-peer, 35 mixed; all 258 matches have peer address | completed | `project_docs/R_MEM_1D_QA2_BOUNDARY_OBSERVATION_IDENTITY_AUDIT.md` |
-| R-MEM-1E | peer-aware canonical schema | targeted contract smoke passed: 80 duplicate copies identifiable, 91 distinct-peer observations preserved, zero identity mismatch | active next | `project_docs/R_MEM_1E_PEER_AWARE_CANONICAL_SCHEMA.md` |
+| R-MEM-1E | peer-aware canonical schema | AMD v2 execution produced 19/20 collector-days, 3,552 source files, and 1,851,186,204 rows; final RRC00 day is missing | completed source for bounded freeze | `project_docs/R_MEM_1E_PEER_AWARE_CANONICAL_SCHEMA.md` |
+| R-DATA-FREEZE-0 | bounded development data freeze | passed: nine complete dual-collector days, 3,456 files, 1,779,700,135 rows, and 80 reversible exclusions | active development asset | `project_docs/R_DATA_FREEZE_0_9D_DEVELOPMENT_ASSET.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
