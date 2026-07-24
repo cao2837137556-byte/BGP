@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-07-15
+Last updated: 2026-07-24
 
 Status: active project-level research decision register.
 
@@ -1854,3 +1854,31 @@ Consequence:
 - Controlled injection and deterministic component-fit replay may begin.
 - Contamination audit remains required before negative sampling.
 - The next mainline action is `N-FRONTEND-FIT-0`, not another parser rewrite.
+
+## N-FRONTEND-FIT-0A BGPalerter Adaptation Decision
+
+**Decision:** Retain pinned BGPalerter `2.0.1` at commit
+`9a616c29483ae03eaae219b04773a4288b32db62` as
+`adapt_candidate_contract_passed`; do not select it as the final frontend yet.
+
+**Rationale:** Two deterministic 512-row contract replays preserved exact row
+accounting, observation order, and all 15 `canonical_observation_v2` fields
+through native Consumer, Monitor, and PubSub boundaries. The adapter required
+no BGPalerter core modification and performed no network or evidence lookup.
+This proves a viable integration boundary, not foreground quality or
+scalability.
+
+**Consequence:**
+
+- N-FRONTEND-FIT-0B must replay a bounded real slice of the frozen nine-day
+  asset before final reuse/adapt/baseline/reject classification;
+- the real replay must measure provenance loss, determinism, throughput,
+  memory, failure behavior, and adapter complexity;
+- no foreground rule, evidence decision, learning, attack-retention claim, or
+  full nine-day run is authorized by this contract result;
+- the runtime dependency audit currently reports 28 vulnerabilities, including
+  7 high-severity findings, so production-readiness claims remain prohibited;
+- if real-asset provenance, cost, or dependency gates fail, BGPalerter must be
+  demoted to baseline or rejected rather than patched indefinitely.
+
+**Status:** active provisional adaptation decision.

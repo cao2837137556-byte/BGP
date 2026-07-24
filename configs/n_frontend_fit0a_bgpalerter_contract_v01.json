@@ -1,0 +1,62 @@
+{
+  "phase": "N-FRONTEND-FIT-0A",
+  "component": {
+    "name": "BGPalerter",
+    "repository": "https://github.com/nttgin/BGPalerter.git",
+    "pinned_commit": "9a616c29483ae03eaae219b04773a4288b32db62",
+    "expected_version": "2.0.1",
+    "license": "BSD-3-Clause",
+    "classification_before_smoke": "adapt_candidate"
+  },
+  "runtime_contract": {
+    "schema_version": "canonical_observation_v2",
+    "required_fields": [
+      "ts",
+      "collector",
+      "project",
+      "type",
+      "peer_asn",
+      "peer_address",
+      "prefix",
+      "as_path",
+      "origin_as",
+      "origin_provenance",
+      "communities",
+      "next_hop",
+      "observation_id",
+      "source_file",
+      "archive_timestamp_utc"
+    ],
+    "native_boundaries_to_reuse": [
+      "Consumer.dispatch",
+      "Monitor.filter",
+      "Monitor.monitor",
+      "Monitor.publishAlert",
+      "PubSub.publish"
+    ],
+    "forbidden_runtime_dependencies": [
+      "public BGP websocket",
+      "database lookup",
+      "RPKI API lookup",
+      "AS relationship API lookup",
+      "future evidence lookup"
+    ]
+  },
+  "smoke_gates": {
+    "exact_row_accounting": true,
+    "exact_observation_id_order": true,
+    "zero_required_field_mismatches": true,
+    "deterministic_second_replay": true,
+    "zero_component_core_modifications": true,
+    "zero_network_calls": true,
+    "truth_label_produced": false
+  },
+  "scientific_boundaries": {
+    "contract_fixture_is_operational_background": false,
+    "contract_fixture_is_attack_or_benign_truth": false,
+    "runtime_contract_pass_selects_final_frontend": false,
+    "runtime_contract_pass_proves_attack_retention": false,
+    "runtime_contract_pass_proves_nine_day_scalability": false,
+    "evidence_values_used_for_decision": false
+  }
+}
