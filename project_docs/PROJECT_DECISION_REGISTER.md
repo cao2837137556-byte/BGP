@@ -1975,3 +1975,30 @@ canonical_observation_v2
   before any suppression policy promotion.
 
 **Status:** local contract passed; bounded real replay pending.
+
+## N-FRONTEND-1B Bounded Replay Execution Decision
+
+**Decision:** Run the first real causal frontend replay on the fixed row-time
+window `2024-04-09 00:00-00:05 UTC`, using exactly one Route Views SG Parquet
+and one RRC00 Parquet from the frozen nine-day asset.
+
+**Rationale:**
+
+- this is large enough to exercise real peer-aware route state across both
+  collectors without turning a contract audit into a nine-day scale run;
+- row-time filtering prevents archive-boundary spill from changing the window;
+- balanced per-collector preflight sampling prevents a global row cap from
+  silently testing only one collector;
+- `2 CPU / 32 GiB / 2 h` is a bounded safety allocation for the current
+  in-memory prototype, not a production resource claim.
+
+**Consequence:**
+
+- AMD and Intel copies use isolated pair/partition/job output paths;
+- each formal run must pass accounting, causality, collector, timestamp, and
+  Parquet row-count checks;
+- micro-event reduction is structural compression, not background suppression;
+- no attack retention, evidence, Add-Path completeness, learning, or
+  nine-day scalability claim is authorized by this replay.
+
+**Status:** local preflight package passed; formal HPC result pending.

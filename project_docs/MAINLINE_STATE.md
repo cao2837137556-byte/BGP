@@ -92,7 +92,7 @@ Attack families that must remain visible:
 | Nine-day development data freeze | passed | R-DATA-FREEZE-0 | active development asset | Nine complete dual-collector dates, 3,456 source files, and 1,779,700,135 rows; 80 reversible overlap exclusions; role is `unlabeled_operational_background`, not benign truth. |
 | BGPalerter runtime contract | canonical schema contract passed; optional shell/baseline only | N-FRONTEND-FIT-0A | bounded engineering result | Two 512-row deterministic replays preserved all 15 canonical fields and exact row order; it is not the compression mechanism |
 | Frontend method direction | peer-aware causal route-change compression frozen | N-FRONTEND-DIRECTION-1 | active | Reuse RFC 4098 transition semantics, adapt BEAM route-change and DFOH new-edge/maturity mechanisms, and retain R-FOREGROUND safety/audit contracts |
-| Causal transition contract | local implementation and contract smoke passed | N-FRONTEND-1 | bounded local result | Exact deduplication is reversible; route state is peer-aware and past-only; same-timestamp ambiguity and missing Add-Path qualification remain explicit |
+| Causal transition contract | local implementation and contract smoke passed; bounded HPC replay package qualified locally | N-FRONTEND-1 / 1B-prep | bounded local result | Dual-collector coverage, balanced preflight sampling, isolated AMD/Intel outputs, and result validation are implemented; real replay result remains pending |
 
 ## 4. Active Data / Evidence Contract
 
@@ -366,6 +366,13 @@ Forbidden in new decision logic:
      expose a qualified path identifier contract.
    - A bounded two-collector replay is still required before policy tuning or
      any throughput, memory, or real-data compression claim.
+   - N-FRONTEND-1B is fixed to `2024-04-09 00:00-00:05 UTC`, selected by row
+     `ts`, with exactly one source Parquet from each frozen collector.
+   - Its local preflight contract requires both collectors, runs a balanced
+     2,000-row-per-collector smoke, validates output row accounting, and checks
+     both Slurm submissions with `sbatch --test-only`.
+   - Formal AMD and Intel runs request `2 CPU`, `32 GiB`, and `2 h`; every
+     writable output is isolated by pair, partition, and job ID.
    - The former R-FOREGROUND full-frame recurrence results remain offline
      baselines because future observations influenced earlier assignments.
 
@@ -385,7 +392,9 @@ Allowed scope:
 - use only frozen dates `2024-04-07` through `2024-04-15`;
 - require both `route-views.sg` and `rrc00`;
 - select analysis windows by row `ts`, never archive filename time;
-- apply the 80-row reversible duplicate-exclusion sidecar;
+- perform reversible exact-observation deduplication inside the selected slice;
+  the frozen 80-copy sidecar remains a whole-asset audit reference and must
+  not be applied a second time to rows already removed by exact deduplication;
 - call the window `unlabeled_operational_background`, not clean or benign;
 - preserve provenance and deterministic offline replay;
 - preserve announcements, withdrawals, IPv4/IPv6, communities, next hop, and
@@ -449,7 +458,7 @@ R-CLEAN-0
   -> N-FRONTEND-FIT-0A [done: BGPalerter transport contract passed; optional shell only]
   -> N-FRONTEND-DIRECTION-1 [done: causal route-change compression direction frozen]
   -> N-FRONTEND-1 [done: local causal contract and canonical duplicate smoke]
-  -> N-FRONTEND-1B [next: bounded real two-collector replay]
+  -> N-FRONTEND-1B [ready to submit: bounded real two-collector replay]
   -> N-FRONTEND-2 [then: multi-attack and poisoning/evasion retention replay]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
@@ -494,6 +503,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | N-FRONTEND-FIT-0A | pinned BGPalerter runtime-contract smoke | 512/512 rows preserved twice; transport contract passed; component is now optional shell/baseline, not compression mainline | completed bounded contract | `project_docs/N_FRONTEND_FIT_0A_BGPALERTER_RUNTIME_CONTRACT.md` |
 | N-FRONTEND-DIRECTION-1 | frontend method freeze | peer-aware causal route-change compression selected; old full-frame recurrence results demoted to offline baselines | active direction | `project_docs/N_FRONTEND_DIRECTION_1_CAUSAL_ROUTE_CHANGE_COMPRESSION.md` |
 | N-FRONTEND-1 | causal transition contract | local self-test and existing canonical duplicate-pair smoke passed; no real two-collector or suppression claim yet | completed local contract | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
+| N-FRONTEND-1B | bounded real replay | local dual-collector preflight and validator passed; formal 5-minute AMD/Intel replay pending | ready to submit | `scripts/hpc/submit_n_frontend1b_bounded_replay_dual.sh` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

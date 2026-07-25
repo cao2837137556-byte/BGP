@@ -86,6 +86,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--end-ts", type=float)
     parser.add_argument("--max-files", type=int, default=0)
     parser.add_argument("--max-rows", type=int, default=500_000)
+    parser.add_argument(
+        "--max-rows-per-collector",
+        type=int,
+        default=0,
+        help=(
+            "Optional deterministic cap per collector. Use with "
+            "--require-collector for balanced bounded smoke tests."
+        ),
+    )
+    parser.add_argument(
+        "--require-collector",
+        action="append",
+        default=[],
+        help="Collector that must be present after row-time filtering. Repeat as needed.",
+    )
     parser.add_argument("--batch-size", type=int, default=100_000)
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--self-test", action="store_true")
@@ -196,6 +211,8 @@ def load_bounded_rows(
     start_ts: float | None,
     end_ts: float | None,
     max_rows: int,
+    max_rows_per_collector: int,
+    required_collectors: list[str],
     batch_size: int,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     if not files:
@@ -216,26 +233,71 @@ def load_bounded_rows(
     frames: list[pd.DataFrame] = []
     selected_rows = 0
     source_rows_scanned = 0
+    selected_rows_by_collector: Counter[str] = Counter()
+    source_rows_scanned_by_file: Counter[str] = Counter()
+    required_collector_set = {item.strip() for item in required_collectors if item.strip()}
 
     for path in files:
         parquet_file = pq.ParquetFile(path)
         for batch in parquet_file.iter_batches(batch_size=batch_size, columns=columns):
             frame = batch.to_pandas()
             source_rows_scanned += len(frame)
+            source_rows_scanned_by_file[str(path)] += len(frame)
             if start_ts is not None:
                 frame = frame[pd.to_numeric(frame["ts"], errors="coerce") >= start_ts]
             if end_ts is not None:
                 frame = frame[pd.to_numeric(frame["ts"], errors="coerce") < end_ts]
             if frame.empty:
                 continue
+            if max_rows_per_collector > 0:
+                bounded_parts: list[pd.DataFrame] = []
+                for collector_value, group in frame.groupby(
+                    "collector", sort=False, dropna=False
+                ):
+                    collector = text(collector_value)
+                    if collector is None:
+                        bounded_parts.append(group)
+                        continue
+                    remaining = (
+                        max_rows_per_collector
+                        - selected_rows_by_collector[collector]
+                    )
+                    if remaining > 0:
+                        bounded_parts.append(group.iloc[:remaining])
+                if not bounded_parts:
+                    continue
+                frame = pd.concat(bounded_parts).sort_index()
             frame["_input_parquet"] = str(path)
             if max_rows > 0 and selected_rows + len(frame) > max_rows:
                 frame = frame.iloc[: max_rows - selected_rows].copy()
             frames.append(frame)
             selected_rows += len(frame)
+            selected_rows_by_collector.update(
+                collector
+                for collector in frame["collector"].map(text).tolist()
+                if collector is not None
+            )
             if max_rows > 0 and selected_rows >= max_rows:
                 break
+            if (
+                max_rows_per_collector > 0
+                and required_collector_set
+                and all(
+                    selected_rows_by_collector[item] >= max_rows_per_collector
+                    for item in required_collector_set
+                )
+            ):
+                break
         if max_rows > 0 and selected_rows >= max_rows:
+            break
+        if (
+            max_rows_per_collector > 0
+            and required_collector_set
+            and all(
+                selected_rows_by_collector[item] >= max_rows_per_collector
+                for item in required_collector_set
+            )
+        ):
             break
 
     if not frames:
@@ -248,6 +310,17 @@ def load_bounded_rows(
     data["communities"] = data["communities"].map(normalize_communities)
     data["type"] = data["type"].map(normalize_update_type)
     data["path_id"] = data[path_id_column].map(text) if path_id_column else None
+    observed_collectors = sorted(
+        value for value in data["collector"].map(text).dropna().unique().tolist()
+    )
+    missing_required_collectors = sorted(
+        required_collector_set - set(observed_collectors)
+    )
+    if missing_required_collectors:
+        raise ValueError(
+            "required collectors absent after row-time filtering: "
+            f"{missing_required_collectors}; observed={observed_collectors}"
+        )
     sort_columns = [
         "ts",
         "collector",
@@ -265,10 +338,19 @@ def load_bounded_rows(
         "input_file_count": len(files),
         "input_files": [str(path) for path in files],
         "source_rows_scanned": source_rows_scanned,
-        "selected_rows": len(data),
-        "observed_collectors": sorted(
-            value for value in data["collector"].map(text).dropna().unique().tolist()
+        "source_rows_scanned_by_file": dict(
+            sorted(source_rows_scanned_by_file.items())
         ),
+        "selected_rows": len(data),
+        "selected_rows_by_collector": {
+            str(key): int(value)
+            for key, value in sorted(
+                data["collector"].map(text).dropna().value_counts().items()
+            )
+        },
+        "required_collectors": sorted(required_collector_set),
+        "missing_required_collectors": missing_required_collectors,
+        "observed_collectors": observed_collectors,
         "observed_projects": sorted(
             value for value in data["project"].map(text).dropna().unique().tolist()
         ),
@@ -276,6 +358,13 @@ def load_bounded_rows(
         "selected_ts_max": float(data["ts"].max()),
         "selection_truncated_by_max_rows": bool(
             max_rows > 0 and selected_rows >= max_rows
+        ),
+        "selection_truncated_by_per_collector_cap": bool(
+            max_rows_per_collector > 0
+            and any(
+                count >= max_rows_per_collector
+                for count in selected_rows_by_collector.values()
+            )
         ),
         "path_id_column": path_id_column,
         "path_id_columns_present": path_id_columns_present,
@@ -910,7 +999,12 @@ def build_summary(
         "config_version": config["config_version"],
         "input_schema": config["input_schema"],
         "input_file_count": load_meta["input_file_count"],
+        "input_files": load_meta["input_files"],
         "source_rows_scanned": load_meta["source_rows_scanned"],
+        "source_rows_scanned_by_file": load_meta["source_rows_scanned_by_file"],
+        "selected_rows_by_collector": load_meta["selected_rows_by_collector"],
+        "required_collectors": load_meta["required_collectors"],
+        "missing_required_collectors": load_meta["missing_required_collectors"],
         "observed_collectors": load_meta["observed_collectors"],
         "observed_projects": load_meta["observed_projects"],
         "selected_ts_min": load_meta["selected_ts_min"],
@@ -934,6 +1028,9 @@ def build_summary(
         "selection_truncated_by_max_rows": load_meta[
             "selection_truncated_by_max_rows"
         ],
+        "selection_truncated_by_per_collector_cap": load_meta[
+            "selection_truncated_by_per_collector_cap"
+        ],
         "state_identity_missing_row_count": load_meta[
             "state_identity_missing_row_count"
         ],
@@ -956,6 +1053,7 @@ def build_summary(
             and transition_meta["causality_violation_count"] == 0
             and dedup_meta["observation_id_collision_count"] == 0
             and load_meta["state_identity_missing_row_count"] == 0
+            and not load_meta["missing_required_collectors"]
         ),
         "claim_boundaries": config["claim_boundaries"],
         "output_fingerprints": {
@@ -1151,8 +1249,13 @@ def run_self_test(config: dict[str, Any]) -> int:
     fixture = build_self_test_fixture()
     load_meta = {
         "input_file_count": 1,
+        "input_files": ["synthetic.parquet"],
         "source_rows_scanned": len(fixture),
+        "source_rows_scanned_by_file": {"synthetic.parquet": len(fixture)},
         "selected_rows": len(fixture),
+        "selected_rows_by_collector": {"rrc00": len(fixture)},
+        "required_collectors": ["rrc00"],
+        "missing_required_collectors": [],
         "observed_collectors": ["rrc00"],
         "observed_projects": ["ris"],
         "selected_ts_min": float(fixture["ts"].min()),
@@ -1162,6 +1265,7 @@ def run_self_test(config: dict[str, Any]) -> int:
         "path_id_field_present": False,
         "add_path_support_ready": False,
         "selection_truncated_by_max_rows": False,
+        "selection_truncated_by_per_collector_cap": False,
         "state_identity_missing_row_count": 0,
     }
     first = run_pipeline(fixture, config, load_meta)
@@ -1202,7 +1306,8 @@ def run_self_test(config: dict[str, Any]) -> int:
     assert output_fingerprint(first[2]) == output_fingerprint(second[2])
     assert output_fingerprint(micro_events[300]) == output_fingerprint(second[3][300])
     with tempfile.TemporaryDirectory() as tmp:
-        output_dir = Path(tmp) / "out"
+        tmp_path = Path(tmp)
+        output_dir = tmp_path / "out"
         prepare_output_dir(output_dir, overwrite=False)
         write_outputs(
             output_dir,
@@ -1216,6 +1321,36 @@ def run_self_test(config: dict[str, Any]) -> int:
         assert pq.ParquetFile(
             output_dir / "n_frontend1_transitions.parquet"
         ).metadata.num_rows == len(transitions)
+        rrc_fixture = fixture.copy()
+        routeviews_fixture = fixture.copy()
+        routeviews_fixture["collector"] = "route-views.sg"
+        routeviews_fixture["project"] = "routeviews"
+        routeviews_fixture["peer_address"] = "198.51.100.2"
+        routeviews_fixture["observation_id"] = [
+            canonical_observation_id(row)
+            for row in routeviews_fixture.to_dict(orient="records")
+        ]
+        rrc_path = tmp_path / "rrc00.parquet"
+        routeviews_path = tmp_path / "routeviews.parquet"
+        rrc_fixture.to_parquet(rrc_path, index=False)
+        routeviews_fixture.to_parquet(routeviews_path, index=False)
+        bounded, bounded_meta = load_bounded_rows(
+            [rrc_path, routeviews_path],
+            config,
+            None,
+            None,
+            0,
+            3,
+            ["rrc00", "route-views.sg"],
+            2,
+        )
+        assert len(bounded) == 6
+        assert bounded_meta["selected_rows_by_collector"] == {
+            "route-views.sg": 3,
+            "rrc00": 3,
+        }
+        assert bounded_meta["missing_required_collectors"] == []
+        assert bounded_meta["selection_truncated_by_per_collector_cap"]
     print("self_test=passed")
     print(f"input_rows={summary['input_rows']}")
     print(f"unique_observations={summary['exact_unique_observation_count']}")
@@ -1241,6 +1376,8 @@ def main() -> int:
         args.start_ts,
         args.end_ts,
         args.max_rows,
+        args.max_rows_per_collector,
+        args.require_collector,
         args.batch_size,
     )
     result = run_pipeline(data, config, load_meta)

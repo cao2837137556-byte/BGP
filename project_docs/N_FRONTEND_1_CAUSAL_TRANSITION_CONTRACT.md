@@ -1,6 +1,7 @@
 # N-FRONTEND-1: Causal Transition Contract
 
-Status: local contract smoke passed; bounded two-collector replay is next.
+Status: local contract and N-FRONTEND-1B preflight passed; formal bounded
+two-collector replay is ready to submit.
 
 Date: 2026-07-25.
 
@@ -171,3 +172,15 @@ It must report exact deduplication, transition and micro-event reduction
 separately, plus provenance accounting, ambiguity rate, throughput, memory,
 and repeatability. Only after that passes may N-FRONTEND-2 replay controlled
 multi-attack and poisoning/evasion scenarios before suppression tuning.
+
+The execution contract is fixed as follows:
+
+- row-time window: `2024-04-09 00:00-00:05 UTC`;
+- inputs: exactly one midnight Parquet from `route-views.sg` and one from
+  `rrc00`;
+- preflight: balanced `2,000` rows per collector, full output validation, and
+  AMD/Intel `sbatch --test-only`;
+- formal resources: `2 CPU`, `32 GiB`, `2 h`;
+- outputs: isolated by pair, partition, and job ID;
+- result boundary: structural replay only, not background suppression or
+  attack-retention proof.
