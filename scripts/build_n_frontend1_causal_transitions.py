@@ -855,7 +855,12 @@ def build_micro_events(
         grouped.setdefault(micro_event_key(transition, window_sec), []).append(transition)
 
     events: list[dict[str, Any]] = []
-    for key, members in sorted(grouped.items(), key=lambda item: item[0]):
+    # Route signatures can legitimately be None for bootstrap/withdrawal state.
+    # Serialize the complete key to obtain a deterministic total ordering
+    # without comparing heterogeneous Python scalar types.
+    for key, members in sorted(
+        grouped.items(), key=lambda item: stable_json(item[0])
+    ):
         (
             window_start,
             prefix,
@@ -1305,6 +1310,12 @@ def run_self_test(config: dict[str, Any]) -> int:
     assert output_fingerprint(first[0]) == output_fingerprint(second[0])
     assert output_fingerprint(first[2]) == output_fingerprint(second[2])
     assert output_fingerprint(micro_events[300]) == output_fingerprint(second[3][300])
+    heterogeneous_sort_probe = [dict(transitions[0]), dict(transitions[0])]
+    heterogeneous_sort_probe[0]["transition_id"] = "sort-probe-none"
+    heterogeneous_sort_probe[0]["old_route_signature"] = None
+    heterogeneous_sort_probe[1]["transition_id"] = "sort-probe-string"
+    heterogeneous_sort_probe[1]["old_route_signature"] = "route-signature"
+    assert len(build_micro_events(heterogeneous_sort_probe, 300)) == 2
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         output_dir = tmp_path / "out"
