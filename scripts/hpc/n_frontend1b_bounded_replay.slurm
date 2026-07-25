@@ -38,10 +38,12 @@ OUTPUT_REL=${OUTPUT_DIR#"$DATA_ROOT"/}
 JOB_TMP=$BASE/tmp/n_frontend1b/$PAIR_ID/$PARTITION/$JOB_ID
 LIVE_LOG=$BASE/logs/n_frontend1b_${PAIR_ID}_${PARTITION}_${JOB_ID}.live.log
 TIME_FILE=$OUTPUT_DIR/n_frontend1b_time_verbose.txt
+TIMING_WRAPPER=$REPO/scripts/hpc/run_with_portable_timing.sh
 START_TS=$(date -u -d "$REPLAY_DATE 00:00:00" +%s)
 END_TS=$((START_TS + WINDOW_MINUTES * 60))
 
 test ! -e "$OUTPUT_DIR"
+test -f "$TIMING_WRAPPER"
 mkdir -p "$OUTPUT_DIR" "$JOB_TMP/apptainer-tmp" "$JOB_TMP/apptainer-cache" "$BASE/logs"
 export APPTAINER_TMPDIR=$JOB_TMP/apptainer-tmp
 export APPTAINER_CACHEDIR=$JOB_TMP/apptainer-cache
@@ -86,7 +88,7 @@ for INPUT in "${INPUTS[@]}"; do
   CONTAINER_INPUT_ARGS+=(--input "/data_store/$INPUT_REL")
 done
 
-/usr/bin/time -v -o "$TIME_FILE" \
+bash "$TIMING_WRAPPER" "$TIME_FILE" \
   apptainer exec "${COMMON_BIND[@]}" "$IMG" \
   /opt/venv/bin/python -u /work/scripts/build_n_frontend1_causal_transitions.py \
   "${CONTAINER_INPUT_ARGS[@]}" \

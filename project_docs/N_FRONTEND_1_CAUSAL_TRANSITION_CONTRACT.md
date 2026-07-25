@@ -2,7 +2,10 @@
 
 Status: local contract passed; the first N-FRONTEND-1B real-data preflight
 exposed non-route-record and balanced-cap validation defects. No formal
-bounded replay was submitted from that failed preflight.
+bounded result exists. A later formal submission (`154378/154379`) failed
+before computation because the compute nodes lacked the unqualified
+`/usr/bin/time` dependency; the repaired package uses a preflight-tested,
+repository-owned portable timing wrapper.
 
 Date: 2026-07-25.
 

@@ -12,6 +12,7 @@ WINDOW_MINUTES=${N_FRONTEND1B_WINDOW_MINUTES:-5}
 PAIR_ROOT=$DATA_ROOT/derived/n_frontend1b_bounded_replay_v01/pair=$PAIR_ID
 JOB_SCRIPT=$REPO/scripts/hpc/n_frontend1b_bounded_replay.slurm
 SUBMIT_SCRIPT=$REPO/scripts/hpc/submit_n_frontend1b_bounded_replay_dual.sh
+TIMING_WRAPPER=$REPO/scripts/hpc/run_with_portable_timing.sh
 
 if [[ ! "$PAIR_ID" =~ ^[A-Za-z0-9._-]+$ ]]; then
   echo "Invalid pair ID: $PAIR_ID" >&2
@@ -33,6 +34,7 @@ for path in \
   "$REPO/configs/n_frontend1_causal_transition_v01.json" \
   "$JOB_SCRIPT" \
   "$SUBMIT_SCRIPT" \
+  "$TIMING_WRAPPER" \
   "$IMG"; do
   test -f "$path"
 done
@@ -61,7 +63,24 @@ mkdir -p "$SMOKE_DIR"
 
 bash -n "$JOB_SCRIPT"
 bash -n "$SUBMIT_SCRIPT"
+bash -n "$TIMING_WRAPPER"
 bash -n "$0"
+
+TIMING_SMOKE=$SMOKE_DIR/portable_timing_smoke.txt
+bash "$TIMING_WRAPPER" "$TIMING_SMOKE" /bin/true
+grep -qx 'timing_contract=portable_wall_clock_v1' "$TIMING_SMOKE"
+grep -qx 'command_exit_code=0' "$TIMING_SMOKE"
+TIMING_FAILURE_SMOKE=$SMOKE_DIR/portable_timing_failure_smoke.txt
+set +e
+bash "$TIMING_WRAPPER" "$TIMING_FAILURE_SMOKE" /bin/sh -c 'exit 7'
+TIMING_FAILURE_STATUS=$?
+set -e
+test "$TIMING_FAILURE_STATUS" -eq 7
+grep -qx 'command_exit_code=7' "$TIMING_FAILURE_SMOKE"
+if grep -q '/usr/bin/time' "$JOB_SCRIPT"; then
+  echo "Formal job must not depend on optional /usr/bin/time." >&2
+  exit 2
+fi
 
 module purge
 module load apps/apptainer/1.4.5-2

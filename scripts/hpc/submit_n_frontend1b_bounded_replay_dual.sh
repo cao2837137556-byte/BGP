@@ -25,6 +25,7 @@ CODE_FINGERPRINT=$(sha256sum \
   "$REPO/configs/n_frontend1_causal_transition_v01.json" \
   "$REPO/scripts/hpc/n_frontend1b_bounded_replay_preflight.sh" \
   "$REPO/scripts/hpc/n_frontend1b_bounded_replay.slurm" \
+  "$REPO/scripts/hpc/run_with_portable_timing.sh" \
   "$REPO/scripts/hpc/submit_n_frontend1b_bounded_replay_dual.sh" \
   | sha256sum | awk '{print $1}')
 

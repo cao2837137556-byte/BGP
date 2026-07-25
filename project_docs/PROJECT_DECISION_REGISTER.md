@@ -2015,3 +2015,20 @@ implementation now:
   A/W route identity before another HPC submission.
 
 Formal HPC result remains pending.
+
+### N-FRONTEND-1B Compute-Node Startup Failure
+
+Jobs `154378/154379` both exited in two seconds with code `127` before the
+frontend computation started. The formal script hard-coded
+`/usr/bin/time -v`, which was absent on both compute nodes even though the
+login-side preflight passed.
+
+This is an engineering qualification failure, not a frontend result. The
+permanent execution rule is:
+
+- do not hard-code optional host utility paths unless compute-node presence is
+  qualified;
+- use a repository-owned portable wrapper for wall-clock timing;
+- obtain peak memory and allocation data from Slurm accounting;
+- require preflight to execute the same wrapper used by the formal job;
+- test both wrapper success and non-zero exit propagation before submission.
