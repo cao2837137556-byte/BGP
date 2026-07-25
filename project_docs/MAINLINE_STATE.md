@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-07-24
+Last updated: 2026-07-25
 
 Status: active authoritative mainline state.
 
@@ -72,11 +72,11 @@ Attack families that must remain visible:
 | Hardened controlled origin smoke | v2 bounded smoke passed all 16 QA checks | R-ATTACK-0A-2 | high | 4 attack + 4 hard-negative scenarios; attack retention `1.0`; hard-negative candidate rate `0.357143`; ready for full-window replay only |
 | Controlled origin full-window replay | completed and qualified for clean foreground evaluation with one non-blocking community caveat | R-ATTACK-0A-3 | high | 3,431,117 event/candidate rows; attack retention `1.0`; attack RPKI/AS-rel/community joins `1.0`; global community raw-match misses 1 background row |
 | Clean foreground evaluation | executed; safety passed but feasibility failed | R-NOISE-CLEAN-1 | high | `suppressed_attack_count=0`, attack retention `1.0`, but background suppression only `0.001263748`; candidate-style blanket protection is too conservative |
-| Candidate-free semantic foreground audit | completed; `aggressive_recurrence` is the best passing candidate | R-FOREGROUND-0 | high | Attack retention `1.0`, suppressed attacks `0`, background suppression `0.37744629`, compression `1.606295` |
-| Online foreground smoke | completed on origin-family and R-ATTACK-0B replay | R-FOREGROUND-1 | active baseline | `online_aggressive_recurrence_v1`; R-ATTACK-0B attack retention `1.0`, suppressed attacks `0`, background suppression `0.377447197`, compression `1.606292` |
+| Candidate-free semantic foreground audit | completed offline baseline | R-FOREGROUND-0 | corrected | Attack retention `1.0`, suppressed attacks `0`, background suppression `0.37744629`, compression `1.606295`; full-frame recurrence counts prevent a strict online claim |
+| Former online foreground smoke | completed offline baseline; online wording retired | R-FOREGROUND-1 | corrected | `online_aggressive_recurrence_v1` used full-frame recurrence counts; retention findings remain useful, but deployment causality was not proven |
 | Multi-attack controlled smoke | validated full replay | R-ATTACK-0B | completed | Exact-origin, forged-origin, route-leak-like, and path-manipulation-like scenarios passed realism QA; all controlled attack families retained by foreground v1 |
 | Foreground compression improvement audit | completed; found safe pressure boundary but no recommendable policy passed | R-FOREGROUND-2 | high | `path1_pressure_test` reached background suppression `0.510538701`, compression `2.043079`, suppressed attacks `0`; `external_only_pressure_test` suppressed `2` attacks and is unsafe |
-| Online path-pressure foreground smoke | completed and frozen as current baseline | R-FOREGROUND-3 | high | `online_path_pressure_v1`; attack retention `1.0`, suppressed attacks `0`, background suppression about `0.51`, compression about `2.04`; now retested on R-ATTACK-1 full replay |
+| Former online path-pressure foreground smoke | retained as offline policy baseline only | R-FOREGROUND-3 | corrected | `online_path_pressure_v1` reported attack retention `1.0`, zero suppressed attacks, about `0.51` background suppression, and `2.04x` compression, but full-frame recurrence counts used future rows |
 | Attack-family expansion | full 6h replay validated | R-ATTACK-1 | completed | Subprefix and monitor-visible NO_EXPORT/stealth scenarios passed full replay; attack retention `1.0`, suppressed attacks `0`, background suppression `0.510540519`, compression `2.043065` |
 | Paired poisoning/evasion protocol | protocol and feasibility audit passed | R-POISON-0 | high | 5 feasible paired templates for R-POISON-1; route-leak policy poisoning remains design-only until policy semantics are bounded |
 | Paired poisoning/evasion bounded materialization | bounded pair prototypes materialized | R-POISON-1 | high | 5 feasible pairs, 33 truth-prototype rows, fair-pair contract passed; no full replay and no adversarial retention claim |
@@ -90,7 +90,8 @@ Attack families that must remain visible:
 | 10d MRT-to-Parquet materialization | v1 parse complete; peer-identity ambiguity resolved | R-MEM-1D-R1 / QA2 | completed diagnostic asset | AMD and Intel each produced 3,840 v1 Parquets. QA2 recovered all 258 peer identities and proved the old fingerprint unsafe for deletion. |
 | Peer-aware canonical observation schema | v2 materialization substantially complete | R-MEM-1E | completed source for bounded freeze | AMD produced 19/20 collector-days, 3,552 Parquets, and 1,851,186,204 rows; only `rrc00/2024-04-16` is missing. |
 | Nine-day development data freeze | passed | R-DATA-FREEZE-0 | active development asset | Nine complete dual-collector dates, 3,456 source files, and 1,779,700,135 rows; 80 reversible overlap exclusions; role is `unlabeled_operational_background`, not benign truth. |
-| BGPalerter runtime contract | canonical schema contract passed; component remains an adaptation candidate | N-FRONTEND-FIT-0A | bounded engineering result | Two 512-row deterministic replays preserved all 15 canonical fields and exact row order without core modification; no real nine-day, policy, attack-retention, or scalability claim. |
+| BGPalerter runtime contract | canonical schema contract passed; optional shell/baseline only | N-FRONTEND-FIT-0A | bounded engineering result | Two 512-row deterministic replays preserved all 15 canonical fields and exact row order; it is not the compression mechanism |
+| Frontend method direction | peer-aware causal route-change compression frozen | N-FRONTEND-DIRECTION-1 | active | Reuse RFC 4098 transition semantics, adapt BEAM route-change and DFOH new-edge/maturity mechanisms, and retain R-FOREGROUND safety/audit contracts |
 
 ## 4. Active Data / Evidence Contract
 
@@ -342,7 +343,7 @@ Forbidden in new decision logic:
    - this caveat does not block origin-family attack retention evaluation
      because attack community evidence join is `1.0`.
 
-9. The mature frontend has not been selected.
+9. The frontend method is selected but not yet implementation-qualified.
    - N-FRONTEND-FIT-0A proved that pinned BGPalerter `2.0.1`
      (`9a616c29483ae03eaae219b04773a4288b32db62`) can carry
      `canonical_observation_v2` through native Consumer/Monitor/PubSub
@@ -351,19 +352,21 @@ Forbidden in new decision logic:
      nine-day asset.
    - Runtime-only dependency audit found `28` vulnerabilities:
      `2` low, `19` moderate, `7` high, and `0` critical.
-   - Therefore BGPalerter remains `adapt_candidate_contract_passed`, not the
-     final frontend and not production-ready.
-   - A bounded real frozen-asset replay and adapter-cost audit is required
-     before reuse/adapt/baseline/reject classification can be finalized.
+   - N-FRONTEND-DIRECTION-1 demotes BGPalerter to an optional shell/baseline;
+     it is not the compression mechanism.
+   - The selected method is peer-aware causal route-change compression, but it
+     still requires a bounded transition-contract smoke before policy tuning.
+   - The former R-FOREGROUND full-frame recurrence results remain offline
+     baselines because future observations influenced earlier assignments.
 
 ## 6. Next Single Recommended Action
 
 ```text
-N-FRONTEND-FIT-0B real frozen-asset replay and adapter-cost audit:
-Replay a bounded, row-ts-selected slice of the frozen nine-day peer-aware asset
-through the pinned BGPalerter adapter. Measure exact provenance preservation,
-row accounting, throughput, memory, failure behavior, and adaptation cost.
-Then classify BGPalerter as reuse / adapt / baseline / reject.
+N-FRONTEND-1 causal route-state transition contract and bounded smoke:
+Build a peer-aware, in-order, past-only route-state transition layer over a
+small two-collector slice of canonical_observation_v2. Audit Add-Path support,
+exact deduplication, transition accounting, provenance, determinism,
+throughput, memory, and causality before any suppression tuning.
 ```
 
 Allowed scope:
@@ -374,9 +377,12 @@ Allowed scope:
 - apply the 80-row reversible duplicate-exclusion sidecar;
 - call the window `unlabeled_operational_background`, not clean or benign;
 - preserve provenance and deterministic offline replay;
-- reuse the N-FRONTEND-FIT-0A canonical connector and pinned component;
-- keep the real replay bounded and deterministic before any full nine-day run;
-- measure adapter cost and dependency risk alongside runtime behavior;
+- preserve announcements, withdrawals, IPv4/IPv6, communities, next hop, and
+  peer identity;
+- use only state that precedes the current observation;
+- classify route changes with a protocol-grounded transition vocabulary;
+- keep the replay bounded and deterministic before any full nine-day run;
+- report exact observation, transition, and micro-event reduction separately;
 - keep controlled attack truth separate from operational background;
 - keep missing-day repair and 30-day scale validation as parallel follow-ups.
 
@@ -388,11 +394,13 @@ Forbidden scope:
 - do not call the frozen asset attack-free or confirmed benign;
 - do not use it as negative training truth before contamination audit;
 - do not include the incomplete `2024-04-16` collector-day;
-- do not write another custom frontend before mature-component fit is measured;
-- do not implement foreground policy or evidence-based decisions in 0B;
-- do not interpret fixture throughput as nine-day scalability;
-- do not promote BGPalerter while real-asset or dependency gates are unresolved;
-- do not let tenth-day repair or 30-day expansion block the bounded fit audit.
+- do not use full-frame `groupby(...).transform("count")` as an online feature;
+- do not treat BGPalerter, BEAM, DFOH, or any detector score as suppression
+  truth;
+- do not tune suppression policy before causal accounting passes;
+- do not interpret bounded throughput as nine-day scalability;
+- do not let tenth-day repair or 30-day expansion block the bounded causal
+  contract audit.
 
 ## 7. Active Experiment Order
 
@@ -427,9 +435,10 @@ R-CLEAN-0
   -> R-MEM-1D-QA2 [done: raw peer identity recovered; old fingerprint rejected]
   -> R-MEM-1E [done: peer-aware v2 source substantially materialized]
   -> R-DATA-FREEZE-0 [done: nine-day dual-collector development asset frozen]
-  -> N-FRONTEND-FIT-0A [done: BGPalerter canonical runtime contract passed]
-  -> N-FRONTEND-FIT-0B [next: bounded real-asset replay and adapter-cost audit]
-  -> R-FOREGROUND-4B [then: targeted path-memory poisoning guard smoke]
+  -> N-FRONTEND-FIT-0A [done: BGPalerter transport contract passed; optional shell only]
+  -> N-FRONTEND-DIRECTION-1 [done: causal route-change compression direction frozen]
+  -> N-FRONTEND-1 [next: causal transition contract and bounded smoke]
+  -> N-FRONTEND-2 [then: multi-attack and poisoning/evasion retention replay]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
   -> R-LEARN-0
@@ -470,7 +479,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-MEM-1D-QA2 | boundary observation identity audit | 84 candidates resolved from 28 raw archives; 43 exact-overlap, 6 distinct-peer, 35 mixed; all 258 matches have peer address | completed | `project_docs/R_MEM_1D_QA2_BOUNDARY_OBSERVATION_IDENTITY_AUDIT.md` |
 | R-MEM-1E | peer-aware canonical schema | AMD v2 execution produced 19/20 collector-days, 3,552 source files, and 1,851,186,204 rows; final RRC00 day is missing | completed source for bounded freeze | `project_docs/R_MEM_1E_PEER_AWARE_CANONICAL_SCHEMA.md` |
 | R-DATA-FREEZE-0 | bounded development data freeze | passed: nine complete dual-collector days, 3,456 files, 1,779,700,135 rows, and 80 reversible exclusions | active development asset | `project_docs/R_DATA_FREEZE_0_9D_DEVELOPMENT_ASSET.md` |
-| N-FRONTEND-FIT-0A | pinned BGPalerter runtime-contract smoke | 512/512 rows preserved twice; all 15 canonical fields and order passed; no core modification; component remains an adapt candidate | completed bounded contract | `project_docs/N_FRONTEND_FIT_0A_BGPALERTER_RUNTIME_CONTRACT.md` |
+| N-FRONTEND-FIT-0A | pinned BGPalerter runtime-contract smoke | 512/512 rows preserved twice; transport contract passed; component is now optional shell/baseline, not compression mainline | completed bounded contract | `project_docs/N_FRONTEND_FIT_0A_BGPALERTER_RUNTIME_CONTRACT.md` |
+| N-FRONTEND-DIRECTION-1 | frontend method freeze | peer-aware causal route-change compression selected; old full-frame recurrence results demoted to offline baselines | active direction | `project_docs/N_FRONTEND_DIRECTION_1_CAUSAL_ROUTE_CHANGE_COMPRESSION.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

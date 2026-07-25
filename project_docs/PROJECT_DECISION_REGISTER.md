@@ -1882,3 +1882,51 @@ scalability.
   demoted to baseline or rejected rather than patched indefinitely.
 
 **Status:** active provisional adaptation decision.
+
+## N-FRONTEND-DIRECTION-1 Causal Route-Change Compression Decision
+
+**Decision:** Select a peer-aware, causal route-change compression layer as
+the new frontend mainline.
+
+The frozen architecture is:
+
+```text
+canonical_observation_v2
+  -> reversible exact-observation deduplication
+  -> per-peer route-state transition extraction
+  -> bounded micro-event aggregation
+  -> foreground / gray_zone / operational_background_suppressed
+```
+
+**Rationale:**
+
+- no mature public component directly provides safe multi-attack,
+  poisoning-aware BGP background compression;
+- mature work provides reusable mechanisms rather than a drop-in answer:
+  RFC 4098 route-change semantics, BEAM-style previous/new route comparison,
+  and DFOH-style new-edge and recurrence maturity;
+- the post-seven-layer R-FOREGROUND work established valuable three-way,
+  reason-coded, candidate-free, retention-first audit contracts;
+- R-FOREGROUND-0/1/2/3 recurrence features were computed with full-frame
+  `groupby(...).transform("count")`, so future rows could influence earlier
+  assignments.
+
+**Consequence:**
+
+- this decision supersedes the earlier requirement to run
+  `N-FRONTEND-FIT-0B` before selecting the compression method;
+- R-FOREGROUND-3's approximately `51.05%` suppression and `2.04x` compression
+  remain offline policy baselines, not strict online deployment results;
+- novelty, recurrence, and maturity must use past-only state;
+- exact duplicates must be peer-aware and reversible;
+- later identical announcements remain meaningful reannouncements rather than
+  source duplicates;
+- RPKI, AS-rel, and communities/NO_EXPORT remain evidence guards and context,
+  not attack or benign truth;
+- BGPalerter is demoted to an optional shell/baseline rather than the main
+  compression mechanism;
+- the old seven-layer pipeline remains outside the new mainline;
+- the next action is `N-FRONTEND-1` causal transition contract and bounded
+  replay, followed by multi-attack and poisoning/evasion retention validation.
+
+**Status:** active and frozen.
