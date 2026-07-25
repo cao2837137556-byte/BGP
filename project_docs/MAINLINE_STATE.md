@@ -92,6 +92,7 @@ Attack families that must remain visible:
 | Nine-day development data freeze | passed | R-DATA-FREEZE-0 | active development asset | Nine complete dual-collector dates, 3,456 source files, and 1,779,700,135 rows; 80 reversible overlap exclusions; role is `unlabeled_operational_background`, not benign truth. |
 | BGPalerter runtime contract | canonical schema contract passed; optional shell/baseline only | N-FRONTEND-FIT-0A | bounded engineering result | Two 512-row deterministic replays preserved all 15 canonical fields and exact row order; it is not the compression mechanism |
 | Frontend method direction | peer-aware causal route-change compression frozen | N-FRONTEND-DIRECTION-1 | active | Reuse RFC 4098 transition semantics, adapt BEAM route-change and DFOH new-edge/maturity mechanisms, and retain R-FOREGROUND safety/audit contracts |
+| Causal transition contract | local implementation and contract smoke passed | N-FRONTEND-1 | bounded local result | Exact deduplication is reversible; route state is peer-aware and past-only; same-timestamp ambiguity and missing Add-Path qualification remain explicit |
 
 ## 4. Active Data / Evidence Contract
 
@@ -343,7 +344,8 @@ Forbidden in new decision logic:
    - this caveat does not block origin-family attack retention evaluation
      because attack community evidence join is `1.0`.
 
-9. The frontend method is selected but not yet implementation-qualified.
+9. The frontend transition contract is locally qualified but not yet
+   real-asset or scale-qualified.
    - N-FRONTEND-FIT-0A proved that pinned BGPalerter `2.0.1`
      (`9a616c29483ae03eaae219b04773a4288b32db62`) can carry
      `canonical_observation_v2` through native Consumer/Monitor/PubSub
@@ -354,19 +356,28 @@ Forbidden in new decision logic:
      `2` low, `19` moderate, `7` high, and `0` critical.
    - N-FRONTEND-DIRECTION-1 demotes BGPalerter to an optional shell/baseline;
      it is not the compression mechanism.
-   - The selected method is peer-aware causal route-change compression, but it
-     still requires a bounded transition-contract smoke before policy tuning.
+   - N-FRONTEND-1 local self-test passed with 10 input rows, 9 exact unique
+     observations, 8 causal transitions, one explicit same-timestamp
+     ambiguity, and zero causality violations.
+   - An existing two-file canonical overlap fixture reduced 2 source copies to
+     1 unique observation while retaining reversible source provenance.
+   - The first-in-window update is bootstrap state, not route novelty.
+   - Add-Path completeness remains unqualified because canonical v2 does not
+     expose a qualified path identifier contract.
+   - A bounded two-collector replay is still required before policy tuning or
+     any throughput, memory, or real-data compression claim.
    - The former R-FOREGROUND full-frame recurrence results remain offline
      baselines because future observations influenced earlier assignments.
 
 ## 6. Next Single Recommended Action
 
 ```text
-N-FRONTEND-1 causal route-state transition contract and bounded smoke:
-Build a peer-aware, in-order, past-only route-state transition layer over a
-small two-collector slice of canonical_observation_v2. Audit Add-Path support,
-exact deduplication, transition accounting, provenance, determinism,
-throughput, memory, and causality before any suppression tuning.
+N-FRONTEND-1B bounded real two-collector replay:
+Run the locally qualified peer-aware, past-only transition implementation over
+a deterministic small slice of both frozen collectors. Measure exact
+deduplication, transition and micro-event reduction, provenance, determinism,
+throughput, memory, same-timestamp ambiguity, and Add-Path limitations before
+any suppression tuning.
 ```
 
 Allowed scope:
@@ -437,7 +448,8 @@ R-CLEAN-0
   -> R-DATA-FREEZE-0 [done: nine-day dual-collector development asset frozen]
   -> N-FRONTEND-FIT-0A [done: BGPalerter transport contract passed; optional shell only]
   -> N-FRONTEND-DIRECTION-1 [done: causal route-change compression direction frozen]
-  -> N-FRONTEND-1 [next: causal transition contract and bounded smoke]
+  -> N-FRONTEND-1 [done: local causal contract and canonical duplicate smoke]
+  -> N-FRONTEND-1B [next: bounded real two-collector replay]
   -> N-FRONTEND-2 [then: multi-attack and poisoning/evasion retention replay]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
@@ -481,6 +493,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-DATA-FREEZE-0 | bounded development data freeze | passed: nine complete dual-collector days, 3,456 files, 1,779,700,135 rows, and 80 reversible exclusions | active development asset | `project_docs/R_DATA_FREEZE_0_9D_DEVELOPMENT_ASSET.md` |
 | N-FRONTEND-FIT-0A | pinned BGPalerter runtime-contract smoke | 512/512 rows preserved twice; transport contract passed; component is now optional shell/baseline, not compression mainline | completed bounded contract | `project_docs/N_FRONTEND_FIT_0A_BGPALERTER_RUNTIME_CONTRACT.md` |
 | N-FRONTEND-DIRECTION-1 | frontend method freeze | peer-aware causal route-change compression selected; old full-frame recurrence results demoted to offline baselines | active direction | `project_docs/N_FRONTEND_DIRECTION_1_CAUSAL_ROUTE_CHANGE_COMPRESSION.md` |
+| N-FRONTEND-1 | causal transition contract | local self-test and existing canonical duplicate-pair smoke passed; no real two-collector or suppression claim yet | completed local contract | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

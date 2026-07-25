@@ -1930,3 +1930,48 @@ canonical_observation_v2
   replay, followed by multi-attack and poisoning/evasion retention validation.
 
 **Status:** active and frozen.
+
+## N-FRONTEND-1 Causal Transition Contract Decision
+
+**Decision:** Qualify a bounded, peer-aware, past-only transition contract
+before implementing any foreground suppression rule.
+
+The contract order is:
+
+```text
+canonical_observation_v2
+  -> reversible exact deduplication
+  -> per-peer route transitions
+  -> fixed-window micro-events
+```
+
+**Rationale:**
+
+- exact source overlap and later identical reannouncements have different
+  semantics and must not be conflated;
+- a bounded window has no pre-window RIB, so its first update is bootstrap
+  state rather than route novelty;
+- canonical rows with the same peer-prefix timestamp may lack an intrinsic
+  order and must be marked ambiguous instead of sorted into a false sequence;
+- peer-address identity is required to prevent cross-session state mixing;
+- field presence alone cannot establish Add-Path completeness.
+
+**Result:**
+
+- deterministic synthetic contract passed;
+- 10 input rows became 9 exact unique observations and 8 causal transitions;
+- one same-timestamp ambiguous batch was retained explicitly;
+- an existing two-file canonical overlap fixture reduced 2 source copies to 1
+  unique observation with reversible provenance;
+- all accounting and causality gates passed locally.
+
+**Consequence:**
+
+- no suppression, truth label, evidence interpretation, or learning claim is
+  authorized by this result;
+- N-FRONTEND-1B must run a bounded real two-collector replay selected by row
+  timestamp;
+- N-FRONTEND-2 attack and poisoning/evasion retention replay remains mandatory
+  before any suppression policy promotion.
+
+**Status:** local contract passed; bounded real replay pending.

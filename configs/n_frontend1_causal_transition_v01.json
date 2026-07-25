@@ -1,0 +1,81 @@
+{
+  "phase": "N-FRONTEND-1",
+  "config_version": "n_frontend1_causal_transition_v01",
+  "input_schema": "canonical_observation_v2",
+  "required_columns": [
+    "ts",
+    "collector",
+    "project",
+    "type",
+    "peer_asn",
+    "peer_address",
+    "prefix",
+    "as_path",
+    "origin_as",
+    "origin_provenance",
+    "communities",
+    "next_hop",
+    "observation_id",
+    "source_file",
+    "archive_timestamp_utc"
+  ],
+  "path_id_candidates": [
+    "path_id",
+    "add_path_id",
+    "path_identifier"
+  ],
+  "state_identity_fields": [
+    "collector",
+    "peer_address",
+    "prefix",
+    "path_id_if_available"
+  ],
+  "route_signature_fields": [
+    "origin_as",
+    "as_path",
+    "communities",
+    "next_hop"
+  ],
+  "transition_taxonomy": [
+    "bootstrap_announce",
+    "bootstrap_withdrawal",
+    "identical_reannouncement",
+    "announcement_change",
+    "withdrawal",
+    "repeated_withdrawal",
+    "withdraw_reannounce_same",
+    "withdraw_reannounce_changed",
+    "same_timestamp_ambiguous",
+    "state_recovery_announce",
+    "state_recovery_withdraw",
+    "unsupported_update_type"
+  ],
+  "primary_micro_event_window_sec": 300,
+  "sensitivity_micro_event_windows_sec": [
+    900
+  ],
+  "well_known_communities": {
+    "NO_EXPORT": "65535:65281",
+    "NO_ADVERTISE": "65535:65282",
+    "NO_EXPORT_SUBCONFED": "65535:65283",
+    "NOPEER": "65535:65284"
+  },
+  "causality_contract": {
+    "past_only_state": true,
+    "full_frame_recurrence_forbidden": true,
+    "same_timestamp_distinct_state_updates": "same_timestamp_ambiguous",
+    "micro_event_available_at": "window_end"
+  },
+  "deduplication_contract": {
+    "observation_id_required_for_auto_deduplication": true,
+    "missing_observation_id": "retain",
+    "source_provenance_reversible": true,
+    "later_identical_reannouncement_is_not_source_duplicate": true
+  },
+  "claim_boundaries": {
+    "attack_or_benign_truth_produced": false,
+    "operational_background_suppression_performed": false,
+    "strict_online_claim_requires_zero_causality_violations": true,
+    "missing_path_id_allows_add_path_complete_claim": false
+  }
+}
