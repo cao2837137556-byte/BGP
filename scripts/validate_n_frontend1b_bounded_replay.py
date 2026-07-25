@@ -18,6 +18,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--expected-input-file-count", type=int, required=True)
     parser.add_argument("--expected-start-ts", type=float, required=True)
     parser.add_argument("--expected-end-ts", type=float, required=True)
+    parser.add_argument(
+        "--expect-per-collector-cap",
+        action="store_true",
+        help=(
+            "Require the balanced preflight cap to have been reached. "
+            "Formal replay validation omits this flag and requires no cap."
+        ),
+    )
     parser.add_argument("--output", required=True)
     return parser.parse_args()
 
@@ -56,10 +64,14 @@ def main() -> int:
         == args.expected_input_file_count,
         "not_globally_truncated": summary.get("selection_truncated_by_max_rows")
         is False,
-        "not_per_collector_truncated": summary.get(
-            "selection_truncated_by_per_collector_cap"
+        "per_collector_cap_matches_mode": bool(
+            summary.get("selection_truncated_by_per_collector_cap")
         )
-        is False,
+        is args.expect_per_collector_cap,
+        "route_state_identity_complete": int(
+            summary.get("state_identity_missing_route_observation_count", -1)
+        )
+        == 0,
         "selected_start_in_bound": float(summary.get("selected_ts_min", -1))
         >= args.expected_start_ts,
         "selected_end_in_bound": float(summary.get("selected_ts_max", float("inf")))
@@ -73,12 +85,15 @@ def main() -> int:
     }
 
     unique_path = output_dir / "n_frontend1_unique_observations.parquet"
+    non_route_path = output_dir / "n_frontend1_non_route_observations.parquet"
     transition_path = output_dir / "n_frontend1_transitions.parquet"
     micro_event_path = output_dir / "n_frontend1_micro_events.parquet"
     checks.update(
         {
             "unique_parquet_count_matches": parquet_rows(unique_path)
             == int(summary["exact_unique_observation_count"]),
+            "non_route_parquet_count_matches": parquet_rows(non_route_path)
+            == int(summary["non_route_observation_count"]),
             "transition_parquet_count_matches": parquet_rows(transition_path)
             == int(summary["transition_count"]),
             "micro_event_parquet_count_matches": parquet_rows(micro_event_path)
@@ -93,6 +108,11 @@ def main() -> int:
         "expected_collectors": expected_collectors,
         "input_rows": summary["input_rows"],
         "selected_rows_by_collector": summary["selected_rows_by_collector"],
+        "per_collector_cap_expected": args.expect_per_collector_cap,
+        "per_collector_cap_observed": summary[
+            "selection_truncated_by_per_collector_cap"
+        ],
+        "non_route_observation_count": summary["non_route_observation_count"],
         "exact_unique_observation_count": summary[
             "exact_unique_observation_count"
         ],

@@ -70,6 +70,19 @@ DEDUP_AUDIT_COLUMNS = [
     "input_parquets",
     "reversible",
 ]
+NON_ROUTE_COLUMNS = [
+    "observation_id",
+    "ts",
+    "collector",
+    "project",
+    "type",
+    "peer_asn",
+    "peer_address",
+    "prefix",
+    "source_copy_count",
+    "source_files",
+    "input_parquets",
+]
 
 
 def parse_args() -> argparse.Namespace:
@@ -239,6 +252,7 @@ def load_bounded_rows(
 
     for path in files:
         parquet_file = pq.ParquetFile(path)
+        file_collectors_seen: set[str] = set()
         for batch in parquet_file.iter_batches(batch_size=batch_size, columns=columns):
             frame = batch.to_pandas()
             source_rows_scanned += len(frame)
@@ -249,6 +263,11 @@ def load_bounded_rows(
                 frame = frame[pd.to_numeric(frame["ts"], errors="coerce") < end_ts]
             if frame.empty:
                 continue
+            file_collectors_seen.update(
+                collector
+                for collector in frame["collector"].map(text).tolist()
+                if collector is not None
+            )
             if max_rows_per_collector > 0:
                 bounded_parts: list[pd.DataFrame] = []
                 for collector_value, group in frame.groupby(
@@ -281,10 +300,10 @@ def load_bounded_rows(
                 break
             if (
                 max_rows_per_collector > 0
-                and required_collector_set
+                and file_collectors_seen
                 and all(
                     selected_rows_by_collector[item] >= max_rows_per_collector
-                    for item in required_collector_set
+                    for item in file_collectors_seen
                 )
             ):
                 break
@@ -374,8 +393,10 @@ def load_bounded_rows(
         # was decoded with its path identifier. That requires parser/peer metadata.
         "add_path_support_ready": False,
         "state_identity_missing_row_count": int(
-            data["peer_address"].map(text).isna().sum()
-            + data["prefix"].map(text).isna().sum()
+            (
+                data["peer_address"].map(text).isna()
+                | data["prefix"].map(text).isna()
+            ).sum()
         ),
     }
     return data, metadata
@@ -975,6 +996,20 @@ def build_summary(
     primary_window = int(config["primary_micro_event_window_sec"])
     primary_events = micro_events_by_window[primary_window]
     primary_count = len(primary_events)
+    route_rows = [
+        row
+        for row in unique_rows
+        if normalize_update_type(row.get("type")) in {"A", "W"}
+    ]
+    non_route_rows = [
+        row
+        for row in unique_rows
+        if normalize_update_type(row.get("type")) not in {"A", "W"}
+    ]
+    route_identity_missing_count = sum(
+        text(row.get("peer_address")) is None or text(row.get("prefix")) is None
+        for row in route_rows
+    )
 
     source_copy_accounted = sum(int(row["source_copy_count"]) for row in unique_rows)
     observation_accounted = sum(
@@ -985,10 +1020,15 @@ def build_summary(
     )
     accounting = {
         "source_copy_accounting_passed": source_copy_accounted == input_rows,
-        "unique_observation_accounting_passed": observation_accounted == unique_count,
+        "unique_observation_accounting_passed": (
+            observation_accounted + len(non_route_rows) == unique_count
+        ),
+        "route_observation_accounting_passed": observation_accounted
+        == len(route_rows),
         "transition_accounting_passed": transition_accounted == transition_count,
         "source_copy_accounted": source_copy_accounted,
         "unique_observation_accounted": observation_accounted,
+        "non_route_observation_accounted": len(non_route_rows),
         "transition_accounted": transition_accounted,
     }
     all_accounting_passed = all(
@@ -996,6 +1036,7 @@ def build_summary(
         for key in [
             "source_copy_accounting_passed",
             "unique_observation_accounting_passed",
+            "route_observation_accounting_passed",
             "transition_accounting_passed",
         ]
     )
@@ -1039,6 +1080,18 @@ def build_summary(
         "state_identity_missing_row_count": load_meta[
             "state_identity_missing_row_count"
         ],
+        "state_identity_missing_route_observation_count": int(
+            route_identity_missing_count
+        ),
+        "non_route_observation_count": len(non_route_rows),
+        "non_route_type_counts": dict(
+            sorted(
+                Counter(
+                    normalize_update_type(row.get("type"))
+                    for row in non_route_rows
+                ).items()
+            )
+        ),
         "micro_event_count_by_window_sec": {
             str(window): len(rows)
             for window, rows in sorted(micro_events_by_window.items())
@@ -1057,7 +1110,7 @@ def build_summary(
             all_accounting_passed
             and transition_meta["causality_violation_count"] == 0
             and dedup_meta["observation_id_collision_count"] == 0
-            and load_meta["state_identity_missing_row_count"] == 0
+            and route_identity_missing_count == 0
             and not load_meta["missing_required_collectors"]
         ),
         "claim_boundaries": config["claim_boundaries"],
@@ -1096,6 +1149,14 @@ def write_report(path: Path, summary: dict[str, Any]) -> None:
         ),
         f"- Causality violations: `{summary['causality_violation_count']}`.",
         (
+            "- Non-route/control observations isolated from the route state machine: "
+            f"`{summary['non_route_observation_count']}`."
+        ),
+        (
+            "- A/W observations missing route-state identity: "
+            f"`{summary['state_identity_missing_route_observation_count']}`."
+        ),
+        (
             "- Same-timestamp ambiguous batches: "
             f"`{summary['same_timestamp_ambiguous_batch_count']}`."
         ),
@@ -1124,7 +1185,12 @@ def run_pipeline(
     dict[str, Any],
 ]:
     unique_rows, duplicate_audit, dedup_meta = deduplicate_observations(data)
-    transitions, transition_meta = build_transitions(unique_rows)
+    route_rows = [
+        row
+        for row in unique_rows
+        if normalize_update_type(row.get("type")) in {"A", "W"}
+    ]
+    transitions, transition_meta = build_transitions(route_rows)
     windows = [
         int(config["primary_micro_event_window_sec"]),
         *[int(value) for value in config["sensitivity_micro_event_windows_sec"]],
@@ -1162,6 +1228,15 @@ def write_outputs(
 ) -> None:
     primary_window = int(summary["primary_micro_event_window_sec"])
     write_parquet(output_dir / "n_frontend1_unique_observations.parquet", unique_rows)
+    write_parquet(
+        output_dir / "n_frontend1_non_route_observations.parquet",
+        [
+            row
+            for row in unique_rows
+            if normalize_update_type(row.get("type")) not in {"A", "W"}
+        ],
+        NON_ROUTE_COLUMNS,
+    )
     write_parquet(
         output_dir / "n_frontend1_transitions.parquet",
         transitions,
@@ -1277,6 +1352,8 @@ def run_self_test(config: dict[str, Any]) -> int:
     second = run_pipeline(fixture, config, load_meta)
     unique_rows, duplicate_audit, transitions, micro_events, summary = first
     assert summary["contract_passed"]
+    assert summary["non_route_observation_count"] == 0
+    assert summary["state_identity_missing_route_observation_count"] == 0
     assert summary["causality_violation_count"] == 0
     assert summary["exact_duplicate_copy_count"] == 1
     assert len(unique_rows) == 9
@@ -1332,6 +1409,59 @@ def run_self_test(config: dict[str, Any]) -> int:
         assert pq.ParquetFile(
             output_dir / "n_frontend1_transitions.parquet"
         ).metadata.num_rows == len(transitions)
+        assert pq.ParquetFile(
+            output_dir / "n_frontend1_non_route_observations.parquet"
+        ).metadata.num_rows == 0
+
+        non_route_fixture = fixture.copy()
+        non_route_row = fixture_row(1480, "S", None, None)
+        non_route_row["peer_address"] = None
+        non_route_row["prefix"] = None
+        non_route_row["observation_id"] = canonical_observation_id(non_route_row)
+        non_route_fixture = pd.concat(
+            [non_route_fixture, pd.DataFrame([non_route_row])],
+            ignore_index=True,
+        )
+        non_route_meta = dict(load_meta)
+        non_route_meta["source_rows_scanned"] = len(non_route_fixture)
+        non_route_meta["source_rows_scanned_by_file"] = {
+            "synthetic.parquet": len(non_route_fixture)
+        }
+        non_route_meta["selected_rows"] = len(non_route_fixture)
+        non_route_meta["selected_rows_by_collector"] = {
+            "rrc00": len(non_route_fixture)
+        }
+        non_route_meta["selected_ts_max"] = float(non_route_fixture["ts"].max())
+        non_route_meta["state_identity_missing_row_count"] = 1
+        non_route_result = run_pipeline(non_route_fixture, config, non_route_meta)
+        assert non_route_result[-1]["contract_passed"]
+        assert non_route_result[-1]["non_route_observation_count"] == 1
+        assert (
+            non_route_result[-1][
+                "state_identity_missing_route_observation_count"
+            ]
+            == 0
+        )
+        assert len(non_route_result[2]) == len(transitions)
+
+        missing_route_fixture = fixture.copy()
+        missing_route_fixture.loc[0, "peer_address"] = None
+        missing_route_fixture.loc[0, "observation_id"] = None
+        missing_route_meta = dict(load_meta)
+        missing_route_meta["state_identity_missing_row_count"] = 1
+        missing_route_result = run_pipeline(
+            missing_route_fixture,
+            config,
+            missing_route_meta,
+        )
+        assert not missing_route_result[-1]["contract_passed"]
+        assert (
+            missing_route_result[-1][
+                "state_identity_missing_route_observation_count"
+            ]
+            == 1
+        )
+
         rrc_fixture = fixture.copy()
         routeviews_fixture = fixture.copy()
         routeviews_fixture["collector"] = "route-views.sg"
@@ -1362,6 +1492,7 @@ def run_self_test(config: dict[str, Any]) -> int:
         }
         assert bounded_meta["missing_required_collectors"] == []
         assert bounded_meta["selection_truncated_by_per_collector_cap"]
+        assert bounded_meta["source_rows_scanned"] == 8
     print("self_test=passed")
     print(f"input_rows={summary['input_rows']}")
     print(f"unique_observations={summary['exact_unique_observation_count']}")

@@ -2001,4 +2001,17 @@ and one RRC00 Parquet from the frozen nine-day asset.
 - no attack retention, evidence, Add-Path completeness, learning, or
   nine-day scalability claim is authorized by this replay.
 
-**Status:** local preflight package passed; formal HPC result pending.
+**Status:** first real-data preflight blocked formal submission. The failure
+was a preflight-contract defect, not a scientific result: the balanced
+2,000-row-per-collector cap was incorrectly forbidden, and non-route control
+records were incorrectly sent to the A/W route-state contract. The repaired
+implementation now:
+
+- requires the cap in balanced preflight and forbids it in formal replay;
+- isolates non-route/control observations in a dedicated audit artifact;
+- keeps missing peer/prefix identity on A/W observations as a hard failure;
+- stops scanning each source file after its collector quota is satisfied;
+- regression-tests both accepted non-route isolation and rejected incomplete
+  A/W route identity before another HPC submission.
+
+Formal HPC result remains pending.

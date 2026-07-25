@@ -92,7 +92,7 @@ Attack families that must remain visible:
 | Nine-day development data freeze | passed | R-DATA-FREEZE-0 | active development asset | Nine complete dual-collector dates, 3,456 source files, and 1,779,700,135 rows; 80 reversible overlap exclusions; role is `unlabeled_operational_background`, not benign truth. |
 | BGPalerter runtime contract | canonical schema contract passed; optional shell/baseline only | N-FRONTEND-FIT-0A | bounded engineering result | Two 512-row deterministic replays preserved all 15 canonical fields and exact row order; it is not the compression mechanism |
 | Frontend method direction | peer-aware causal route-change compression frozen | N-FRONTEND-DIRECTION-1 | active | Reuse RFC 4098 transition semantics, adapt BEAM route-change and DFOH new-edge/maturity mechanisms, and retain R-FOREGROUND safety/audit contracts |
-| Causal transition contract | local implementation and contract smoke passed; bounded HPC replay package qualified locally | N-FRONTEND-1 / 1B-prep | bounded local result | Dual-collector coverage, balanced preflight sampling, isolated AMD/Intel outputs, and result validation are implemented; real replay result remains pending |
+| Causal transition contract | local implementation passed; first real-data preflight exposed two validator/protocol defects before formal submission | N-FRONTEND-1 / 1B-prep | bounded local result | Non-route control records are now isolated from the A/W state machine, A/W identity remains a hard gate, and balanced preflight truncation is validated separately from uncapped formal replay |
 
 ## 4. Active Data / Evidence Contract
 
@@ -371,6 +371,13 @@ Forbidden in new decision logic:
    - Its local preflight contract requires both collectors, runs a balanced
      2,000-row-per-collector smoke, validates output row accounting, and checks
      both Slurm submissions with `sbatch --test-only`.
+   - The first real-data preflight correctly blocked formal submission after
+     exposing two implementation-contract defects: balanced smoke truncation
+     was incorrectly forbidden, and non-route control records were incorrectly
+     treated as incomplete A/W route state.
+   - The repaired contract isolates non-route records in a dedicated audit
+     artifact, continues to fail on A/W rows missing peer/prefix identity, and
+     distinguishes capped preflight validation from uncapped formal replay.
    - Formal AMD and Intel runs request `2 CPU`, `32 GiB`, and `2 h`; every
      writable output is isolated by pair, partition, and job ID.
    - The former R-FOREGROUND full-frame recurrence results remain offline
@@ -503,7 +510,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | N-FRONTEND-FIT-0A | pinned BGPalerter runtime-contract smoke | 512/512 rows preserved twice; transport contract passed; component is now optional shell/baseline, not compression mainline | completed bounded contract | `project_docs/N_FRONTEND_FIT_0A_BGPALERTER_RUNTIME_CONTRACT.md` |
 | N-FRONTEND-DIRECTION-1 | frontend method freeze | peer-aware causal route-change compression selected; old full-frame recurrence results demoted to offline baselines | active direction | `project_docs/N_FRONTEND_DIRECTION_1_CAUSAL_ROUTE_CHANGE_COMPRESSION.md` |
 | N-FRONTEND-1 | causal transition contract | local self-test and existing canonical duplicate-pair smoke passed; no real two-collector or suppression claim yet | completed local contract | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
-| N-FRONTEND-1B | bounded real replay | local dual-collector preflight and validator passed; formal 5-minute AMD/Intel replay pending | ready to submit | `scripts/hpc/submit_n_frontend1b_bounded_replay_dual.sh` |
+| N-FRONTEND-1B | bounded real replay | first real-data preflight blocked formal submission and drove a tested contract repair; corrected replay package pending resubmission | preflight repair complete locally | `scripts/hpc/submit_n_frontend1b_bounded_replay_dual.sh` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

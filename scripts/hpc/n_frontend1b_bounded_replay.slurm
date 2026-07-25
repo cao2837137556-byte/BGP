@@ -117,7 +117,8 @@ tar -czf "$OUTPUT_DIR/n_frontend1b_small_results.tar.gz" \
   n_frontend1_summary.json \
   n_frontend1_report.md \
   n_frontend1_transition_counts.csv \
-  n_frontend1_exact_dedup_audit.csv
+  n_frontend1_exact_dedup_audit.csv \
+  n_frontend1_non_route_observations.parquet
 
 echo "validation=$OUTPUT_DIR/n_frontend1b_validation.json"
 echo "small_results=$OUTPUT_DIR/n_frontend1b_small_results.tar.gz"

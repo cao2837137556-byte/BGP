@@ -1,7 +1,8 @@
 # N-FRONTEND-1: Causal Transition Contract
 
-Status: local contract and N-FRONTEND-1B preflight passed; formal bounded
-two-collector replay is ready to submit.
+Status: local contract passed; the first N-FRONTEND-1B real-data preflight
+exposed non-route-record and balanced-cap validation defects. No formal
+bounded replay was submitted from that failed preflight.
 
 Date: 2026-07-25.
 
@@ -64,8 +65,10 @@ The state key is:
 ```
 
 `peer_asn` cannot replace `peer_address`, because multiple peer sessions may
-share an ASN. A row missing peer or prefix identity is isolated rather than
-merged, and the contract is marked failed.
+share an ASN. An announcement or withdrawal missing peer or prefix identity is
+isolated rather than merged, and the contract is marked failed. Non-route
+control records (for example peer-state records) are retained in a separate
+audit artifact and do not enter the per-prefix route-state machine.
 
 The current canonical v2 files do not expose a qualified Add-Path identifier.
 Therefore this phase explicitly forbids an Add-Path-complete claim. A

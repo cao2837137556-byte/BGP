@@ -101,6 +101,7 @@ apptainer exec "${COMMON_BIND[@]}" "$IMG" \
   --expected-input-file-count 2 \
   --expected-start-ts "$START_TS" \
   --expected-end-ts "$END_TS" \
+  --expect-per-collector-cap \
   --output "/hpc_tmp/$SMOKE_REL/result/n_frontend1b_validation.json"
 
 sbatch --test-only -p amd -J bgp_n_front1b_amd \
