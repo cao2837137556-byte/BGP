@@ -93,7 +93,7 @@ Attack families that must remain visible:
 | BGPalerter runtime contract | canonical schema contract passed; optional shell/baseline only | N-FRONTEND-FIT-0A | bounded engineering result | Two 512-row deterministic replays preserved all 15 canonical fields and exact row order; it is not the compression mechanism |
 | Frontend method direction | peer-aware causal route-change compression frozen | N-FRONTEND-DIRECTION-1 | active | Reuse RFC 4098 transition semantics, adapt BEAM route-change and DFOH new-edge/maturity mechanisms, and retain R-FOREGROUND safety/audit contracts |
 | Causal transition contract | bounded replay and ambiguity audit passed | N-FRONTEND-1 / 1B / 1C | bounded real result | AMD/Intel outputs are byte-identical on audited artifacts; `583,663` observations become `335,386` micro-events (`1.740272x`). The audit preserves `66,666` same-timestamp groups (`14.20%` of transitions) as unknown-order context; attack and poisoning retention remain untested. |
-| Controlled canonical attack injection | N-FRONTEND-2A contract drafted; independent review is required before materialization | N-FRONTEND-2A | active design gate | The draft proposes canonical identity, real templates, synthetic provenance, past-only exposure, preregistered semantic deltas, and evaluation-only isolation. No poisoning-robustness claim is authorized. |
+| Controlled canonical attack injection | N-FRONTEND-2A contract frozen after independent review | N-FRONTEND-2A | frozen design gate | Canonical identity, real templates, synthetic provenance, observer-specific preregistration, past-only exposure, semantic deltas, and evaluation-only isolation are frozen. No poisoning-robustness claim is authorized. |
 
 ## 4. Active Data / Evidence Contract
 
@@ -413,10 +413,10 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-N-FRONTEND-2A controlled attack injection contract review:
-Review and freeze the canonical identity, real-template, phase-placement,
-past-only causality, paired semantic-delta, visibility, and contamination
-contracts before N-FRONTEND-2B materialization or replay.
+N-FRONTEND-2B bounded materialization and replay:
+Materialize controlled multi-attack and paired poisoning/evasion variants under
+the frozen N-FRONTEND-2A identity, observer-registry, causality, visibility,
+fairness, and contamination contracts.
 ```
 
 Allowed scope:
@@ -517,8 +517,8 @@ R-CLEAN-0
   -> N-FRONTEND-1 [done: local causal contract and canonical duplicate smoke]
   -> N-FRONTEND-1B [done: bounded real paired replay and alignment passed]
   -> N-FRONTEND-1C [done: paired alignment and ambiguity accounting passed]
-  -> N-FRONTEND-2A [next: injection contract independent review and freeze]
-  -> N-FRONTEND-2B [blocked: bounded materialization/replay waits for 2A review]
+  -> N-FRONTEND-2A [done: injection contract independently reviewed and frozen]
+  -> N-FRONTEND-2B [next: bounded materialization/replay under frozen contract]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
   -> R-LEARN-0
@@ -564,8 +564,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | N-FRONTEND-1 | causal transition contract | local contract plus bounded real replay passed; suppression and attack retention remain unclaimed | completed bounded contract | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
 | N-FRONTEND-1B | bounded real replay | jobs `154385/154386` passed with identical semantic fingerprints; `583,663` observations reduced to `335,386` micro-events (`1.740272x`) | completed bounded replay | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
 | N-FRONTEND-1C | paired alignment and ambiguity audit | jobs `154883/154884` passed; AMD/Intel audited artifacts are byte-identical; `66,666` ambiguous groups affect `22,785` micro-events and remain unknown-order context | completed audit | `scripts/audit_n_frontend1b_alignment_and_ambiguity.py` |
-| N-FRONTEND-2A | controlled canonical attack injection contract | drafted; proposes identity, provenance, realism, causality, semantic-delta, visibility, and contamination gates | active review gate | `project_docs/N_FRONTEND_2A_CONTROLLED_ATTACK_INJECTION_CONTRACT.md` |
-| N-FRONTEND-2B | bounded multi-attack and paired-variant replay | blocked until N-FRONTEND-2A independent review passes; may claim semantic survival and past-only exposure, not poisoning robustness | blocked next implementation | pending |
+| N-FRONTEND-2A | controlled canonical attack injection contract | independently reviewed and frozen with identity, provenance, realism, observer-sequence, causality, semantic-delta, visibility, and contamination gates | completed frozen contract | `project_docs/N_FRONTEND_2A_CONTROLLED_ATTACK_INJECTION_CONTRACT.md` |
+| N-FRONTEND-2B | bounded multi-attack and paired-variant replay | unlocked under the frozen N-FRONTEND-2A contract; may claim semantic survival and past-only exposure, not poisoning robustness | next implementation | pending |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

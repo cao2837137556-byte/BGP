@@ -1,16 +1,22 @@
 # N-FRONTEND-2A: Controlled Attack Injection Contract
 
-Status: design contract drafted for independent review; no attack rows have
-been materialized under this contract.
+Status: frozen after independent review; no attack rows have been materialized
+under this contract.
 
 Date: 2026-07-28.
 
+Review chain:
+
+- initial draft: `9469029`;
+- observer-specific correction: `d081873`;
+- freeze: the commit that first sets this contract status to `frozen`.
+
 ## 1. Purpose
 
-N-FRONTEND-2A proposes the contract for how controlled clean, poisoned, and
+N-FRONTEND-2A freezes the contract for how controlled clean, poisoned, and
 visibility-evasive scenarios may enter the new causal frontend. It becomes
-frozen only after independent review. This is a design and qualification
-phase, not a replay result.
+frozen only after independent review, which completed on 2026-07-28. This is a
+design and qualification phase, not a replay result.
 
 The next bounded replay will exercise:
 
@@ -311,9 +317,10 @@ the interval between poison withdrawal and attack:
 
 The preferred response to the third case is to replace the template before
 freezing the registry. An excluded observer never enters the
-attack-family-delta denominator. If it already carries an injected attack
-member, it remains in the semantic-phase-survival denominator; rematerializing
-with a qualified replacement observer is preferred.
+attack-family-delta denominator. Observer exclusion may be driven only by the
+background-only cadence audit. Registry rows may be revised while selecting
+templates, but only before materialization and before the registry is frozen.
+Once any replay output is visible, every registry field is read-only.
 
 The cadence audit artifact and the complete observer registry are hashed and
 frozen before replay. Setting expectations from this pre-replay audit is part
@@ -422,6 +429,8 @@ Do not interpret or promote the replay if any of the following occurs:
 - accidental collision or duplicate count is non-zero;
 - truth leaks into online fields;
 - a pair-fairness field changes outside its threat-model allowance;
+- the observer registry and cadence-audit artifact were not hash-frozen before
+  replay;
 - a scenario phase is missing or cannot be traced;
 - a past-only metric uses data at or after attack time;
 - an undeclared same-timestamp ambiguity is created;
@@ -459,11 +468,9 @@ nine-day asset, old attack outputs, or future training pools.
 
 ## 13. Next Action
 
-1. Independent review of this contract checks causality, expected transition
-   patterns, template realism, and contamination boundaries.
-2. After review acceptance, freeze the contract without materializing data.
-3. Implement N-FRONTEND-2B bounded materialization and replay.
-4. Design background suppression only after structural survival and
+1. Implement N-FRONTEND-2B bounded materialization and replay under this frozen
+   contract.
+2. Design background suppression only after structural survival and
    adversarial semantic-delta QA pass.
 
 This phase does not train learning, attach attack truth to online features,
