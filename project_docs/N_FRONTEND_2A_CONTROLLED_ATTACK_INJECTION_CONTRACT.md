@@ -215,6 +215,12 @@ Minimum placement constraints:
 These windows are bounded proxies. `first_seen_age` means first seen within the
 available episode/history asset, not first seen on the Internet.
 
+The 60-minute episode qualifies only short-term crafted-history poisoning:
+the prelude is deliberately placed shortly before attack launch to test whether
+recent exposure changes the frontend semantics. It does not qualify long-term
+maturity poisoning. Claims about an attacker making a route appear mature over
+days or weeks require the longer path-memory sidecar and a separate contract.
+
 ## 8. Same-Timestamp Ambiguity Contract
 
 Accidental `(collector, peer_address, prefix, ts)` collisions between injected
@@ -260,6 +266,59 @@ Pair-fairness failures block replay interpretation:
 - unregistered collector/peer changes;
 - evidence snapshot drift;
 - phase or timestamp changes not required by the threat model.
+
+### 9.1 Observer Sequence Registry
+
+Pair fairness is frozen per observer, not only per scenario. Before
+materialization or replay, the cadence audit must create one registry row for
+each `(collector, peer_address, prefix[, path_id])` state machine with:
+
+```text
+observer_key
+observer_role
+ordered_state_sequence
+poison_prelude_member_ids
+attack_member_ids
+intermediate_background_class
+expected_attack_transition_family_set
+cadence_audit_artifact
+cadence_audit_fingerprint
+expectation_frozen_at
+exclusion_reason
+```
+
+`observer_role` is one of:
+
+- `paired_attack_observer`: carries both the poisoning prelude and the attack;
+- `control_observer`: carries legitimate/control traffic only and is excluded
+  from the attack-family-delta denominator;
+- `excluded_observer`: cannot support an unambiguous family expectation.
+
+For every paired attack observer, `ordered_state_sequence` declares the
+observer-local order of stable legitimate route `L`, poison route `P`,
+withdrawal, any intervening legitimate restoration, and attack route `P`.
+The poisoning prelude and attack must use the same declared paired attack
+observers. A scenario-level family expectation cannot substitute for these
+observer-local sequences.
+
+The background-only cadence audit runs before materialization and classifies
+the interval between poison withdrawal and attack:
+
+- `no_legitimate_restore`: expect `withdraw_reannounce_same`;
+- `legitimate_restore`: expect `announcement_change`;
+- `unstable_flap_or_ambiguity`: exclude the observer with a recorded reason,
+  rather than forcing either expectation.
+
+The preferred response to the third case is to replace the template before
+freezing the registry. An excluded observer never enters the
+attack-family-delta denominator. If it already carries an injected attack
+member, it remains in the semantic-phase-survival denominator; rematerializing
+with a qualified replacement observer is preferred.
+
+The cadence audit artifact and the complete observer registry are hashed and
+frozen before replay. Setting expectations from this pre-replay audit is part
+of preregistration. Replay results must never be used to revise an expected
+family set or an exclusion reason.
 
 ## 10. Preregistered Measurements
 
@@ -319,12 +378,15 @@ replace the collector/peer visibility contract.
 The canonical metric name is `attack_transition_semantic_delta`.
 
 For every pair, report a clean-versus-adversarial transition-family matrix for
-the attack phase. This is explanatory evidence, not a binary robustness gate.
+the attack phase, keyed by pair, variant, collector, and peer address. This is
+explanatory evidence, not a binary robustness gate.
 
-Each scenario must preregister one implementation mode and its expected
-adversarial family set:
+Each paired attack observer must preregister its ordered implementation mode
+and expected adversarial family set in the observer sequence registry. The
+following table gives the default expectation when the pre-replay cadence audit
+finds no intervening legitimate restoration:
 
-| Pair | Required implementation mode | Expected clean attack family | Expected adversarial family set | Primary interpretation |
+| Pair | Observer-local implementation mode | Expected clean attack family | Default adversarial family set | Primary interpretation |
 |---|---|---|---|---|
 | `pair_exact_origin_history_poisoning_v01` | legitimate route active; poison announce, withdraw, then attack | `announcement_change` | `{withdraw_reannounce_same}` | attacker route was exposed and withdrawn before launch |
 | `pair_forged_origin_history_poisoning_v01` | legitimate route active; forged route announce, withdraw, then attack | `announcement_change` | `{withdraw_reannounce_same}` | forged route history was deliberately pre-exposed |
@@ -333,17 +395,23 @@ adversarial family set:
 | `pair_stealth_collector_asymmetry_v01` | collector/peer visibility manipulation only | preregistered from selected template | same family for each expected-visible observer | public-monitor asymmetry |
 
 An implementation may use an alternative mode, such as keeping the poison
-route active or restoring the legitimate route, only by changing the
-preregistered expected set before replay:
+route active or restoring the legitimate route, only by recording the
+observer-local sequence and freezing its expected set before replay:
 
 - active poison route may yield `identical_reannouncement`;
 - legitimate restoration may leave the attack as `announcement_change`;
 - withdrawn poison route may yield `withdraw_reannounce_same`.
 
-If the observed family is outside the preregistered set, including no
-unexpected difference or an adversarial route that appears more novel than
-the clean route, the result is a scenario-materialization QA failure. It is
-not evidence that the frontend is robust or fragile.
+Only `paired_attack_observer` rows enter the family-delta denominator. Control
+and excluded observers remain visible in phase-survival and audit accounting
+under the rules in Section 9.1.
+
+If an observed family is outside that observer's frozen expected set,
+including an undeclared lack of difference or an adversarial route that
+appears more novel than the clean route, the result is a
+scenario-materialization QA failure. It is not evidence that the frontend is
+robust or fragile. Expected sets and exclusions cannot be changed after seeing
+the replay output.
 
 ## 11. N-FRONTEND-2B Stop-Loss Gates
 

@@ -1,6 +1,6 @@
 # PROJECT DECISION REGISTER
 
-Last updated: 2026-07-24
+Last updated: 2026-07-28
 
 Status: active project-level research decision register.
 
