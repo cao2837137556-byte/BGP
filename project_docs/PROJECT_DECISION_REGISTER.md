@@ -2079,3 +2079,86 @@ or treat ambiguity itself as an attack signal.
 
 **Status:** completed bounded audit; N-FRONTEND-2 retention replay is the active
 next action.
+
+## N-FRONTEND-2A Controlled Canonical Attack Injection Decision
+
+**Decision:** Freeze an independently reviewed injection contract before
+materializing controlled attacks into the new causal frontend.
+
+The contract is:
+
+```text
+real canonical template
+  -> authorized scenario transformation
+  -> canonical_observation_id()
+  -> synthetic:// provenance
+  -> evaluation-only mixed asset
+  -> exact deduplication
+  -> causal transitions
+  -> micro-events
+```
+
+**Rationale:**
+
+- the current frontend performs structural compression but no background
+  suppression, so attack retention near `1.0` is not poisoning-robustness
+  evidence;
+- poisoning can map an attack to `identical_reannouncement`,
+  `withdraw_reannounce_same`, or still `announcement_change`, depending on
+  whether the prelude remains active, is withdrawn, or is followed by a
+  legitimate restoration;
+- a single transition-family change is therefore explanatory evidence rather
+  than a universal pass criterion;
+- past-only exposure must be computed from causal transitions before attack
+  time and cannot reuse full-frame recurrence counts;
+- synthetic rows must not impersonate real provenance or contaminate the
+  frozen background/training role.
+
+**Required measurements:**
+
+1. `semantic_phase_survival` for stable, poisoning-preparation, attack, and
+   recovery phases;
+2. `past_only_route_exposure_delta` with a hard
+   `transition_ts < attack_ts` assertion and bounded-window caveats;
+3. `attack_transition_semantic_delta` against a preregistered per-scenario
+   expected-family set.
+
+Allowed wording is:
+
+```text
+semantic survival and past-only exposure under paired variants
+```
+
+`poisoning robustness` and equivalent claims remain forbidden until a later
+suppression/judgment evaluation supports them.
+
+**Route-leak coverage decision:** Formal controlled coverage is currently four
+groups:
+
+- origin hijack, including exact-origin, forged-origin, and subprefix;
+- path manipulation;
+- stealth visibility / NO_EXPORT;
+- paired poisoning/evasion as an adversarial threat-model track.
+
+Route-leak-like cases are retained only as path-policy diagnostics. AS-rel
+shape or valley-like paths are not route-leak truth. Promotion requires a
+bounded propagation-policy contract using BGP Roles/OTC, operator-confirmed
+semantics, or equivalent evidence.
+
+**Consequence:**
+
+- no N-FRONTEND-2B materialization or replay begins before independent review
+  accepts the injection contract;
+- injected IDs use the repository canonical function, truth remains in a
+  sidecar, and accidental collision/duplicate counts must be zero;
+- NO_EXPORT scenarios require a real observed NO_EXPORT peer/collector
+  template and a preregistered visibility contract;
+- clean/adversarial pairs share the victim, attacker, prefix family,
+  background episode, template, and evidence binding except for the declared
+  adversarial manipulation;
+- mixed assets are evaluation-only and cannot become benign/negative training
+  data.
+
+**Status:** active design-review gate. N-FRONTEND-2B is blocked until
+`project_docs/N_FRONTEND_2A_CONTROLLED_ATTACK_INJECTION_CONTRACT.md` passes
+independent review.
