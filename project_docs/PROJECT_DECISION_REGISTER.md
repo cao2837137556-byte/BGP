@@ -1974,7 +1974,8 @@ canonical_observation_v2
 - N-FRONTEND-2 attack and poisoning/evasion retention replay remains mandatory
   before any suppression policy promotion.
 
-**Status:** local contract passed; bounded real replay pending.
+**Status:** superseded by the completed N-FRONTEND-1B bounded replay and
+N-FRONTEND-1C ambiguity audit below.
 
 ## N-FRONTEND-1B Bounded Replay Execution Decision
 
@@ -2014,7 +2015,8 @@ implementation now:
 - regression-tests both accepted non-route isolation and rejected incomplete
   A/W route identity before another HPC submission.
 
-Formal HPC result remains pending.
+The later portable-wrapper pair `154385/154386` completed successfully. Both
+validators passed and the paired semantic artifacts matched.
 
 ### N-FRONTEND-1B Compute-Node Startup Failure
 
@@ -2032,3 +2034,48 @@ permanent execution rule is:
 - obtain peak memory and allocation data from Slurm accounting;
 - require preflight to execute the same wrapper used by the formal job;
 - test both wrapper success and non-zero exit propagation before submission.
+
+## N-FRONTEND-1C Same-Timestamp Ambiguity Decision
+
+**Decision:** Preserve distinct observations sharing a peer-prefix timestamp as
+unknown-order context. Do not fabricate an order, collapse them into background,
+or treat ambiguity itself as an attack signal.
+
+**Rationale:**
+
+- canonical source timestamps do not provide a defensible total order inside
+  these groups;
+- no qualified `path_id` field is available, so Add-Path reconstruction is not
+  supported;
+- path, communities, update type, and next-hop differences can all carry attack
+  or policy context that would be destroyed by arbitrary tie-breaking;
+- retention safety must be tested before any production suppression rule can
+  use recurrence or stability.
+
+**Result:**
+
+- paired jobs `154883/154884` completed with all semantic alignment and
+  ambiguity-accounting gates passed;
+- AMD and Intel summary, profile, examples, and report artifacts are
+  byte-identical;
+- `66,666` ambiguous groups contain `152,985` observations;
+- ambiguity covers `14.1975%` of transitions and affects `22,785` micro-events
+  (`6.7937%`);
+- the dominant causes are path-plus-communities differences (`49.6565%`),
+  announce/withdraw at the same timestamp (`24.3722%`), communities-only
+  differences (`16.6667%`), and path-only differences (`8.0686%`);
+- `path_id` is absent and Add-Path support remains unqualified.
+
+**Consequence:**
+
+- N-FRONTEND-2 must retain and separately report attack or poisoning scenarios
+  that intersect ambiguous groups;
+- public-invisible attacks remain observability-boundary cases, not frontend
+  misses;
+- Add-Path and timestamp-granularity qualification are required before
+  production suppression tuning;
+- no suppression, attack-detection, benign-background, or poisoning-robustness
+  claim is authorized by this audit.
+
+**Status:** completed bounded audit; N-FRONTEND-2 retention replay is the active
+next action.

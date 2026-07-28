@@ -194,25 +194,55 @@ suppression, attack retention, poisoning robustness, or nine-day scalability.
   nine-day throughput claim is made;
 - no pre-window RIB bootstrap is available;
 - Add-Path completeness is unqualified;
-- `66,666` same-timestamp ambiguous batches require a cause audit before
-  suppression tuning;
 - no external evidence is joined;
 - no foreground/suppression policy is applied;
 - no attack or poisoning retention is claimed.
 
-## 10. Next Step
+## 10. N-FRONTEND-1C Ambiguity Audit Result
 
-Run `N-FRONTEND-1C` as a read-only audit over the paired bounded replay:
+The read-only paired audit completed on jobs `154883/154884`. All semantic
+alignment and ambiguity-accounting gates passed. AMD and Intel produced
+byte-identical summary, profile, examples, and report artifacts.
 
-- verify AMD/Intel semantic alignment from validators, core fields, and output
-  fingerprints;
-- classify same-timestamp ambiguity by update-type and route-attribute
-  differences;
-- report collector shares, ambiguity rates, and representative groups;
-- retain all ambiguous groups as unknown-order context;
-- do not infer attack, benign background, or recoverable order;
-- audit Add-Path and timestamp-granularity limitations before any suppression
-  tuning.
+The audit found:
 
-Only after this audit passes may N-FRONTEND-2 replay controlled multi-attack
-and poisoning/evasion scenarios through the structural frontend.
+- ambiguous groups: `66,666`;
+- member observations in ambiguous groups: `152,985`;
+- ambiguous transition rate: `14.1975%`;
+- micro-events containing ambiguity: `22,785`;
+- ambiguous micro-event rate: `6.7937%`;
+- collector share: RRC00 `69.2167%`, Route Views SG `30.7833%`;
+- path-plus-communities differences: `49.6565%`;
+- announce/withdraw at the same timestamp: `24.3722%`;
+- communities-only differences: `16.6667%`;
+- path-only differences: `8.0686%`.
+
+The remaining causes each contribute below one percent. The result shows that
+same-timestamp ambiguity is substantial and structured, not an ignorable parser
+edge case. The contract therefore preserves every member as unknown-order
+context. It does not infer an order, collapse the group into one route, or
+classify the group as attack or background.
+
+No qualified path identifier is available in the canonical source:
+`path_id_field_present=false`, `path_id_non_null_rows=0`, and
+`add_path_support_ready=false`. Add-Path and source timestamp-granularity
+qualification remain required before production suppression tuning.
+
+## 11. Next Step
+
+Run `N-FRONTEND-2` as a bounded multi-attack and poisoning/evasion retention
+replay through the structural frontend:
+
+- preserve realistic attack provenance and paired adversarial contracts;
+- measure retention by family, scenario, phase, collector, and ambiguity
+  membership;
+- localize every drop to canonicalization, exact deduplication, transition
+  construction, or micro-event grouping;
+- keep all ambiguous groups foreground-eligible during this replay;
+- treat public-invisible attacks as observability boundaries, not frontend
+  misses;
+- do not implement background suppression, train learning, or interpret
+  RPKI/AS-rel/NO_EXPORT as attack truth.
+
+Only after this retention contract passes may the project design and tune the
+background-suppression part of the frontend.

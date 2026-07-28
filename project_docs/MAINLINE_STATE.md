@@ -92,7 +92,7 @@ Attack families that must remain visible:
 | Nine-day development data freeze | passed | R-DATA-FREEZE-0 | active development asset | Nine complete dual-collector dates, 3,456 source files, and 1,779,700,135 rows; 80 reversible overlap exclusions; role is `unlabeled_operational_background`, not benign truth. |
 | BGPalerter runtime contract | canonical schema contract passed; optional shell/baseline only | N-FRONTEND-FIT-0A | bounded engineering result | Two 512-row deterministic replays preserved all 15 canonical fields and exact row order; it is not the compression mechanism |
 | Frontend method direction | peer-aware causal route-change compression frozen | N-FRONTEND-DIRECTION-1 | active | Reuse RFC 4098 transition semantics, adapt BEAM route-change and DFOH new-edge/maturity mechanisms, and retain R-FOREGROUND safety/audit contracts |
-| Causal transition contract | bounded real paired replay passed; ambiguity cause audit remains | N-FRONTEND-1 / 1B | bounded real result | AMD/Intel outputs are semantically identical; `583,663` observations become `335,386` micro-events (`1.740272x`), while `66,666` same-timestamp groups and Add-Path limitations remain explicit blockers before suppression tuning |
+| Causal transition contract | bounded replay and ambiguity audit passed | N-FRONTEND-1 / 1B / 1C | bounded real result | AMD/Intel outputs are byte-identical on audited artifacts; `583,663` observations become `335,386` micro-events (`1.740272x`). The audit preserves `66,666` same-timestamp groups (`14.20%` of transitions) as unknown-order context; attack and poisoning retention remain untested. |
 
 ## 4. Active Data / Evidence Contract
 
@@ -391,29 +391,55 @@ Forbidden in new decision logic:
      transition-count table, exact-dedup audit, and non-route Parquet.
    - `66,666` same-timestamp ambiguous batches are preserved as unknown-order
      context; path ID is absent and Add-Path support is not qualified.
+   - N-FRONTEND-1C jobs `154883/154884` completed with all audit gates passed
+     and byte-identical summary, profile, examples, and report artifacts.
+   - The ambiguity audit accounts for `152,985` member observations and
+     `22,785` affected micro-events. Ambiguity covers `14.1975%` of
+     transitions and `6.7937%` of micro-events.
+   - The largest ambiguity causes are path-plus-communities differences
+     (`49.6565%`), announce/withdraw at the same timestamp (`24.3722%`),
+     communities-only differences (`16.6667%`), and path-only differences
+     (`8.0686%`).
+   - These observations are neither attack truth nor background truth. They
+     remain foreground-eligible unknown-order context during attack and
+     poisoning retention replay.
+   - `path_id` is absent and Add-Path support remains unqualified. Add-Path and
+     timestamp-granularity qualification are required before production
+     suppression tuning, but do not block bounded N-FRONTEND-2 retention tests.
    - The former R-FOREGROUND full-frame recurrence results remain offline
      baselines because future observations influenced earlier assignments.
 
 ## 6. Next Single Recommended Action
 
 ```text
-N-FRONTEND-1C alignment and ambiguity audit:
-Use the completed paired replay as immutable input. Confirm semantic
-repeatability and explain the same-timestamp ambiguity composition before any
-attack-retention replay or suppression tuning.
+N-FRONTEND-2 multi-attack and poisoning/evasion retention replay:
+Replay realistic controlled attack and paired poisoning/evasion scenarios
+through canonical observation, exact deduplication, causal transitions, and
+micro-event construction. Measure end-to-end retention and localize every
+drop before designing background suppression.
 ```
 
 Allowed scope:
 
-- use only frozen dates `2024-04-07` through `2024-04-15`;
-- require both `route-views.sg` and `rrc00`;
+- use the frozen nine-day asset only as unlabeled operational background
+  context;
+- allow separately versioned controlled benchmark materializations, including
+  the existing April 16 track, only with explicit scenario provenance;
+- require each scenario to declare its expected collector-visibility contract
+  instead of mechanically requiring both collectors;
 - select analysis windows by row `ts`, never archive filename time;
-- read both completed N-FRONTEND-1B outputs without modifying them;
-- compare validators, core summaries, manifests, and semantic fingerprints;
-- classify ambiguity from canonical update type, path, origin, communities,
-  and next hop;
-- preserve ambiguity as unknown-order context;
-- report collector-specific rates and representative groups;
+- preserve the frozen N-FRONTEND-1B/1C artifacts as immutable inputs;
+- use benchmark truth only for retention evaluation, never as an online
+  feature;
+- cover forged-origin, route-leak-like, path manipulation, stealth/NO_EXPORT,
+  and feasible poisoning/evasion variants with realistic provenance;
+- report retention by family, scenario, phase, collector, and ambiguity
+  membership;
+- localize any loss to canonicalization, exact deduplication, transition
+  construction, or micro-event grouping;
+- preserve all same-timestamp ambiguous members as unknown-order context;
+- require public-invisible attacks to be reported as an observability boundary,
+  not a frontend miss;
 - keep controlled attack truth separate from operational background.
 
 Forbidden scope:
@@ -423,14 +449,18 @@ Forbidden scope:
 - do not train learning;
 - do not call the frozen asset attack-free or confirmed benign;
 - do not use it as negative training truth before contamination audit;
-- do not include the incomplete `2024-04-16` collector-day;
+- do not silently mix the incomplete April 16 canonical collector-day into the
+  frozen nine-day background asset;
 - do not use full-frame `groupby(...).transform("count")` as an online feature;
 - do not treat BGPalerter, BEAM, DFOH, or any detector score as suppression
   truth;
-- do not tune suppression policy before causal accounting passes;
+- do not implement or tune background suppression in this phase;
 - do not treat same-timestamp ambiguity as attack or benign truth;
 - do not fabricate an order when source timestamps and path identifiers cannot
   support one;
+- do not treat RPKI invalid, AS-rel diagnostics, NO_EXPORT, or any single
+  evidence field as attack truth;
+- do not count a public-invisible attack as a frontend drop;
 - do not interpret bounded throughput as nine-day scalability;
 - do not let tenth-day repair or 30-day expansion block the bounded causal
   contract audit.
@@ -472,8 +502,8 @@ R-CLEAN-0
   -> N-FRONTEND-DIRECTION-1 [done: causal route-change compression direction frozen]
   -> N-FRONTEND-1 [done: local causal contract and canonical duplicate smoke]
   -> N-FRONTEND-1B [done: bounded real paired replay and alignment passed]
-  -> N-FRONTEND-1C [next: same-timestamp ambiguity cause audit]
-  -> N-FRONTEND-2 [then: multi-attack and poisoning/evasion retention replay]
+  -> N-FRONTEND-1C [done: paired alignment and ambiguity accounting passed]
+  -> N-FRONTEND-2 [next: multi-attack and poisoning/evasion retention replay]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
   -> R-LEARN-0
@@ -518,7 +548,8 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | N-FRONTEND-DIRECTION-1 | frontend method freeze | peer-aware causal route-change compression selected; old full-frame recurrence results demoted to offline baselines | active direction | `project_docs/N_FRONTEND_DIRECTION_1_CAUSAL_ROUTE_CHANGE_COMPRESSION.md` |
 | N-FRONTEND-1 | causal transition contract | local contract plus bounded real replay passed; suppression and attack retention remain unclaimed | completed bounded contract | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
 | N-FRONTEND-1B | bounded real replay | jobs `154385/154386` passed with identical semantic fingerprints; `583,663` observations reduced to `335,386` micro-events (`1.740272x`) | completed bounded replay | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
-| N-FRONTEND-1C | paired alignment and ambiguity audit | alignment confirmed locally from pulled small results; full ambiguity cause profile awaits read-only HPC audit | active next action | `scripts/audit_n_frontend1b_alignment_and_ambiguity.py` |
+| N-FRONTEND-1C | paired alignment and ambiguity audit | jobs `154883/154884` passed; AMD/Intel audited artifacts are byte-identical; `66,666` ambiguous groups affect `22,785` micro-events and remain unknown-order context | completed audit | `scripts/audit_n_frontend1b_alignment_and_ambiguity.py` |
+| N-FRONTEND-2 | multi-attack and poisoning/evasion retention replay | not started; must validate structural-frontend retention and localize every drop before suppression design | active next action | pending bounded replay implementation |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
