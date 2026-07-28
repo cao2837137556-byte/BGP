@@ -1,11 +1,11 @@
 # N-FRONTEND-1: Causal Transition Contract
 
-Status: local contract passed; the first N-FRONTEND-1B real-data preflight
-exposed non-route-record and balanced-cap validation defects. No formal
-bounded result exists. A later formal submission (`154378/154379`) failed
-before computation because the compute nodes lacked the unqualified
-`/usr/bin/time` dependency; the repaired package uses a preflight-tested,
-repository-owned portable timing wrapper.
+Status: local contract and N-FRONTEND-1B bounded real replay passed. The first
+formal submission (`154378/154379`) failed before computation because compute
+nodes lacked the unqualified `/usr/bin/time` dependency. The repaired package
+uses a preflight-tested repository-owned timing wrapper; paired AMD/Intel jobs
+`154385/154386` then completed with aligned validators, counts, and semantic
+output fingerprints.
 
 Date: 2026-07-25.
 
@@ -159,34 +159,60 @@ This validates the reversible duplicate contract on an existing
 `canonical_observation_v2` artifact. It is not a frozen nine-day performance
 or compression result.
 
+### N-FRONTEND-1B Bounded Real Replay
+
+The deterministic window was `2024-04-09 00:00-00:05 UTC`, with one source
+Parquet from each frozen collector. AMD job `154385` and Intel job `154386`
+both completed with validation passed and no failed checks.
+
+- input observations: `583,663`;
+- exact unique observations: `556,049`;
+- excluded exact duplicate copies: `27,614`;
+- exact-dedup reduction: `4.731%`;
+- causal transitions: `469,561`;
+- transition reduction from unique observations: `15.554%`;
+- primary five-minute micro-events: `335,386`;
+- micro-event reduction from transitions: `28.575%`;
+- raw-to-micro-event reduction: `42.538%`;
+- raw-to-micro-event compression ratio: `1.740272x`;
+- non-route observations isolated: `169`;
+- same-timestamp ambiguous batches: `66,666`;
+- causality violations: `0`.
+
+The paired runs match on the input manifest, all core counts, transition-family
+counts, accounting fields, and the three semantic output fingerprints. The
+input manifest, summary, transition-count table, exact-dedup audit, and
+non-route Parquet also have identical file SHA256 values across AMD and Intel.
+
+This is a structural preprocessing result. It does not prove safe background
+suppression, attack retention, poisoning robustness, or nine-day scalability.
+
 ## 9. Current Limits
 
-- no bounded two-collector real replay has run yet;
-- no throughput or memory claim is made;
+- the bounded replay covers five minutes, not the full nine-day asset;
+- the paired wall-clock measurements are `124` and `145` seconds, but no
+  nine-day throughput claim is made;
 - no pre-window RIB bootstrap is available;
 - Add-Path completeness is unqualified;
+- `66,666` same-timestamp ambiguous batches require a cause audit before
+  suppression tuning;
 - no external evidence is joined;
 - no foreground/suppression policy is applied;
 - no attack or poisoning retention is claimed.
 
 ## 10. Next Step
 
-Run `N-FRONTEND-1B` on a bounded, deterministic two-collector slice selected
-by row timestamp from the frozen nine-day asset.
+Run `N-FRONTEND-1C` as a read-only audit over the paired bounded replay:
 
-It must report exact deduplication, transition and micro-event reduction
-separately, plus provenance accounting, ambiguity rate, throughput, memory,
-and repeatability. Only after that passes may N-FRONTEND-2 replay controlled
-multi-attack and poisoning/evasion scenarios before suppression tuning.
+- verify AMD/Intel semantic alignment from validators, core fields, and output
+  fingerprints;
+- classify same-timestamp ambiguity by update-type and route-attribute
+  differences;
+- report collector shares, ambiguity rates, and representative groups;
+- retain all ambiguous groups as unknown-order context;
+- do not infer attack, benign background, or recoverable order;
+- audit Add-Path and timestamp-granularity limitations before any suppression
+  tuning.
 
-The execution contract is fixed as follows:
-
-- row-time window: `2024-04-09 00:00-00:05 UTC`;
-- inputs: exactly one midnight Parquet from `route-views.sg` and one from
-  `rrc00`;
-- preflight: balanced `2,000` rows per collector, full output validation, and
-  AMD/Intel `sbatch --test-only`;
-- formal resources: `2 CPU`, `32 GiB`, `2 h`;
-- outputs: isolated by pair, partition, and job ID;
-- result boundary: structural replay only, not background suppression or
-  attack-retention proof.
+Only after this audit passes may N-FRONTEND-2 replay controlled multi-attack
+and poisoning/evasion scenarios through the structural frontend.

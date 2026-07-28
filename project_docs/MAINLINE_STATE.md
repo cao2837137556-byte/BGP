@@ -92,7 +92,7 @@ Attack families that must remain visible:
 | Nine-day development data freeze | passed | R-DATA-FREEZE-0 | active development asset | Nine complete dual-collector dates, 3,456 source files, and 1,779,700,135 rows; 80 reversible overlap exclusions; role is `unlabeled_operational_background`, not benign truth. |
 | BGPalerter runtime contract | canonical schema contract passed; optional shell/baseline only | N-FRONTEND-FIT-0A | bounded engineering result | Two 512-row deterministic replays preserved all 15 canonical fields and exact row order; it is not the compression mechanism |
 | Frontend method direction | peer-aware causal route-change compression frozen | N-FRONTEND-DIRECTION-1 | active | Reuse RFC 4098 transition semantics, adapt BEAM route-change and DFOH new-edge/maturity mechanisms, and retain R-FOREGROUND safety/audit contracts |
-| Causal transition contract | local implementation passed; first real-data preflight exposed two validator/protocol defects before formal submission | N-FRONTEND-1 / 1B-prep | bounded local result | Non-route control records are now isolated from the A/W state machine, A/W identity remains a hard gate, and balanced preflight truncation is validated separately from uncapped formal replay |
+| Causal transition contract | bounded real paired replay passed; ambiguity cause audit remains | N-FRONTEND-1 / 1B | bounded real result | AMD/Intel outputs are semantically identical; `583,663` observations become `335,386` micro-events (`1.740272x`), while `66,666` same-timestamp groups and Add-Path limitations remain explicit blockers before suppression tuning |
 
 ## 4. Active Data / Evidence Contract
 
@@ -344,8 +344,8 @@ Forbidden in new decision logic:
    - this caveat does not block origin-family attack retention evaluation
      because attack community evidence join is `1.0`.
 
-9. The frontend transition contract is locally qualified but not yet
-   real-asset or scale-qualified.
+9. The frontend transition contract is qualified on one bounded real
+   two-collector window, but not yet attack-retention or scale-qualified.
    - N-FRONTEND-FIT-0A proved that pinned BGPalerter `2.0.1`
      (`9a616c29483ae03eaae219b04773a4288b32db62`) can carry
      `canonical_observation_v2` through native Consumer/Monitor/PubSub
@@ -364,8 +364,6 @@ Forbidden in new decision logic:
    - The first-in-window update is bootstrap state, not route novelty.
    - Add-Path completeness remains unqualified because canonical v2 does not
      expose a qualified path identifier contract.
-   - A bounded two-collector replay is still required before policy tuning or
-     any throughput, memory, or real-data compression claim.
    - N-FRONTEND-1B is fixed to `2024-04-09 00:00-00:05 UTC`, selected by row
      `ts`, with exactly one source Parquet from each frozen collector.
    - Its local preflight contract requires both collectors, runs a balanced
@@ -378,20 +376,31 @@ Forbidden in new decision logic:
    - The repaired contract isolates non-route records in a dedicated audit
      artifact, continues to fail on A/W rows missing peer/prefix identity, and
      distinguishes capped preflight validation from uncapped formal replay.
-   - Formal AMD and Intel runs request `2 CPU`, `32 GiB`, and `2 h`; every
-     writable output is isolated by pair, partition, and job ID.
+   - The first formal pair `154378/154379` failed before computation because
+     `/usr/bin/time` was unavailable on compute nodes; that failure has no
+     scientific meaning.
+   - The portable-wrapper pair `154385/154386` completed with both validators
+     passed and no failed checks.
+   - Both runs processed `583,663` observations, retained `556,049` exact
+     unique observations, built `469,561` causal transitions, and produced
+     `335,386` primary micro-events.
+   - Structural reduction is `42.538%`, or `1.740272x` compression. This is
+     not background suppression.
+   - AMD and Intel match on all core fields, all three semantic output
+     fingerprints, and the SHA256 of the input manifest, summary,
+     transition-count table, exact-dedup audit, and non-route Parquet.
+   - `66,666` same-timestamp ambiguous batches are preserved as unknown-order
+     context; path ID is absent and Add-Path support is not qualified.
    - The former R-FOREGROUND full-frame recurrence results remain offline
      baselines because future observations influenced earlier assignments.
 
 ## 6. Next Single Recommended Action
 
 ```text
-N-FRONTEND-1B bounded real two-collector replay:
-Run the locally qualified peer-aware, past-only transition implementation over
-a deterministic small slice of both frozen collectors. Measure exact
-deduplication, transition and micro-event reduction, provenance, determinism,
-throughput, memory, same-timestamp ambiguity, and Add-Path limitations before
-any suppression tuning.
+N-FRONTEND-1C alignment and ambiguity audit:
+Use the completed paired replay as immutable input. Confirm semantic
+repeatability and explain the same-timestamp ambiguity composition before any
+attack-retention replay or suppression tuning.
 ```
 
 Allowed scope:
@@ -399,19 +408,13 @@ Allowed scope:
 - use only frozen dates `2024-04-07` through `2024-04-15`;
 - require both `route-views.sg` and `rrc00`;
 - select analysis windows by row `ts`, never archive filename time;
-- perform reversible exact-observation deduplication inside the selected slice;
-  the frozen 80-copy sidecar remains a whole-asset audit reference and must
-  not be applied a second time to rows already removed by exact deduplication;
-- call the window `unlabeled_operational_background`, not clean or benign;
-- preserve provenance and deterministic offline replay;
-- preserve announcements, withdrawals, IPv4/IPv6, communities, next hop, and
-  peer identity;
-- use only state that precedes the current observation;
-- classify route changes with a protocol-grounded transition vocabulary;
-- keep the replay bounded and deterministic before any full nine-day run;
-- report exact observation, transition, and micro-event reduction separately;
-- keep controlled attack truth separate from operational background;
-- keep missing-day repair and 30-day scale validation as parallel follow-ups.
+- read both completed N-FRONTEND-1B outputs without modifying them;
+- compare validators, core summaries, manifests, and semantic fingerprints;
+- classify ambiguity from canonical update type, path, origin, communities,
+  and next hop;
+- preserve ambiguity as unknown-order context;
+- report collector-specific rates and representative groups;
+- keep controlled attack truth separate from operational background.
 
 Forbidden scope:
 
@@ -425,6 +428,9 @@ Forbidden scope:
 - do not treat BGPalerter, BEAM, DFOH, or any detector score as suppression
   truth;
 - do not tune suppression policy before causal accounting passes;
+- do not treat same-timestamp ambiguity as attack or benign truth;
+- do not fabricate an order when source timestamps and path identifiers cannot
+  support one;
 - do not interpret bounded throughput as nine-day scalability;
 - do not let tenth-day repair or 30-day expansion block the bounded causal
   contract audit.
@@ -465,7 +471,8 @@ R-CLEAN-0
   -> N-FRONTEND-FIT-0A [done: BGPalerter transport contract passed; optional shell only]
   -> N-FRONTEND-DIRECTION-1 [done: causal route-change compression direction frozen]
   -> N-FRONTEND-1 [done: local causal contract and canonical duplicate smoke]
-  -> N-FRONTEND-1B [ready to submit: bounded real two-collector replay]
+  -> N-FRONTEND-1B [done: bounded real paired replay and alignment passed]
+  -> N-FRONTEND-1C [next: same-timestamp ambiguity cause audit]
   -> N-FRONTEND-2 [then: multi-attack and poisoning/evasion retention replay]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
@@ -509,8 +516,9 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | R-DATA-FREEZE-0 | bounded development data freeze | passed: nine complete dual-collector days, 3,456 files, 1,779,700,135 rows, and 80 reversible exclusions | active development asset | `project_docs/R_DATA_FREEZE_0_9D_DEVELOPMENT_ASSET.md` |
 | N-FRONTEND-FIT-0A | pinned BGPalerter runtime-contract smoke | 512/512 rows preserved twice; transport contract passed; component is now optional shell/baseline, not compression mainline | completed bounded contract | `project_docs/N_FRONTEND_FIT_0A_BGPALERTER_RUNTIME_CONTRACT.md` |
 | N-FRONTEND-DIRECTION-1 | frontend method freeze | peer-aware causal route-change compression selected; old full-frame recurrence results demoted to offline baselines | active direction | `project_docs/N_FRONTEND_DIRECTION_1_CAUSAL_ROUTE_CHANGE_COMPRESSION.md` |
-| N-FRONTEND-1 | causal transition contract | local self-test and existing canonical duplicate-pair smoke passed; no real two-collector or suppression claim yet | completed local contract | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
-| N-FRONTEND-1B | bounded real replay | formal jobs `154378/154379` failed before computation because `/usr/bin/time` was absent on compute nodes; portable shared timing wrapper now replaces the unqualified dependency | startup repair complete locally | `scripts/hpc/submit_n_frontend1b_bounded_replay_dual.sh` |
+| N-FRONTEND-1 | causal transition contract | local contract plus bounded real replay passed; suppression and attack retention remain unclaimed | completed bounded contract | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
+| N-FRONTEND-1B | bounded real replay | jobs `154385/154386` passed with identical semantic fingerprints; `583,663` observations reduced to `335,386` micro-events (`1.740272x`) | completed bounded replay | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
+| N-FRONTEND-1C | paired alignment and ambiguity audit | alignment confirmed locally from pulled small results; full ambiguity cause profile awaits read-only HPC audit | active next action | `scripts/audit_n_frontend1b_alignment_and_ambiguity.py` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
