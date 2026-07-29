@@ -1,0 +1,86 @@
+{
+  "phase": "N-FRONTEND-2B",
+  "config_version": "n_frontend2b_controlled_pairs_v01",
+  "status": "bounded_evaluation_only",
+  "frontend_config": "configs/n_frontend1_causal_transition_v01.json",
+  "protocol_config": "configs/r_poison0_paired_benchmark_protocol_v01.json",
+  "episode_duration_sec": 3600,
+  "episode_template_cutoff_sec": 600,
+  "poison_announce_offset_sec": 1200,
+  "poison_withdraw_offset_sec": 1500,
+  "attack_offset_sec": 2100,
+  "recovery_offset_sec": 2700,
+  "minimum_poison_attack_gap_sec": 300,
+  "primary_micro_event_window_sec": 300,
+  "no_export_token": "65535:65281",
+  "documentation_asn_ranges": [
+    [64496, 64511],
+    [65536, 65551]
+  ],
+  "required_pair_ids": [
+    "pair_exact_origin_history_poisoning_v01",
+    "pair_forged_origin_history_poisoning_v01",
+    "pair_path_manipulation_history_poisoning_v01",
+    "pair_subprefix_noexport_evasion_v01",
+    "pair_stealth_collector_asymmetry_v01"
+  ],
+  "blocked_pair_ids": [
+    "pair_route_leak_policy_poisoning_v01"
+  ],
+  "pair_contracts": [
+    {
+      "pair_id": "pair_exact_origin_history_poisoning_v01",
+      "family": "origin_hijack",
+      "transform": "replace_origin",
+      "threat_model": "detection_data_poisoning",
+      "required_observer_count": 1,
+      "requires_no_export_template": false
+    },
+    {
+      "pair_id": "pair_forged_origin_history_poisoning_v01",
+      "family": "forged_origin_hijack",
+      "transform": "insert_attacker_before_origin",
+      "threat_model": "detection_data_poisoning",
+      "required_observer_count": 1,
+      "requires_no_export_template": false
+    },
+    {
+      "pair_id": "pair_path_manipulation_history_poisoning_v01",
+      "family": "path_manipulation_like",
+      "transform": "insert_observed_transit",
+      "threat_model": "detection_data_poisoning",
+      "required_observer_count": 1,
+      "requires_no_export_template": false
+    },
+    {
+      "pair_id": "pair_subprefix_noexport_evasion_v01",
+      "family": "subprefix_origin_hijack",
+      "transform": "subprefix_replace_origin",
+      "threat_model": "visibility_evasion",
+      "required_observer_count": 2,
+      "requires_no_export_template": true
+    },
+    {
+      "pair_id": "pair_stealth_collector_asymmetry_v01",
+      "family": "stealth_evasion_like",
+      "transform": "replace_origin",
+      "threat_model": "visibility_evasion",
+      "required_observer_count": 2,
+      "requires_no_export_template": true
+    }
+  ],
+  "observer_roles": [
+    "paired_attack_observer",
+    "control_observer",
+    "excluded_observer"
+  ],
+  "allowed_claim": "semantic survival and past-only exposure under paired variants",
+  "forbidden_claims": [
+    "poisoning robustness",
+    "poisoning-resistant detection",
+    "attack detection accuracy",
+    "background suppression safety",
+    "NO_EXPORT present is attack truth",
+    "route-leak truth from AS-rel shape"
+  ]
+}

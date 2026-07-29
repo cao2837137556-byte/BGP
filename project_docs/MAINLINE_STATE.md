@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-07-28
+Last updated: 2026-07-29
 
 Status: active authoritative mainline state.
 
@@ -94,6 +94,7 @@ Attack families that must remain visible:
 | Frontend method direction | peer-aware causal route-change compression frozen | N-FRONTEND-DIRECTION-1 | active | Reuse RFC 4098 transition semantics, adapt BEAM route-change and DFOH new-edge/maturity mechanisms, and retain R-FOREGROUND safety/audit contracts |
 | Causal transition contract | bounded replay and ambiguity audit passed | N-FRONTEND-1 / 1B / 1C | bounded real result | AMD/Intel outputs are byte-identical on audited artifacts; `583,663` observations become `335,386` micro-events (`1.740272x`). The audit preserves `66,666` same-timestamp groups (`14.20%` of transitions) as unknown-order context; attack and poisoning retention remain untested. |
 | Controlled canonical attack injection | N-FRONTEND-2A contract frozen after independent review | N-FRONTEND-2A | frozen design gate | Canonical identity, real templates, synthetic provenance, observer-specific preregistration, past-only exposure, semantic deltas, and evaluation-only isolation are frozen. No poisoning-robustness claim is authorized. |
+| Bounded paired replay implementation | local implementation and deterministic regressions passed; formal real-data replay not run | N-FRONTEND-2B | implementation ready for review | Five feasible pairs and ten variants are implemented with observer-level cadence freeze, past-only assertions, identity/visibility/fairness gates, and independent validation. This is not a scientific result. |
 
 ## 4. Active Data / Evidence Contract
 
@@ -413,10 +414,11 @@ Forbidden in new decision logic:
 ## 6. Next Single Recommended Action
 
 ```text
-N-FRONTEND-2B bounded materialization and replay:
-Materialize controlled multi-attack and paired poisoning/evasion variants under
-the frozen N-FRONTEND-2A identity, observer-registry, causality, visibility,
-fairness, and contamination contracts.
+N-FRONTEND-2B independent implementation review:
+Review the local bounded materialization/replay implementation against the
+frozen N-FRONTEND-2A identity, observer-registry, causality, visibility,
+fairness, contamination, and HPC startup contracts. Submit the formal
+60-minute dual-partition replay only after review passes.
 ```
 
 Allowed scope:
@@ -518,7 +520,7 @@ R-CLEAN-0
   -> N-FRONTEND-1B [done: bounded real paired replay and alignment passed]
   -> N-FRONTEND-1C [done: paired alignment and ambiguity accounting passed]
   -> N-FRONTEND-2A [done: injection contract independently reviewed and frozen]
-  -> N-FRONTEND-2B [next: bounded materialization/replay under frozen contract]
+  -> N-FRONTEND-2B [implementation ready; next: independent code review, then formal bounded replay]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
   -> R-LEARN-0
@@ -565,7 +567,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | N-FRONTEND-1B | bounded real replay | jobs `154385/154386` passed with identical semantic fingerprints; `583,663` observations reduced to `335,386` micro-events (`1.740272x`) | completed bounded replay | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
 | N-FRONTEND-1C | paired alignment and ambiguity audit | jobs `154883/154884` passed; AMD/Intel audited artifacts are byte-identical; `66,666` ambiguous groups affect `22,785` micro-events and remain unknown-order context | completed audit | `scripts/audit_n_frontend1b_alignment_and_ambiguity.py` |
 | N-FRONTEND-2A | controlled canonical attack injection contract | independently reviewed and frozen with identity, provenance, realism, observer-sequence, causality, semantic-delta, visibility, and contamination gates | completed frozen contract | `project_docs/N_FRONTEND_2A_CONTROLLED_ATTACK_INJECTION_CONTRACT.md` |
-| N-FRONTEND-2B | bounded multi-attack and paired-variant replay | unlocked under the frozen N-FRONTEND-2A contract; may claim semantic survival and past-only exposure, not poisoning robustness | next implementation | pending |
+| N-FRONTEND-2B | bounded multi-attack and paired-variant replay | implementation and deterministic local regressions passed; no formal real-data result; next gate is independent review | implementation ready for review | `project_docs/N_FRONTEND_2B_BOUNDED_REPLAY_IMPLEMENTATION.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
