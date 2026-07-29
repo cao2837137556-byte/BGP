@@ -18,6 +18,7 @@ IMG=${IMG:-$BASE/containers/bgpstream-py-e9a.sif}
 PAIR_ID=${N_FRONTEND2B_PAIR_ID:?N_FRONTEND2B_PAIR_ID is required}
 SOURCE_ROOT=${N_FRONTEND2B_SOURCE_ROOT:?N_FRONTEND2B_SOURCE_ROOT is required}
 REPLAY_DATE=${N_FRONTEND2B_DATE:-2024-04-09}
+REPLAY_HOUR=${N_FRONTEND2B_HOUR:-00}
 JOB_ID=${SLURM_JOB_ID:?SLURM_JOB_ID is required}
 PARTITION=${SLURM_JOB_PARTITION:?SLURM_JOB_PARTITION is required}
 
@@ -39,7 +40,11 @@ JOB_TMP=$BASE/tmp/n_frontend2b/$PAIR_ID/$PARTITION/$JOB_ID
 LIVE_LOG=$BASE/logs/n_frontend2b_${PAIR_ID}_${PARTITION}_${JOB_ID}.live.log
 TIME_FILE=$OUTPUT_DIR/n_frontend2b_time_verbose.txt
 TIMING_WRAPPER=$REPO/scripts/hpc/run_with_portable_timing.sh
-START_TS=$(date -u -d "$REPLAY_DATE 00:00:00" +%s)
+if [[ ! "$REPLAY_HOUR" =~ ^[0-2][0-9]$ ]] || [ "$REPLAY_HOUR" -gt 23 ]; then
+  echo "Invalid replay hour: $REPLAY_HOUR" >&2
+  exit 2
+fi
+START_TS=$(date -u -d "$REPLAY_DATE $REPLAY_HOUR:00:00" +%s)
 
 test ! -e "$OUTPUT_DIR"
 test -f "$TIMING_WRAPPER"
@@ -54,6 +59,7 @@ echo "job_id=$JOB_ID"
 echo "partition=$PARTITION"
 echo "source_root=$SOURCE_ROOT"
 echo "date=$REPLAY_DATE"
+echo "hour=$REPLAY_HOUR"
 echo "episode=60_minutes"
 echo "output_dir=$OUTPUT_DIR"
 echo "resources=cpus:${SLURM_CPUS_PER_TASK:-4},memory:64G,time:04:00:00"
@@ -62,11 +68,11 @@ declare -a INPUTS=()
 for COLLECTOR in route-views.sg rrc00; do
   mapfile -t MATCHES < <(
     find "$SOURCE_ROOT" -type f \
-      -path "*/parsed/collector=$COLLECTOR/date=$REPLAY_DATE/updates__00-*.parquet" \
+      -path "*/parsed/collector=$COLLECTOR/date=$REPLAY_DATE/updates__${REPLAY_HOUR}-*.parquet" \
       | sort
   )
   if [ "${#MATCHES[@]}" -lt 1 ]; then
-    echo "No 00:xx parquet inputs for $COLLECTOR/$REPLAY_DATE" >&2
+    echo "No ${REPLAY_HOUR}:xx parquet inputs for $COLLECTOR/$REPLAY_DATE" >&2
     exit 2
   fi
   INPUTS+=("${MATCHES[@]}")

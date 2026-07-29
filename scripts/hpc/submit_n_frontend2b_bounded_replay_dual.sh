@@ -7,10 +7,12 @@ DATA_ROOT=${DATA_ROOT:-$BASE/data_store}
 PAIR_ID=${1:-n_frontend2b_$(date -u +%Y%m%dT%H%M%SZ)}
 SOURCE_ROOT=${2:-$DATA_ROOT/derived/r_mem1e_10d_peer_aware_v02/pair=r_mem1e_20260721T130846Z/partition=amd/array_job=153044}
 REPLAY_DATE=${N_FRONTEND2B_DATE:-2024-04-09}
+REPLAY_HOUR=${N_FRONTEND2B_HOUR:-00}
 JOB_SCRIPT=$REPO/scripts/hpc/n_frontend2b_bounded_replay.slurm
 RECORD=$BASE/logs/n_frontend2b_pair_${PAIR_ID}.txt
 
 export N_FRONTEND2B_DATE=$REPLAY_DATE
+export N_FRONTEND2B_HOUR=$REPLAY_HOUR
 bash "$REPO/scripts/hpc/n_frontend2b_bounded_replay_preflight.sh" \
   "$PAIR_ID" "$SOURCE_ROOT"
 mkdir -p "$BASE/logs"
@@ -37,17 +39,18 @@ CODE_FINGERPRINT=$(sha256sum \
   echo "code_fingerprint=$CODE_FINGERPRINT"
   echo "source_root=$SOURCE_ROOT"
   echo "replay_date=$REPLAY_DATE"
+  echo "replay_hour=$REPLAY_HOUR"
   echo "episode_sec=3600"
   echo "resources=cpus:4,memory:64G,time:04:00:00"
 } | tee "$RECORD"
 
 AMD_JOB=$(sbatch --parsable -p amd -J bgp_n_front2b_amd \
-  --export=ALL,N_FRONTEND2B_PAIR_ID="$PAIR_ID",N_FRONTEND2B_SOURCE_ROOT="$SOURCE_ROOT",N_FRONTEND2B_DATE="$REPLAY_DATE" \
+  --export=ALL,N_FRONTEND2B_PAIR_ID="$PAIR_ID",N_FRONTEND2B_SOURCE_ROOT="$SOURCE_ROOT",N_FRONTEND2B_DATE="$REPLAY_DATE",N_FRONTEND2B_HOUR="$REPLAY_HOUR" \
   "$JOB_SCRIPT")
 echo "amd_job_id=$AMD_JOB" | tee -a "$RECORD"
 
 INTEL_JOB=$(sbatch --parsable -p intel -J bgp_n_front2b_intel \
-  --export=ALL,N_FRONTEND2B_PAIR_ID="$PAIR_ID",N_FRONTEND2B_SOURCE_ROOT="$SOURCE_ROOT",N_FRONTEND2B_DATE="$REPLAY_DATE" \
+  --export=ALL,N_FRONTEND2B_PAIR_ID="$PAIR_ID",N_FRONTEND2B_SOURCE_ROOT="$SOURCE_ROOT",N_FRONTEND2B_DATE="$REPLAY_DATE",N_FRONTEND2B_HOUR="$REPLAY_HOUR" \
   "$JOB_SCRIPT")
 echo "intel_job_id=$INTEL_JOB" | tee -a "$RECORD"
 

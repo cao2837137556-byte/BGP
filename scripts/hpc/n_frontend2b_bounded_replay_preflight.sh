@@ -8,6 +8,7 @@ IMG=${IMG:-$BASE/containers/bgpstream-py-e9a.sif}
 PAIR_ID=${1:?usage: n_frontend2b_bounded_replay_preflight.sh PAIR_ID [SOURCE_ROOT]}
 SOURCE_ROOT=${2:-$DATA_ROOT/derived/r_mem1e_10d_peer_aware_v02/pair=r_mem1e_20260721T130846Z/partition=amd/array_job=153044}
 REPLAY_DATE=${N_FRONTEND2B_DATE:-2024-04-09}
+REPLAY_HOUR=${N_FRONTEND2B_HOUR:-00}
 PAIR_ROOT=$DATA_ROOT/derived/n_frontend2b_bounded_replay_v01/pair=$PAIR_ID
 JOB_SCRIPT=$REPO/scripts/hpc/n_frontend2b_bounded_replay.slurm
 SUBMIT_SCRIPT=$REPO/scripts/hpc/submit_n_frontend2b_bounded_replay_dual.sh
@@ -42,15 +43,19 @@ for path in \
 done
 test -d "$SOURCE_ROOT"
 
+if [[ ! "$REPLAY_HOUR" =~ ^[0-2][0-9]$ ]] || [ "$REPLAY_HOUR" -gt 23 ]; then
+  echo "Invalid replay hour: $REPLAY_HOUR" >&2
+  exit 2
+fi
 declare -a INPUTS=()
 for COLLECTOR in route-views.sg rrc00; do
   mapfile -t MATCHES < <(
     find "$SOURCE_ROOT" -type f \
-      -path "*/parsed/collector=$COLLECTOR/date=$REPLAY_DATE/updates__00-*.parquet" \
+      -path "*/parsed/collector=$COLLECTOR/date=$REPLAY_DATE/updates__${REPLAY_HOUR}-*.parquet" \
       | sort
   )
   if [ "${#MATCHES[@]}" -lt 1 ]; then
-    echo "No 00:xx parquet inputs for $COLLECTOR/$REPLAY_DATE" >&2
+    echo "No ${REPLAY_HOUR}:xx parquet inputs for $COLLECTOR/$REPLAY_DATE" >&2
     exit 2
   fi
   INPUTS+=("${MATCHES[@]}")
@@ -99,15 +104,16 @@ apptainer exec "${COMMON_BIND[@]}" "$IMG" \
   --validation-output "/hpc_tmp/$SMOKE_REL/n_frontend2b_validation.json"
 
 sbatch --test-only -p amd -J bgp_n_front2b_amd \
-  --export=ALL,N_FRONTEND2B_PAIR_ID="$PAIR_ID",N_FRONTEND2B_SOURCE_ROOT="$SOURCE_ROOT",N_FRONTEND2B_DATE="$REPLAY_DATE" \
+  --export=ALL,N_FRONTEND2B_PAIR_ID="$PAIR_ID",N_FRONTEND2B_SOURCE_ROOT="$SOURCE_ROOT",N_FRONTEND2B_DATE="$REPLAY_DATE",N_FRONTEND2B_HOUR="$REPLAY_HOUR" \
   "$JOB_SCRIPT"
 sbatch --test-only -p intel -J bgp_n_front2b_intel \
-  --export=ALL,N_FRONTEND2B_PAIR_ID="$PAIR_ID",N_FRONTEND2B_SOURCE_ROOT="$SOURCE_ROOT",N_FRONTEND2B_DATE="$REPLAY_DATE" \
+  --export=ALL,N_FRONTEND2B_PAIR_ID="$PAIR_ID",N_FRONTEND2B_SOURCE_ROOT="$SOURCE_ROOT",N_FRONTEND2B_DATE="$REPLAY_DATE",N_FRONTEND2B_HOUR="$REPLAY_HOUR" \
   "$JOB_SCRIPT"
 
 echo "preflight=passed"
 echo "date=$REPLAY_DATE"
-echo "start_ts=$(date -u -d "$REPLAY_DATE 00:00:00" +%s)"
+echo "hour=$REPLAY_HOUR"
+echo "start_ts=$(date -u -d "$REPLAY_DATE $REPLAY_HOUR:00:00" +%s)"
 echo "episode_sec=3600"
 echo "input_file_count=${#INPUTS[@]}"
 printf 'input=%s\n' "${INPUTS[@]}"
