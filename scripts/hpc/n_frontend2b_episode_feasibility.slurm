@@ -17,6 +17,7 @@ DATA_ROOT=${DATA_ROOT:-$BASE/data_store}
 IMG=${IMG:-$BASE/containers/bgpstream-py-e9a.sif}
 SOURCE_ROOT=${N_FRONTEND2B_SOURCE_ROOT:-$DATA_ROOT/derived/r_mem1e_10d_peer_aware_v02/pair=r_mem1e_20260721T130846Z/partition=amd/array_job=153044}
 REPLAY_DATE=${N_FRONTEND2B_DATE:-2024-04-09}
+DATES=${N_FRONTEND2B_DATES:-$REPLAY_DATE}
 HOURS=${N_FRONTEND2B_HOURS:-00}
 JOB_ID=${SLURM_JOB_ID:?SLURM_JOB_ID is required}
 
@@ -35,7 +36,7 @@ export APPTAINER_CACHEDIR=$JOB_CACHE
 
 echo "phase=N-FRONTEND-2B-FEASIBILITY"
 echo "job_id=$JOB_ID"
-echo "date=$REPLAY_DATE"
+echo "dates=$DATES"
 echo "hours=$HOURS"
 echo "source_root=$SOURCE_ROOT"
 
@@ -47,35 +48,41 @@ COMMON_BIND=(
   --bind "$BASE/tmp":/hpc_tmp
 )
 
-for HOUR in $HOURS; do
-  if [[ ! "$HOUR" =~ ^[0-2][0-9]$ ]] || [ "$HOUR" -gt 23 ]; then
-    echo "Invalid hour: $HOUR" >&2
+for DATE in $DATES; do
+  if [[ ! "$DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+    echo "Invalid date: $DATE" >&2
     exit 2
   fi
-  declare -a INPUTS=()
-  for COLLECTOR in route-views.sg rrc00; do
-    while IFS= read -r MATCH; do
-      INPUT_REL=${MATCH#"$DATA_ROOT"/}
-      INPUTS+=(--input "/data_store/$INPUT_REL")
-    done < <(
-      find "$SOURCE_ROOT" -type f \
-        -path "*/parsed/collector=$COLLECTOR/date=$REPLAY_DATE/updates__${HOUR}-*.parquet" \
-        | sort
-    )
+  for HOUR in $HOURS; do
+    if [[ ! "$HOUR" =~ ^[0-2][0-9]$ ]] || [ "$HOUR" -gt 23 ]; then
+      echo "Invalid hour: $HOUR" >&2
+      exit 2
+    fi
+    declare -a INPUTS=()
+    for COLLECTOR in route-views.sg rrc00; do
+      while IFS= read -r MATCH; do
+        INPUT_REL=${MATCH#"$DATA_ROOT"/}
+        INPUTS+=(--input "/data_store/$INPUT_REL")
+      done < <(
+        find "$SOURCE_ROOT" -type f \
+          -path "*/parsed/collector=$COLLECTOR/date=$DATE/updates__${HOUR}-*.parquet" \
+          | sort
+      )
+    done
+    if [ "${#INPUTS[@]}" -lt 2 ]; then
+      echo "SKIP date=$DATE hour=$HOUR: missing collector inputs"
+      continue
+    fi
+    START_TS=$(date -u -d "$DATE $HOUR:00:00" +%s)
+    echo "audit date=$DATE hour=$HOUR start_ts=$START_TS inputs=${#INPUTS[@]}"
+    apptainer exec "${COMMON_BIND[@]}" "$IMG" \
+      /opt/venv/bin/python -u /work/scripts/audit_n_frontend2b_episode_feasibility.py \
+      "${INPUTS[@]}" \
+      --config /work/configs/n_frontend2b_controlled_pairs_v01.json \
+      --start-ts "$START_TS" \
+      --output "/data_store/derived/n_frontend2b_episode_feasibility/date=$REPLAY_DATE/job=$JOB_ID/date_${DATE}_hour_${HOUR}.json" \
+      || echo "AUDIT_FAILED date=$DATE hour=$HOUR"
   done
-  if [ "${#INPUTS[@]}" -lt 2 ]; then
-    echo "SKIP hour=$HOUR: missing collector inputs"
-    continue
-  fi
-  START_TS=$(date -u -d "$REPLAY_DATE $HOUR:00:00" +%s)
-  echo "audit hour=$HOUR start_ts=$START_TS inputs=${#INPUTS[@]}"
-  apptainer exec "${COMMON_BIND[@]}" "$IMG" \
-    /opt/venv/bin/python -u /work/scripts/audit_n_frontend2b_episode_feasibility.py \
-    "${INPUTS[@]}" \
-    --config /work/configs/n_frontend2b_controlled_pairs_v01.json \
-    --start-ts "$START_TS" \
-    --output "/data_store/derived/n_frontend2b_episode_feasibility/date=$REPLAY_DATE/job=$JOB_ID/hour_${HOUR}.json" \
-    || echo "AUDIT_FAILED hour=$HOUR"
 done
 
 echo "feasibility_reports=$OUT_DIR"
