@@ -176,7 +176,13 @@ def deterministic_rows(data: pd.DataFrame, limit: int) -> pd.DataFrame:
             lambda value: hashlib.sha256(str(value).encode("utf-8")).hexdigest()
         )
     )
-    return ranked.nsmallest(limit, "_sample_rank").drop(columns="_sample_rank")
+    # sort by the deterministic hash instead of nsmallest: string columns are
+    # rejected by nsmallest in newer pandas versions.
+    return (
+        ranked.sort_values("_sample_rank", kind="mergesort")
+        .head(limit)
+        .drop(columns="_sample_rank")
+    )
 
 
 def build_template_pool(
