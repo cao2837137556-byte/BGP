@@ -1,7 +1,9 @@
 # N-FRONTEND-2B BOUNDED REPLAY IMPLEMENTATION
 
-Status: implementation ready for independent review; no formal real-data replay
-has been executed.
+Status: formal bounded replay completed on the frozen nine-day asset. AMD and
+Intel executions passed all gates and their audited artifacts are
+byte-identical. The only authorized result wording remains
+`semantic survival and past-only exposure under paired variants`.
 
 ## 1. Goal
 
@@ -117,3 +119,69 @@ Before formal submission, Kimi must review:
 Formal replay is unlocked only after that review. No suppression policy,
 learning layer, evidence-verdict logic, or old seven-layer artifact is modified
 in this implementation.
+
+## 8. Formal Bounded Replay Result
+
+Replay anchor:
+
+- pair id: `n_frontend2b_20260805T023615Z`;
+- episode: `2024-04-11 12:00-13:00 UTC`, selected by row `ts`;
+- jobs: AMD `157343` and Intel `157344`, both completed;
+- registry freeze fingerprint:
+  `1c14273522bd46a44864526f64cad558d6cf1bbdecc61af9b52f345da2a3a4fc`;
+- protocol config SHA256:
+  `3b802853042b05cee2283cb82328e6b056552e977e05164cc00352c0f8bbe164`.
+
+Execution facts:
+
+- source background rows `9,026,847`; replay rows `97,208` (deterministic
+  100k-row sample plus the full selected-observer universe);
+- 5 pairs, 10 variants, 30 expected-visible members, and 2
+  observability-boundary members;
+- all seven summary gates passed with `overall_pass=true`;
+- independent validators passed on both partitions with zero failures;
+- 17 of 18 compared artifacts are byte-identical across AMD and Intel; only
+  `n_frontend2b_time_verbose.txt` (wall-clock timing) differs, which carries
+  no scientific meaning.
+
+Scientific observations, bounded to the authorized claim:
+
+- all three poisoning pairs degrade from clean `announcement_change` to
+  adversarial `withdraw_reannounce_same`, matching the preregistered
+  expectation: the poisoning preparation makes the attack route previously
+  exposed to the same observer;
+- past-only exposure: every clean attack route shows
+  `previously_exposed=False`; every adversarial poisoning attack route shows
+  `previously_exposed=True` with `prior_exposure_count=1`,
+  `first_seen_age_sec=900`, exposure confined to the poisoning-preparation
+  phase, and `causality_valid=True`;
+- the subprefix pair enters as `bootstrap_announce` on its visible observers
+  because the more-specific prefix is new; the stealth pair keeps
+  `announcement_change` across variants; visibility-pair families match across
+  clean and adversarial variants as preregistered;
+- phase survival: all 30 expected-visible members survive canonicalization,
+  exact deduplication, transitions, and micro-events; both public-invisible
+  members are recorded as observability boundaries, not frontend misses;
+- drop localization reports `0/30` losses at the canonical, transition, and
+  micro-event stages; identity collisions, accidental exact duplicates, truth
+  leakage, and undeclared same-timestamp ambiguity are all zero;
+- pair fairness: observer universes match within every pair, stable-field
+  mismatches are zero, and visibility differences are preregistered for both
+  visibility pairs.
+
+Reporting boundaries:
+
+- the replay background is a bounded sample (`97,208` of `9,026,847` rows), so
+  throughput or compression behavior must not be extrapolated to the nine-day
+  asset;
+- subprefix recovery uses the parent-prefix route and the subprefix itself is
+  not withdrawn, a bounded simplification recorded for later hardening;
+- route leak remains `blocked_diagnostic_only`;
+- this result does not validate poisoning robustness, detection accuracy,
+  background suppression safety, or learning performance.
+
+Allowed claim:
+
+```text
+semantic survival and past-only exposure under paired variants
+```

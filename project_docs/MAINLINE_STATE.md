@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-07-29
+Last updated: 2026-08-05
 
 Status: active authoritative mainline state.
 
@@ -94,7 +94,8 @@ Attack families that must remain visible:
 | Frontend method direction | peer-aware causal route-change compression frozen | N-FRONTEND-DIRECTION-1 | active | Reuse RFC 4098 transition semantics, adapt BEAM route-change and DFOH new-edge/maturity mechanisms, and retain R-FOREGROUND safety/audit contracts |
 | Causal transition contract | bounded replay and ambiguity audit passed | N-FRONTEND-1 / 1B / 1C | bounded real result | AMD/Intel outputs are byte-identical on audited artifacts; `583,663` observations become `335,386` micro-events (`1.740272x`). The audit preserves `66,666` same-timestamp groups (`14.20%` of transitions) as unknown-order context; attack and poisoning retention remain untested. |
 | Controlled canonical attack injection | N-FRONTEND-2A contract frozen after independent review | N-FRONTEND-2A | frozen design gate | Canonical identity, real templates, synthetic provenance, observer-specific preregistration, past-only exposure, semantic deltas, and evaluation-only isolation are frozen. No poisoning-robustness claim is authorized. |
-| Bounded paired replay implementation | local implementation and deterministic regressions passed; formal real-data replay not run | N-FRONTEND-2B | implementation ready for review | Five feasible pairs and ten variants are implemented with observer-level cadence freeze, past-only assertions, identity/visibility/fairness gates, and independent validation. This is not a scientific result. |
+| Bounded paired replay implementation | local implementation and deterministic regressions passed | N-FRONTEND-2B | superseded by formal replay | Five feasible pairs and ten variants are implemented with observer-level cadence freeze, past-only assertions, identity/visibility/fairness gates, and independent validation. |
+| Bounded paired replay | formal dual-partition replay passed on the frozen nine-day asset | N-FRONTEND-2B | bounded real result | Pair `n_frontend2b_20260805T023615Z`, episode `2024-04-11 12:00-13:00 UTC`, jobs AMD `157343` / Intel `157344`; all stop-loss gates passed, 30/30 visible members survived, 2 boundary members honored, and AMD/Intel audited artifacts are byte-identical. Poisoning pairs show the preregistered `announcement_change` to `withdraw_reannounce_same` degradation with past-only exposure. Allowed claim: `semantic survival and past-only exposure under paired variants`. No poisoning-robustness claim; replay background is a bounded sample, not a scale result. |
 
 ## 4. Active Data / Evidence Contract
 
@@ -347,7 +348,8 @@ Forbidden in new decision logic:
      because attack community evidence join is `1.0`.
 
 9. The frontend transition contract is qualified on one bounded real
-   two-collector window, but not yet attack-retention or scale-qualified.
+   two-collector window and on controlled paired attack injection, but not
+   yet scale-qualified.
    - N-FRONTEND-FIT-0A proved that pinned BGPalerter `2.0.1`
      (`9a616c29483ae03eaae219b04773a4288b32db62`) can carry
      `canonical_observation_v2` through native Consumer/Monitor/PubSub
@@ -410,15 +412,39 @@ Forbidden in new decision logic:
      suppression tuning, but do not block bounded N-FRONTEND-2 retention tests.
    - The former R-FOREGROUND full-frame recurrence results remain offline
      baselines because future observations influenced earlier assignments.
+   - N-FRONTEND-2B formal replay pair `n_frontend2b_20260805T023615Z`
+     (episode `2024-04-11 12:00-13:00 UTC`, jobs AMD `157343` / Intel
+     `157344`) passed all stop-loss gates on the frozen nine-day asset:
+     - 5 pairs, 10 variants, 30 expected-visible members, 2 observability
+       boundaries;
+     - replay background is a bounded sample: `97,208` of `9,026,847` source
+       rows, so no throughput or nine-day scalability claim;
+     - all three poisoning pairs show the preregistered clean
+       `announcement_change` to adversarial `withdraw_reannounce_same`
+       degradation, with past-only exposure valid and confined to the
+       poisoning-preparation phase (`prior_exposure_count=1`,
+       `first_seen_age_sec=900`);
+     - drop localization is `0/30` at canonical, transition, and micro-event
+       stages; collisions, accidental duplicates, truth leakage, and
+       undeclared ambiguity are all zero;
+     - AMD/Intel audited artifacts are byte-identical except wall-clock
+       timing;
+     - allowed claim: `semantic survival and past-only exposure under paired
+       variants`. Poisoning robustness, detection accuracy, suppression
+       safety, and learning performance remain unproven.
+   - The background suppression layer is not yet designed; per the frozen
+     N-FRONTEND-2A contract it may only be designed now that structural
+     survival and adversarial semantic-delta QA have passed.
 
 ## 6. Next Single Recommended Action
 
 ```text
-N-FRONTEND-2B independent implementation review:
-Review the local bounded materialization/replay implementation against the
-frozen N-FRONTEND-2A identity, observer-registry, causality, visibility,
-fairness, contamination, and HPC startup contracts. Submit the formal
-60-minute dual-partition replay only after review passes.
+N-FRONTEND-3A background suppression design:
+Design the background suppression contract on top of peer-aware causal
+transitions and bounded micro-events. Preregister suppression semantics,
+safety gates (including retention of the frozen N-FRONTEND-2B paired
+variants), and audit metrics before any implementation. This step is design
+only; no suppression policy is implemented or tuned here.
 ```
 
 Allowed scope:
@@ -467,7 +493,8 @@ Forbidden scope:
 - do not use full-frame `groupby(...).transform("count")` as an online feature;
 - do not treat BGPalerter, BEAM, DFOH, or any detector score as suppression
   truth;
-- do not implement or tune background suppression in this phase;
+- do not implement or tune background suppression before its contract is
+  designed, independently reviewed, and frozen;
 - do not treat same-timestamp ambiguity as attack or benign truth;
 - do not fabricate an order when source timestamps and path identifiers cannot
   support one;
@@ -520,7 +547,8 @@ R-CLEAN-0
   -> N-FRONTEND-1B [done: bounded real paired replay and alignment passed]
   -> N-FRONTEND-1C [done: paired alignment and ambiguity accounting passed]
   -> N-FRONTEND-2A [done: injection contract independently reviewed and frozen]
-  -> N-FRONTEND-2B [implementation ready; next: independent code review, then formal bounded replay]
+  -> N-FRONTEND-2B [done: formal dual-partition bounded replay passed; semantic survival and past-only exposure under paired variants]
+  -> N-FRONTEND-3A [next: background suppression contract design]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
   -> R-LEARN-0
@@ -567,7 +595,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | N-FRONTEND-1B | bounded real replay | jobs `154385/154386` passed with identical semantic fingerprints; `583,663` observations reduced to `335,386` micro-events (`1.740272x`) | completed bounded replay | `project_docs/N_FRONTEND_1_CAUSAL_TRANSITION_CONTRACT.md` |
 | N-FRONTEND-1C | paired alignment and ambiguity audit | jobs `154883/154884` passed; AMD/Intel audited artifacts are byte-identical; `66,666` ambiguous groups affect `22,785` micro-events and remain unknown-order context | completed audit | `scripts/audit_n_frontend1b_alignment_and_ambiguity.py` |
 | N-FRONTEND-2A | controlled canonical attack injection contract | independently reviewed and frozen with identity, provenance, realism, observer-sequence, causality, semantic-delta, visibility, and contamination gates | completed frozen contract | `project_docs/N_FRONTEND_2A_CONTROLLED_ATTACK_INJECTION_CONTRACT.md` |
-| N-FRONTEND-2B | bounded multi-attack and paired-variant replay | implementation and deterministic local regressions passed; no formal real-data result; next gate is independent review | implementation ready for review | `project_docs/N_FRONTEND_2B_BOUNDED_REPLAY_IMPLEMENTATION.md` |
+| N-FRONTEND-2B | bounded multi-attack and paired-variant replay | formal replay pair `n_frontend2b_20260805T023615Z` passed all gates on AMD `157343` / Intel `157344` with byte-identical audited artifacts; poisoning pairs show preregistered transition degradation with valid past-only exposure; allowed claim `semantic survival and past-only exposure under paired variants` | completed bounded replay | `project_docs/N_FRONTEND_2B_BOUNDED_REPLAY_IMPLEMENTATION.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
