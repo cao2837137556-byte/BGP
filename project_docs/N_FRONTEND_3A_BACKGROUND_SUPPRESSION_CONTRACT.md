@@ -1,6 +1,6 @@
 # N-FRONTEND-3A: Background Suppression Contract
 
-Status: draft pending independent review; no suppression policy is implemented
+Status: frozen after independent review; no suppression policy is implemented
 or tuned under this contract.
 
 Date: 2026-08-13.
@@ -9,7 +9,10 @@ Review chain:
 
 - Driver: Codex;
 - Reviewer: Kimi;
-- freeze: pending an independent review of this draft.
+- draft commit: `764a5233f6b97021d73bfdbd6016adcfee43c945`;
+- freeze: approved on 2026-08-13 after full review and independent anchor
+  verification; W1 causal wording and W2 protocol-byte provenance are included
+  in this frozen revision.
 
 ## 1. Purpose and Four-Part Gate
 
@@ -108,11 +111,19 @@ contract amendment explicitly replaces one.
 | formal paired replay | pair `n_frontend2b_20260805T023615Z` | frozen comparison result |
 | episode | `2024-04-11 12:00:00-13:00:00 UTC`, selected by row `ts` | N-FRONTEND-3B bounded replay window |
 | observer registry | freeze fingerprint `1c14273522bd46a44864526f64cad558d6cf1bbdecc61af9b52f345da2a3a4fc` | observer-local scenario and visibility contract |
-| paired protocol result | protocol SHA256 `3b802853042b05cee2283cb82328e6b056552e977e05164cc00352c0f8bbe164` | formal 2B result provenance |
+| poisoning/evasion protocol source | `configs/r_poison0_paired_benchmark_protocol_v01.json`, canonical committed-byte SHA256 `da3f16828a2e9487b55537f52367f57fb65a01e26e037b5287507cdb9d196263` | versioned semantic protocol read by the 2B run |
+| formal 2B runtime protocol bytes | 2B summary SHA256 `3b802853042b05cee2283cb82328e6b056552e977e05164cc00352c0f8bbe164` | exact CRLF-packaged variant of the preceding canonical LF file; line-ending-normalized content is equal, both partitions used identical bytes, and no scientific result changes |
 
 The frozen nine-day asset keeps the role `unlabeled_operational_background`.
 The mixed replay remains `evaluation_only`; truth sidecars are never online
 features and never enter suppression-rate denominators.
+
+N-FRONTEND-3B packaging must use `git archive` from the reviewed commit, or an
+explicit deterministic LF-normalization step followed by byte-hash validation.
+Packaging an uncontrolled working-tree copy is forbidden. The packaged config
+manifest must record the Git blob identity, canonical SHA256, packaged SHA256,
+line-ending policy, and equality result so future runtime fingerprints align
+with their commit anchors at byte level.
 
 ## 3. Mature Mechanisms Reused and Rejected
 
@@ -269,8 +280,10 @@ immediate stop-loss, even when every attack row remains in foreground.
 N-FRONTEND-3 is a single-pass, stable-time-ordered streaming decision.
 
 - a decision at time `t` may read only the observer ledger state produced by
-  transitions strictly before or at the current ordered transition according
-  to the frozen same-timestamp contract;
+  transitions strictly before the current transition;
+- no same-timestamp sibling transition may update ledger state visible to
+  another sibling; same-timestamp members contribute only as the unordered
+  group defined by the frozen ambiguity contract;
 - future windows, future recurrence, and the completed-frame population are
   unavailable to the decision;
 - full-frame operations such as `groupby(...).transform(...)` are forbidden
@@ -403,6 +416,8 @@ prove detection accuracy or poisoning robustness.
 The bounded implementation must produce at least:
 
 - versioned suppression configuration and code fingerprint;
+- source-blob and packaged-byte manifest proving the frozen line-ending and
+  hash policy in Section 2;
 - immutable input and frozen pair-registry manifests;
 - transition-level assignment table with eligibility/protection reason codes;
 - micro-event-level routing table with member-decision precedence;
@@ -448,6 +463,8 @@ Do not interpret or promote the result if any of the following occurs:
 - input/output/provenance accounting is incomplete or unexplained loss is
   non-zero;
 - deterministic replay or required cross-partition semantic parity fails;
+- a packaged protocol/config byte sequence cannot be traced to its reviewed
+  Git blob and canonical SHA256 under the frozen line-ending policy;
 - public-invisible members are counted as frontend misses;
 - the report uses benign-suppression, poisoning-robustness, storage-compression,
   or scale-generalization language.
