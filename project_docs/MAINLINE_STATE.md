@@ -97,6 +97,7 @@ Attack families that must remain visible:
 | Bounded paired replay implementation | local implementation and deterministic regressions passed | N-FRONTEND-2B | superseded by formal replay | Five feasible pairs and ten variants are implemented with observer-level cadence freeze, past-only assertions, identity/visibility/fairness gates, and independent validation. |
 | Bounded paired replay | formal dual-partition replay passed on the frozen nine-day asset | N-FRONTEND-2B | bounded real result | Pair `n_frontend2b_20260805T023615Z`, episode `2024-04-11 12:00-13:00 UTC`, jobs AMD `157343` / Intel `157344`; all stop-loss gates passed, 30/30 visible members survived, 2 boundary members honored, and AMD/Intel audited artifacts are byte-identical. Poisoning pairs show the preregistered `announcement_change` to `withdraw_reannounce_same` degradation with past-only exposure. Allowed claim: `semantic survival and past-only exposure under paired variants`. No poisoning-robustness claim; replay background is a bounded sample, not a scale result. |
 | Background suppression contract | conservative reversible contract independently reviewed and frozen; no policy implemented | N-FRONTEND-3A | frozen design gate | The only v1 suppression candidate is `identical_reannouncement`. Suppression means reducing learning-layer input rows, not deleting records or saving raw storage. All past-only history must remain exactly reconstructable through a foreground-plus-background joint view; gray is a zero-expected contract tripwire. W1 strict-prior causality and W2 canonical/runtime line-ending provenance are frozen; N-FRONTEND-3B is unlocked as the next bounded implementation. |
+| Bounded background suppression implementation | local implementation and independent regressions passed; formal replay not submitted | N-FRONTEND-3B | awaiting independent code/package review | The frozen parameter-free rule, reversible background store, joint-view history regression, denominator separation, observability-boundary audit, and AMD/Intel semantic-parity validator are implemented. Two complete local 2B-to-3B fixture replays are deterministic; 30 visible members remain traceable, 2 boundary members remain boundaries, suppressed attacks/gray/exposure mismatches/unexplained loss are all zero. Fixture reduction `0.125` is test coverage, not a scientific result. |
 
 ## 4. Active Data / Evidence Contract
 
@@ -447,16 +448,18 @@ Forbidden in new decision logic:
      canonical committed LF file `da3f1682...`; normalized content is equal and
      both partitions used identical bytes. Future packages must use
      `git archive` or deterministic LF normalization plus byte-hash validation.
-   - No N-FRONTEND-3 policy has been implemented or tuned. N-FRONTEND-3B is
-     now the only next implementation and bounded-replay step.
+   - N-FRONTEND-3B is implemented locally without tuning. Complete local
+     2B-to-3B regressions and tamper-negative validation pass, but no formal
+     HPC replay or scientific reduction result exists yet.
 
 ## 6. Next Single Recommended Action
 
 ```text
-N-FRONTEND-3B bounded implementation and same-episode replay:
-Implement the frozen parameter-free `identical_reannouncement` routing rule,
-reversible background index and joint history view, then replay the frozen
-2024-04-11 12:00-13:00 UTC episode under all preregistered stop-loss gates.
+N-FRONTEND-3B independent review and same-episode formal replay gate:
+Review the implemented parameter-free `identical_reannouncement` router,
+independent validator, deterministic package builder, dual-partition wrapper,
+and local regression evidence. Only after review and explicit user
+authorization may the frozen 2024-04-11 12:00-13:00 UTC episode be submitted.
 ```
 
 The implementation must preserve these frozen constraints:
@@ -525,7 +528,7 @@ R-CLEAN-0
   -> N-FRONTEND-2A [done: injection contract independently reviewed and frozen]
   -> N-FRONTEND-2B [done: formal dual-partition bounded replay passed; semantic survival and past-only exposure under paired variants]
   -> N-FRONTEND-3A [done: independently reviewed reversible suppression contract frozen]
-  -> N-FRONTEND-3B [next: parameter-free same-episode bounded implementation and replay]
+  -> N-FRONTEND-3B [implementation ready for independent review; formal replay blocked pending review and user authorization]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
   -> R-LEARN-0
@@ -574,6 +577,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | N-FRONTEND-2A | controlled canonical attack injection contract | independently reviewed and frozen with identity, provenance, realism, observer-sequence, causality, semantic-delta, visibility, and contamination gates | completed frozen contract | `project_docs/N_FRONTEND_2A_CONTROLLED_ATTACK_INJECTION_CONTRACT.md` |
 | N-FRONTEND-2B | bounded multi-attack and paired-variant replay | formal replay pair `n_frontend2b_20260805T023615Z` passed all gates on AMD `157343` / Intel `157344` with byte-identical audited artifacts; poisoning pairs show preregistered transition degradation with valid past-only exposure; allowed claim `semantic survival and past-only exposure under paired variants` | completed bounded replay | `project_docs/N_FRONTEND_2B_BOUNDED_REPLAY_IMPLEMENTATION.md` |
 | N-FRONTEND-3A | reversible semantic-redundancy suppression contract | independently reviewed frozen v1 permits only `identical_reannouncement`, requires exact foreground-plus-background history preservation, treats gray as a zero-expected tripwire, defines both transition- and micro-event-level learning-input reduction, and pins canonical/runtime protocol-byte provenance; no policy has been implemented | completed frozen contract | `project_docs/N_FRONTEND_3A_BACKGROUND_SUPPRESSION_CONTRACT.md` |
+| N-FRONTEND-3B | bounded reversible background routing implementation | local five-pair/ten-variant fixture replay, independent validation, tamper rejection, deterministic repeat, and scientific parity passed; no formal HPC result and no scale claim | awaiting independent code/package review | `project_docs/N_FRONTEND_3B_BACKGROUND_SUPPRESSION_IMPLEMENTATION.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |

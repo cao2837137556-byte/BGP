@@ -1,0 +1,118 @@
+{
+  "phase": "N-FRONTEND-3B",
+  "config_version": "n_frontend3b_background_suppression_v01",
+  "status": "bounded_evaluation_only",
+  "frozen_contract_commit": "38b262dd80397f16d6db5d16071036538fed67f6",
+  "frontend1_config": "configs/n_frontend1_causal_transition_v01.json",
+  "frontend1_config_sha256": "42f38af0a46e392eeb1d5d23068601c116e8dc7d0ed604ca052e704333780938",
+  "frontend2b_config": "configs/n_frontend2b_controlled_pairs_v01.json",
+  "frontend2b_config_sha256": "1770f46ed50312f50b66099501a1eb5d6b8ca98382a303d24cb5754ab3da2a51",
+  "poisoning_protocol_config": "configs/r_poison0_paired_benchmark_protocol_v01.json",
+  "poisoning_protocol_canonical_sha256": "da3f16828a2e9487b55537f52367f57fb65a01e26e037b5287507cdb9d196263",
+  "poisoning_protocol_formal_2b_crlf_sha256": "3b802853042b05cee2283cb82328e6b056552e977e05164cc00352c0f8bbe164",
+  "formal_2b_pair_id": "n_frontend2b_20260805T023615Z",
+  "formal_2b_registry_fingerprint": "1c14273522bd46a44864526f64cad558d6cf1bbdecc61af9b52f345da2a3a4fc",
+  "formal_episode_utc": "2024-04-11T12:00:00Z/2024-04-11T13:00:00Z",
+  "suppression_eligibility": {
+    "transition_family": "identical_reannouncement",
+    "require_equal_non_null_route_signatures": true,
+    "required_false_flags": [
+      "origin_changed",
+      "path_changed",
+      "communities_changed",
+      "next_hop_changed",
+      "same_timestamp_ambiguous"
+    ],
+    "required_true_flags": [
+      "state_known_before",
+      "state_known_after"
+    ],
+    "required_identity_fields": [
+      "transition_id",
+      "collector",
+      "peer_address",
+      "prefix"
+    ],
+    "required_reversible_fields": [
+      "member_observation_ids",
+      "source_files"
+    ],
+    "required_positive_count_fields": [
+      "member_observation_count",
+      "source_copy_count"
+    ]
+  },
+  "transition_assignments": [
+    "protected_semantic_foreground",
+    "suppressible_semantic_redundancy",
+    "gray_contract_anomaly"
+  ],
+  "micro_event_precedence": [
+    "protected_semantic_foreground",
+    "gray_contract_anomaly",
+    "suppressible_semantic_redundancy"
+  ],
+  "online_feature_columns": [
+    "transition_family",
+    "old_route_signature",
+    "new_route_signature",
+    "origin_changed",
+    "path_changed",
+    "communities_changed",
+    "next_hop_changed",
+    "same_timestamp_ambiguous",
+    "state_known_before",
+    "state_known_after",
+    "transition_id",
+    "collector",
+    "peer_address",
+    "prefix",
+    "member_observation_ids",
+    "source_files"
+  ],
+  "truth_columns_forbidden_online": [
+    "pair_id",
+    "scenario_id",
+    "variant_role",
+    "phase_id",
+    "is_attack_member",
+    "is_poisoning_preparation_member",
+    "expected_visible",
+    "expected_visibility_class",
+    "family",
+    "threat_model"
+  ],
+  "past_only_metric_columns": [
+    "previously_exposed",
+    "prior_exposure_count",
+    "first_seen_ts",
+    "first_seen_age_sec",
+    "last_seen_ts",
+    "last_seen_gap_sec",
+    "ordered_prior_transition_ids",
+    "ordered_prior_transition_ts",
+    "ordered_inter_arrival_gaps_sec",
+    "distinct_prior_300s_bucket_count",
+    "distinct_prior_utc_day_count",
+    "distinct_prior_peer_count",
+    "distinct_prior_peer_set",
+    "distinct_prior_collector_count",
+    "distinct_prior_collector_set",
+    "prior_withdrawal_count",
+    "exposure_only_in_poisoning_preparation",
+    "maximum_contributing_transition_ts",
+    "causality_valid",
+    "bounded_proxy"
+  ],
+  "allowed_claim": "bounded learning-input redundancy reduction with exact past-only history preservation; the frozen paired variants remain semantically observable under the parameter-free identical-reannouncement routing rule",
+  "forbidden_claims": [
+    "benign suppression",
+    "attack or benign classification",
+    "attack detection accuracy",
+    "poisoning robustness",
+    "poisoning-resistant detection",
+    "storage compression",
+    "nine-day or production throughput",
+    "production readiness"
+  ]
+}
