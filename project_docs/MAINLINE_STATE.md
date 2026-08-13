@@ -1,6 +1,6 @@
 # MAINLINE STATE
 
-Last updated: 2026-08-05
+Last updated: 2026-08-13
 
 Status: active authoritative mainline state.
 
@@ -96,6 +96,7 @@ Attack families that must remain visible:
 | Controlled canonical attack injection | N-FRONTEND-2A contract frozen after independent review | N-FRONTEND-2A | frozen design gate | Canonical identity, real templates, synthetic provenance, observer-specific preregistration, past-only exposure, semantic deltas, and evaluation-only isolation are frozen. No poisoning-robustness claim is authorized. |
 | Bounded paired replay implementation | local implementation and deterministic regressions passed | N-FRONTEND-2B | superseded by formal replay | Five feasible pairs and ten variants are implemented with observer-level cadence freeze, past-only assertions, identity/visibility/fairness gates, and independent validation. |
 | Bounded paired replay | formal dual-partition replay passed on the frozen nine-day asset | N-FRONTEND-2B | bounded real result | Pair `n_frontend2b_20260805T023615Z`, episode `2024-04-11 12:00-13:00 UTC`, jobs AMD `157343` / Intel `157344`; all stop-loss gates passed, 30/30 visible members survived, 2 boundary members honored, and AMD/Intel audited artifacts are byte-identical. Poisoning pairs show the preregistered `announcement_change` to `withdraw_reannounce_same` degradation with past-only exposure. Allowed claim: `semantic survival and past-only exposure under paired variants`. No poisoning-robustness claim; replay background is a bounded sample, not a scale result. |
+| Background suppression contract | conservative reversible contract drafted; no policy implemented | N-FRONTEND-3A | draft pending independent review | The only v1 suppression candidate is `identical_reannouncement`. Suppression means reducing learning-layer input rows, not deleting records or saving raw storage. All past-only history must remain exactly reconstructable through a foreground-plus-background joint view; gray is a zero-expected contract tripwire. N-FRONTEND-3B remains blocked until independent review and freeze. |
 
 ## 4. Active Data / Evidence Contract
 
@@ -432,81 +433,53 @@ Forbidden in new decision logic:
      - allowed claim: `semantic survival and past-only exposure under paired
        variants`. Poisoning robustness, detection accuracy, suppression
        safety, and learning performance remain unproven.
-   - The background suppression layer is not yet designed; per the frozen
-     N-FRONTEND-2A contract it may only be designed now that structural
-     survival and adversarial semantic-delta QA have passed.
+   - The N-FRONTEND-3A background-suppression contract is now drafted for
+     independent review. It routes only semantic redundancy away from the
+     learning-input stream; it does not classify background as benign.
+   - The draft allows only parameter-free `identical_reannouncement`
+     suppression, preserves original members in immutable background storage,
+     and requires every past-only exposure value to remain equal through a
+     foreground-plus-background joint view.
+   - Gray is limited to incomplete contract state and is expected to be empty;
+     any non-zero gray count is a tripwire. Evidence can protect a record but
+     cannot authorize suppression.
+   - No N-FRONTEND-3 policy has been implemented or tuned. N-FRONTEND-3B is
+     blocked until independent review freezes the contract.
 
 ## 6. Next Single Recommended Action
 
 ```text
-N-FRONTEND-3A background suppression design:
-Design the background suppression contract on top of peer-aware causal
-transitions and bounded micro-events. Preregister suppression semantics,
-safety gates (including retention of the frozen N-FRONTEND-2B paired
-variants), and audit metrics before any implementation. This step is design
-only; no suppression policy is implemented or tuned here.
+N-FRONTEND-3A independent review and freeze:
+Review the drafted background-suppression contract against its causal,
+information-preservation, adversarial-hiding, foreground-exhaustion,
+denominator, and reporting boundaries. This review may correct the contract;
+it must not implement or tune a policy.
 ```
 
-Allowed scope:
+The freeze review must confirm that:
 
-- use the frozen nine-day asset only as unlabeled operational background
-  context;
-- allow separately versioned controlled benchmark materializations, including
-  the existing April 16 track, only with explicit scenario provenance;
-- require each scenario to declare its expected collector-visibility contract
-  instead of mechanically requiring both collectors;
-- select analysis windows by row `ts`, never archive filename time;
-- preserve the frozen N-FRONTEND-1B/1C artifacts as immutable inputs;
-- use benchmark truth only for retention evaluation, never as an online
-  feature;
-- use `canonical_observation_id()` for every injected observation and keep
-  truth in a separate sidecar;
-- require `synthetic://...` provenance and zero accidental identity collisions
-  or exact duplicates;
-- preregister stable, poisoning-preparation, attack, and recovery placement;
-- compute route exposure only from causal transitions with
-  `transition_ts < attack_ts`;
-- preregister the expected clean/adversarial transition-family pattern for
-  every paired scenario;
-- cover origin hijack, path manipulation, stealth/NO_EXPORT, and feasible
-  poisoning/evasion variants with realistic provenance;
-- retain route-leak-like cases as path-policy diagnostics only until a bounded
-  policy-semantics contract exists;
-- report retention by family, scenario, phase, collector, and ambiguity
-  membership;
-- localize any loss to canonicalization, exact deduplication, transition
-  construction, or micro-event grouping;
-- preserve all same-timestamp ambiguous members as unknown-order context;
-- require public-invisible attacks to be reported as an observability boundary,
-  not a frontend miss;
-- keep controlled attack truth separate from operational background.
+- `identical_reannouncement` is the only v1 suppression candidate and reuses
+  the exact N-FRONTEND-1 transition definition;
+- any protected transition keeps its complete micro-event in foreground;
+- suppression reduces learning-layer input rows only, while immutable original
+  members remain recoverable through provenance;
+- every past-only exposure value is exactly equal before and after suppression
+  when queried through the foreground-plus-background joint view;
+- the implementation contract is single-pass and past-only, with full-frame
+  `groupby(...).transform(...)` decisions forbidden;
+- gray has only the enumerated incomplete-contract triggers, has expected rate
+  zero, and acts as a stop-loss tripwire;
+- transition-level and micro-event-level reduction use only unlabeled
+  operational background as their denominator;
+- the frozen N-FRONTEND-2B pairs remain safety-only inputs and do not enter the
+  suppression-rate denominator;
+- foreground-exhaustion and foreground-family composition metrics are required;
+- allowed and forbidden conclusions preserve the N-FRONTEND-2B claim boundary.
 
-Forbidden scope:
-
-- do not modify old seven-layer pipeline;
-- do not use legacy final/high/needs/low as truth or guard;
-- do not train learning;
-- do not call the frozen asset attack-free or confirmed benign;
-- do not use it as negative training truth before contamination audit;
-- do not silently mix the incomplete April 16 canonical collector-day into the
-  frozen nine-day background asset;
-- do not use full-frame `groupby(...).transform("count")` as an online feature;
-- do not treat BGPalerter, BEAM, DFOH, or any detector score as suppression
-  truth;
-- do not implement or tune background suppression before its contract is
-  designed, independently reviewed, and frozen;
-- do not treat same-timestamp ambiguity as attack or benign truth;
-- do not fabricate an order when source timestamps and path identifiers cannot
-  support one;
-- do not treat RPKI invalid, AS-rel diagnostics, NO_EXPORT, or any single
-  evidence field as attack truth;
-- do not count a public-invisible attack as a frontend drop;
-- do not call structural retention or transition-family survival poisoning
-  robustness;
-- do not promote route-leak-like path diagnostics to route-leak truth;
-- do not interpret bounded throughput as nine-day scalability;
-- do not let tenth-day repair or 30-day expansion block the bounded causal
-  contract audit.
+Until independent review freezes N-FRONTEND-3A, do not implement suppression,
+run N-FRONTEND-3B, tune thresholds, train learning, or modify the old
+seven-layer pipeline. After freeze, the only next experiment is a bounded
+N-FRONTEND-3B replay on the same `2024-04-11 12:00-13:00 UTC` episode.
 
 ## 7. Active Experiment Order
 
@@ -548,7 +521,8 @@ R-CLEAN-0
   -> N-FRONTEND-1C [done: paired alignment and ambiguity accounting passed]
   -> N-FRONTEND-2A [done: injection contract independently reviewed and frozen]
   -> N-FRONTEND-2B [done: formal dual-partition bounded replay passed; semantic survival and past-only exposure under paired variants]
-  -> N-FRONTEND-3A [next: background suppression contract design]
+  -> N-FRONTEND-3A [drafted: pending independent review and freeze]
+  -> N-FRONTEND-3B [blocked: same-episode bounded replay after 3A freeze]
   -> R-HIST-0
   -> R-TRAIN-DATA-0
   -> R-LEARN-0
@@ -596,6 +570,7 @@ Do not skip directly to learning, production suppression, or final incident aggr
 | N-FRONTEND-1C | paired alignment and ambiguity audit | jobs `154883/154884` passed; AMD/Intel audited artifacts are byte-identical; `66,666` ambiguous groups affect `22,785` micro-events and remain unknown-order context | completed audit | `scripts/audit_n_frontend1b_alignment_and_ambiguity.py` |
 | N-FRONTEND-2A | controlled canonical attack injection contract | independently reviewed and frozen with identity, provenance, realism, observer-sequence, causality, semantic-delta, visibility, and contamination gates | completed frozen contract | `project_docs/N_FRONTEND_2A_CONTROLLED_ATTACK_INJECTION_CONTRACT.md` |
 | N-FRONTEND-2B | bounded multi-attack and paired-variant replay | formal replay pair `n_frontend2b_20260805T023615Z` passed all gates on AMD `157343` / Intel `157344` with byte-identical audited artifacts; poisoning pairs show preregistered transition degradation with valid past-only exposure; allowed claim `semantic survival and past-only exposure under paired variants` | completed bounded replay | `project_docs/N_FRONTEND_2B_BOUNDED_REPLAY_IMPLEMENTATION.md` |
+| N-FRONTEND-3A | reversible semantic-redundancy suppression contract | v1 draft permits only `identical_reannouncement`, requires exact foreground-plus-background history preservation, treats gray as a zero-expected tripwire, and defines both transition- and micro-event-level learning-input reduction; no policy has been implemented | draft pending independent review | `project_docs/N_FRONTEND_3A_BACKGROUND_SUPPRESSION_CONTRACT.md` |
 | R-RESET-1 | pivot mainline | full candidate-first aggregation stopped | active decision | `project_docs/PIPELINE_RESET_MAINLINE_R_RESET_1.md` |
 | R-NOISE-0/1 | separability + foreground smoke | feasible provisional foreground view | provisional | `project_docs/R_NOISE_1_CONSERVATIVE_FOREGROUND_EXTRACTION_SMOKE.md` |
 | R-CLEAN-0 | lock clean data/evidence contract | current mainline control point | active | `project_docs/R_CLEAN_0_DATA_EVIDENCE_CLEAN_CONTRACT.md` |
