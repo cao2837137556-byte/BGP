@@ -11,29 +11,15 @@ import io
 import json
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 from pathlib import Path
 
 
-INCLUDE_PATHS = [
-    "configs/n_frontend1_causal_transition_v01.json",
-    "configs/n_frontend2b_controlled_pairs_v01.json",
-    "configs/n_frontend3b_background_suppression_v01.json",
-    "configs/r_poison0_paired_benchmark_protocol_v01.json",
-    "scripts/build_n_frontend1_causal_transitions.py",
-    "scripts/r_mem_canonical_observation_v2.py",
-    "scripts/run_r_mem1c_local_mrt_parser_smoke.py",
-    "scripts/run_n_frontend2b_controlled_pairs.py",
-    "scripts/run_n_frontend3b_background_suppression.py",
-    "scripts/validate_n_frontend3b_background_suppression.py",
-    "scripts/validate_n_frontend3b_dual_parity.py",
-    "scripts/hpc/build_n_frontend3b_reviewed_bundle.py",
-    "scripts/hpc/finalize_n_frontend3b_dual_pair.sh",
-    "scripts/hpc/n_frontend3b_bounded_replay.slurm",
-    "scripts/hpc/n_frontend3b_bounded_replay_preflight.sh",
-    "scripts/hpc/submit_n_frontend3b_bounded_replay_dual.sh",
-]
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from n_frontend3b_contract import PACKAGE_PATHS
+INCLUDE_PATHS = PACKAGE_PATHS
 
 
 def sha256(value: bytes) -> str:
@@ -156,9 +142,15 @@ def main() -> None:
         temp_path.unlink(missing_ok=True)
     sidecar = output.with_suffix(output.suffix + ".sha256")
     sidecar.write_text(f"{sha256(output.read_bytes())}  {output.name}\n", encoding="ascii")
+    receipt = output.with_suffix(output.suffix + ".receipt.json")
+    receipt.write_text(json.dumps({
+        "source_commit": commit, "bundle_sha256": sha256(output.read_bytes()),
+        "package_manifest_sha256": sha256(manifest_bytes),
+    }, indent=2, sort_keys=True) + "\n", encoding="ascii")
     print(f"bundle={output}")
     print(f"sha256={sha256(output.read_bytes())}")
     print(f"source_commit={commit}")
+    print(f"package_manifest_sha256={sha256(manifest_bytes)}")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # N-FRONTEND-3B Background Suppression Implementation
 
-Status: implementation ready for independent review; formal HPC replay not run
+Status: integrity repairs and local automated validation complete; formal HPC replay not run
 
 ## 1. Scope
 
@@ -43,7 +43,13 @@ The primary runner:
 7. reconstructs the full transition set from persisted routes;
 8. recomputes past-only exposure through the joint view and requires exact
    equality;
-9. loads injected truth only after routing for denominator and safety audits.
+9. uses reconciled injected truth only for post-routing denominator and safety
+   audits. Input qualification also checks truth/lineage completeness, but no
+   truth field participates in the routing function.
+
+The 2026-09-09 repair adds actual persisted-content/history recomputation,
+frozen source hashes, strict required Boolean flags, and complete package
+receipt verification. See `N_FRONTEND_3B_INTEGRITY_REPAIR.md`.
 
 Exact N-FRONTEND-1 source deduplication is reported separately and is never
 counted as N-FRONTEND-3B learning-input reduction. Public-invisible members are
@@ -89,8 +95,8 @@ be reported as a scientific compression result.
 
 ## 6. Formal HPC Gate
 
-Formal submission remains blocked until independent review and explicit user
-authorization. The reviewed workflow will:
+The user has waived an additional manual review cycle. Formal submission
+still waits for explicit authorization to run the experiment. The workflow will:
 
 - run the same compute-node preflight used by the formal wrapper;
 - execute self-tests inside the actual Apptainer image;

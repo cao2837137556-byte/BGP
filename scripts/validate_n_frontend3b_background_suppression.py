@@ -16,6 +16,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from n_frontend3b_artifact_validation import verify_artifacts
 
 
 ASSIGN_FOREGROUND = "protected_semantic_foreground"
@@ -77,6 +78,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config", default="configs/n_frontend3b_background_suppression_v01.json")
     parser.add_argument("--validation-output")
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--allow-self-test-source", action="store_true")
     return parser.parse_args()
 
 
@@ -191,9 +193,8 @@ def independent_assignment(row: dict[str, Any], config: dict[str, Any]) -> str:
         normalize(row.get(field)) is not None and int(normalize(row.get(field))) >= 1
         for field in rule["required_positive_count_fields"]
     )
-    state_fields_present = all(normalize(row.get(field)) is not None for field in (
-        "state_known_before", "state_known_after", "same_timestamp_ambiguous"
-    ))
+    state_fields_present = all(isinstance(row.get(field), (bool, np.bool_))
+                               for field in rule["required_true_flags"] + rule["required_false_flags"])
     if not required_identity or not required_provenance or not required_counts or not state_fields_present:
         return ASSIGN_GRAY
     exact = (
@@ -214,7 +215,7 @@ def expected_micro_route(member_assignments: list[str]) -> str:
     return FINAL_BACKGROUND if all(value == ASSIGN_BACKGROUND for value in member_assignments) else FINAL_GRAY
 
 
-def validate(output_dir: Path, config_path: Path) -> dict[str, Any]:
+def validate(output_dir: Path, config_path: Path, allow_self_test: bool = False) -> dict[str, Any]:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     errors: list[str] = []
     missing_root = [name for name in ROOT_REQUIRED if not (output_dir / name).is_file()]
@@ -235,6 +236,11 @@ def validate(output_dir: Path, config_path: Path) -> dict[str, Any]:
     exposure_mismatches = 0
     frozen_exposure_mismatches = 0
     same_timestamp_prior_hash_failures = 0
+    recomputed_checks = {}
+    try:
+        recomputed_checks = verify_artifacts(output_dir, config, independent_assignment, allow_self_test)
+    except (ValueError, KeyError, OSError, TypeError, IndexError) as exc:
+        errors.append(f"independent_artifact_contract:{exc}")
 
     for variant_dir in variants:
         missing = [name for name in VARIANT_REQUIRED if not (variant_dir / name).is_file()]
@@ -367,7 +373,7 @@ def validate(output_dir: Path, config_path: Path) -> dict[str, Any]:
             .map(as_bool)
             .any()
         ),
-        "background_route_exercised": route_counts[FINAL_BACKGROUND] > 0,
+        "independent_artifact_contract_pass": bool(recomputed_checks),
     }
     if not all(checks.values()):
         errors.extend(key for key, value in checks.items() if not value)
@@ -386,6 +392,7 @@ def validate(output_dir: Path, config_path: Path) -> dict[str, Any]:
         "same_timestamp_prior_hash_failure_count": same_timestamp_prior_hash_failures,
         "truth_leak_columns": sorted(truth_leak_columns),
         "errors": errors,
+        "recomputed_checks": recomputed_checks,
     }
 
 
@@ -408,30 +415,9 @@ def run_self_test(config_path: Path) -> None:
             cwd=repo_root,
             stdout=subprocess.DEVNULL,
         )
-        # The runner creates its upstream 2B fixture in a temporary directory.
-        # Persist an immutable reconstruction beside each validation fixture so
-        # this independent validator can re-evaluate eligibility after the
-        # runner's temporary source has been removed.
-        for variant in sorted((output / "evaluation_only").glob("*/*")):
-            source_copy = variant / "_validator_selftest_source_transitions.parquet"
-            full = pd.concat(
-                [
-                    pd.read_parquet(variant / "semantic_foreground_transitions.parquet"),
-                    pd.read_parquet(variant / "immutable_background_transitions.parquet"),
-                    pd.read_parquet(variant / "gray_contract_anomaly_transitions.parquet"),
-                ],
-                ignore_index=True,
-                sort=False,
-            )
-            full.to_parquet(source_copy, index=False)
-            manifest_path = variant / "n_frontend3b_variant_manifest.json"
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            manifest["source_transition_path"] = str(source_copy)
-            manifest["source_transition_sha256"] = sha256_file(source_copy)
-            manifest_path.write_text(
-                json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-            )
-        result = validate(output, config_path)
+        # The runner retains the original upstream inputs under _selftest_source.
+        # Never create a supposed source by concatenating the outputs under test.
+        result = validate(output, config_path, allow_self_test=True)
         assert result["validation_passed"], result
 
         # Negative regression: the independently anchored 2B exposure table
@@ -450,7 +436,7 @@ def run_self_test(config_path: Path) -> None:
         manifest_path.write_text(
             json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )
-        tampered_exposure = validate(output, config_path)
+        tampered_exposure = validate(output, config_path, allow_self_test=True)
         assert not tampered_exposure["validation_passed"]
         assert tampered_exposure["frozen_exposure_mismatch_count"] > 0
         exposure_path.write_bytes(original_exposure)
@@ -466,7 +452,7 @@ def run_self_test(config_path: Path) -> None:
         target = frame.index[frame["eligibility_assignment"] == ASSIGN_BACKGROUND][0]
         frame.loc[target, "eligibility_assignment"] = ASSIGN_FOREGROUND
         frame.to_parquet(path, index=False)
-        tampered = validate(output, config_path)
+        tampered = validate(output, config_path, allow_self_test=True)
         assert not tampered["validation_passed"]
         assert tampered["independent_assignment_mismatch_count"] > 0
     print("self_test=passed")
@@ -480,7 +466,7 @@ def main() -> None:
         return
     if not args.output_dir:
         raise ValueError("--output-dir is required")
-    result = validate(Path(args.output_dir).resolve(), config_path)
+    result = validate(Path(args.output_dir).resolve(), config_path, allow_self_test=args.allow_self_test_source)
     target = Path(args.validation_output).resolve() if args.validation_output else Path(args.output_dir).resolve() / "n_frontend3b_validation.json"
     result = json_ready(result)
     target.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -23,6 +23,7 @@ from typing import Any, Iterable
 
 import numpy as np
 import pandas as pd
+from n_frontend3b_contract import same_table, verify_package, verify_source, verify_variant_frames
 
 
 DEFAULT_CONFIG = Path("configs/n_frontend3b_background_suppression_v01.json")
@@ -57,6 +58,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-frontend2b-root")
     parser.add_argument("--config", default=str(DEFAULT_CONFIG))
     parser.add_argument("--package-manifest")
+    parser.add_argument("--expected-package-commit")
+    parser.add_argument("--expected-package-manifest-sha256")
+    parser.add_argument("--preflight-only", action="store_true")
     parser.add_argument("--output-dir")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--self-test", action="store_true")
@@ -206,7 +210,8 @@ def validate_source_anchors(config: dict[str, Any], repo_root: Path) -> list[dic
 
 
 def validate_package_manifest(
-    path: Path | None, self_test: bool, repo_root: Path
+    path: Path | None, self_test: bool, repo_root: Path,
+    expected_commit: str | None = None, expected_sha256: str | None = None,
 ) -> dict[str, Any]:
     if self_test:
         return {
@@ -214,38 +219,7 @@ def validate_package_manifest(
             "git_archive_or_lf_normalized": True,
             "all_entries_passed": True,
         }
-    if path is None or not path.is_file():
-        raise ValueError("formal run requires --package-manifest")
-    manifest = json.loads(path.read_text(encoding="utf-8"))
-    required = {
-        "source_commit",
-        "line_ending_policy",
-        "git_archive_or_lf_normalized",
-        "all_entries_passed",
-        "entries",
-    }
-    if not required <= set(manifest):
-        raise ValueError("package manifest is incomplete")
-    if not manifest["git_archive_or_lf_normalized"] or not manifest["all_entries_passed"]:
-        raise ValueError("package manifest line-ending/hash gate failed")
-    observed_failures: list[str] = []
-    for entry in manifest["entries"]:
-        packaged_path = repo_root / entry["path"]
-        if not packaged_path.is_file():
-            observed_failures.append(f"missing:{entry['path']}")
-            continue
-        packaged_bytes = packaged_path.read_bytes()
-        if sha256_bytes(packaged_bytes) != entry["packaged_sha256"]:
-            observed_failures.append(f"packaged_sha256:{entry['path']}")
-        normalized = packaged_bytes.replace(b"\r\n", b"\n")
-        if sha256_bytes(normalized) != entry["canonical_lf_sha256"]:
-            observed_failures.append(f"canonical_lf_sha256:{entry['path']}")
-        if not entry.get("git_blob_oid"):
-            observed_failures.append(f"git_blob_oid:{entry['path']}")
-    if observed_failures:
-        raise ValueError(f"package manifest runtime verification failed: {observed_failures}")
-    manifest["runtime_verification_passed"] = True
-    return manifest
+    return verify_package(path, repo_root, expected_commit, expected_sha256)
 
 
 def discover_variants(root: Path) -> list[tuple[str, str, Path]]:
@@ -282,9 +256,8 @@ def transition_decision(row: dict[str, Any], config: dict[str, Any]) -> dict[str
         value = normalize_json(row.get(field))
         if value is None or int(value) < 1:
             missing.append(field)
-    for field in ("state_known_before", "state_known_after", "same_timestamp_ambiguous"):
-        is_present, _ = present_bool(row.get(field))
-        if not is_present:
+    for field in eligibility["required_true_flags"] + eligibility["required_false_flags"]:
+        if not isinstance(row.get(field), (bool, np.bool_)):
             missing.append(field)
     if missing:
         return {
@@ -661,6 +634,7 @@ def process_variant(
     source_dir: Path,
     output_dir: Path,
     config: dict[str, Any],
+    source_contract: dict[str, Any],
 ) -> dict[str, Any]:
     transitions_path = source_dir / "frontend" / "n_frontend1_transitions.parquet"
     micro_path = source_dir / "frontend" / "n_frontend1_micro_events.parquet"
@@ -678,6 +652,10 @@ def process_variant(
         for value in non_route.get("observation_id", pd.Series(dtype=object)).dropna()
     }
     frontend_summary = json.loads(frontend_summary_path.read_text(encoding="utf-8"))
+    truth = source_contract["truth"]
+    truth = truth[(truth.pair_id == pair_id) & (truth.variant_role == variant_role)]
+    verify_variant_frames(transitions, micro_events, lineage, truth,
+                          source_contract["episode_start_ts"], source_contract["episode_end_ts"])
     output_dir.mkdir(parents=True)
 
     assignments, ledger_fingerprint = route_transitions(transitions, config)
@@ -750,7 +728,8 @@ def process_variant(
         "id_multiset_equal": original_ids == restored_ids,
         "input_transition_id_sha256": sha256_json(original_ids),
         "restored_transition_id_sha256": sha256_json(restored_ids),
-        "passed": original_ids == restored_ids,
+        "full_member_content_equal": same_table(transitions, restored),
+        "passed": original_ids == restored_ids and same_table(transitions, restored),
     }
 
     pre_exposure = canonical_exposure_rows(lineage, transitions)
@@ -815,12 +794,25 @@ def run_experiment(
     package_manifest_path: Path | None,
     overwrite: bool,
     self_test: bool,
+    expected_package_commit: str | None = None,
+    expected_package_manifest_sha256: str | None = None,
 ) -> dict[str, Any]:
     repo_root = Path(__file__).resolve().parents[1]
+    if not self_test and config_path.resolve() != (repo_root / DEFAULT_CONFIG).resolve():
+        raise ValueError("formal configuration must be the receipt-bound packaged config")
     config = load_config(config_path)
-    prepare_output_dir(output_dir, overwrite)
     anchor_rows = validate_source_anchors(config, repo_root)
-    package_manifest = validate_package_manifest(package_manifest_path, self_test, repo_root)
+    package_manifest = validate_package_manifest(package_manifest_path, self_test, repo_root,
+                                                expected_package_commit, expected_package_manifest_sha256)
+    source_contract = verify_source(source_root, config, self_test)
+    prepare_output_dir(output_dir, overwrite)
+    if self_test:
+        # Keep genuine upstream fixture inputs, never reconstruct them from
+        # the outputs which the validator is supposed to check.
+        snapshot = output_dir / "_selftest_source"
+        shutil.copytree(source_root, snapshot)
+        source_root = snapshot
+        source_contract = verify_source(source_root, config, True)
     write_frame(output_dir / "n_frontend3b_source_anchor_audit.csv", pd.DataFrame(anchor_rows))
     write_json(output_dir / "n_frontend3b_package_manifest.json", package_manifest)
 
@@ -856,6 +848,8 @@ def run_experiment(
             "registry_fingerprint": registry_fingerprint,
             "protocol_config_sha256": protocol_sha,
             "inputs": frozen_inputs,
+            "self_test": self_test,
+            "input_sha256": source_contract["input_sha256"],
         },
     )
 
@@ -871,25 +865,11 @@ def run_experiment(
             source_dir,
             variant_output,
             config,
+            source_contract,
         )
-        if self_test:
-            source_snapshot = variant_output / "_selftest_source_transitions.parquet"
-            exposure_snapshot = variant_output / "_selftest_source_exposure.csv"
-            pd.read_parquet(
-                source_dir / "frontend" / "n_frontend1_transitions.parquet"
-            ).to_parquet(source_snapshot, index=False)
-            shutil.copyfile(source_dir / "past_only_route_exposure.csv", exposure_snapshot)
-            manifest_path = variant_output / "n_frontend3b_variant_manifest.json"
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            manifest["source_transition_path"] = str(source_snapshot)
-            manifest["source_transition_sha256"] = sha256_file(source_snapshot)
-            manifest["source_exposure_path"] = str(exposure_snapshot)
-            manifest["source_exposure_sha256"] = sha256_file(exposure_snapshot)
-            manifest["self_test_source_snapshot"] = True
-            write_json(manifest_path, manifest)
         variant_results.append(variant_result)
 
-    root_lineage = pd.read_csv(root_lineage_path)
+    root_lineage = source_contract["truth"]
     truth_observations_by_variant: dict[tuple[str, str], set[str]] = {}
     for (pair_id, variant_role), frame in root_lineage.groupby(["pair_id", "variant_role"]):
         truth_observations_by_variant[(pair_id, variant_role)] = {
@@ -1094,7 +1074,7 @@ def run_experiment(
     safety = pd.DataFrame(safety_rows)
     restoration = pd.DataFrame(restoration_rows)
     strict_replay = pd.DataFrame(strict_replay_rows)
-    gray_count = sum(int((result["assignments"]["final_route"] == FINAL_GRAY).sum()) for result in variant_results)
+    gray_count = sum(int((result["assignments"]["eligibility_assignment"] == ASSIGN_GRAY).sum()) for result in variant_results)
     suppressed_attack_count = int(safety["attack_suppressed"].sum())
     expected_visible_traceable = bool(safety.loc[safety["expected_visible"], "traceable_after_routing"].all())
     delta = pd.read_csv(delta_path)
@@ -1291,6 +1271,14 @@ def run_experiment(
     (output_dir / "n_frontend3b_report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
     if not overall_pass:
         raise SystemExit("N-FRONTEND-3B stop-loss: one or more hard gates failed")
+    from validate_n_frontend3b_background_suppression import validate, json_ready
+    validation = validate(output_dir, config_path, allow_self_test=self_test)
+    write_json(output_dir / "n_frontend3b_validation.json", json_ready(validation))
+    if not validation["validation_passed"]:
+        summary["overall_pass"] = False
+        summary["allowed_claim"] = None
+        write_json(output_dir / "n_frontend3b_summary.json", summary)
+        raise ValueError(f"persisted output validation failed: {validation['errors']}")
     return summary
 
 
@@ -1441,6 +1429,25 @@ def main() -> None:
     if args.self_test:
         run_self_test(config_path, Path(args.output_dir).resolve() if args.output_dir else None)
         return
+    if args.preflight_only:
+        repo = Path(__file__).resolve().parents[1]
+        if config_path != (repo / DEFAULT_CONFIG).resolve():
+            raise ValueError("formal configuration must be the receipt-bound packaged config")
+        config = load_config(config_path)
+        validate_source_anchors(config, repo)
+        validate_package_manifest(Path(args.package_manifest) if args.package_manifest else None,
+                                  False, repo, args.expected_package_commit,
+                                  args.expected_package_manifest_sha256)
+        context = verify_source(Path(args.n_frontend2b_root), config)
+        for pair, variant, directory in discover_variants(Path(args.n_frontend2b_root)):
+            truth = context["truth"]
+            verify_variant_frames(pd.read_parquet(directory / "frontend/n_frontend1_transitions.parquet"),
+                                  pd.read_parquet(directory / "frontend/n_frontend1_micro_events.parquet"),
+                                  pd.read_csv(directory / "phase_survival_lineage.csv"),
+                                  truth[(truth.pair_id == pair) & (truth.variant_role == variant)],
+                                  context["episode_start_ts"], context["episode_end_ts"])
+        print("formal_preflight=passed")
+        return
     if not args.n_frontend2b_root or not args.output_dir:
         raise ValueError("--n-frontend2b-root and --output-dir are required")
     summary = run_experiment(
@@ -1450,6 +1457,8 @@ def main() -> None:
         Path(args.package_manifest).resolve() if args.package_manifest else None,
         args.overwrite,
         False,
+        args.expected_package_commit,
+        args.expected_package_manifest_sha256,
     )
     print(json.dumps(summary, sort_keys=True))
 

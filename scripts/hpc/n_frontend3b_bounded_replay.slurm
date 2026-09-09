@@ -19,6 +19,8 @@ PAIR_ID=${N_FRONTEND3B_PAIR_ID:?N_FRONTEND3B_PAIR_ID is required}
 SOURCE_2B_ROOT=${N_FRONTEND3B_SOURCE_2B_ROOT:?N_FRONTEND3B_SOURCE_2B_ROOT is required}
 JOB_ID=${SLURM_JOB_ID:?SLURM_JOB_ID is required}
 PARTITION=${SLURM_JOB_PARTITION:?SLURM_JOB_PARTITION is required}
+EXPECTED_COMMIT=${N_FRONTEND3B_PACKAGE_COMMIT:?Package commit receipt is required}
+EXPECTED_MANIFEST=${N_FRONTEND3B_MANIFEST_SHA256:?Package manifest receipt is required}
 
 for value in "$PAIR_ID" "$PARTITION" "$JOB_ID"; do
   [[ "$value" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid identifier: $value" >&2; exit 2; }
@@ -64,6 +66,8 @@ apptainer exec "${COMMON_BIND[@]}" "$IMG" \
   --n-frontend2b-root "/data_store/$SOURCE_REL" \
   --config /work/configs/n_frontend3b_background_suppression_v01.json \
   --package-manifest /work/N_FRONTEND3B_PACKAGE_MANIFEST.json \
+  --expected-package-commit "$EXPECTED_COMMIT" \
+  --expected-package-manifest-sha256 "$EXPECTED_MANIFEST" \
   --output-dir "/data_store/$OUTPUT_REL/result"
 
 apptainer exec "${COMMON_BIND[@]}" "$IMG" \

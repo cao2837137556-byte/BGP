@@ -10,6 +10,9 @@ AMD_SOURCE=${2:?AMD N-FRONTEND-2B source root is required}
 INTEL_SOURCE=${3:?Intel N-FRONTEND-2B source root is required}
 JOB_SCRIPT=$REPO/scripts/hpc/n_frontend3b_bounded_replay.slurm
 SUBMIT_SCRIPT=$REPO/scripts/hpc/submit_n_frontend3b_bounded_replay_dual.sh
+EXPECTED_COMMIT=${N_FRONTEND3B_PACKAGE_COMMIT:?Set from the local bundle receipt}
+EXPECTED_MANIFEST=${N_FRONTEND3B_MANIFEST_SHA256:?Set from the local bundle receipt}
+[[ "$EXPECTED_COMMIT" =~ ^[0-9a-f]{40}$ && "$EXPECTED_MANIFEST" =~ ^[0-9a-f]{64}$ ]] || exit 2
 
 [[ "$PAIR_ID" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid pair ID" >&2; exit 2; }
 for SOURCE in "$AMD_SOURCE" "$INTEL_SOURCE"; do
@@ -50,6 +53,7 @@ fi
 
 module purge
 module load apps/apptainer/1.4.5-2
+mkdir -p "$BASE/tmp"
 COMMON_BIND=(--bind "$REPO":/work --bind "$DATA_ROOT":/data_store --bind "$BASE/tmp":/hpc_tmp)
 apptainer exec "${COMMON_BIND[@]}" "$IMG" /opt/venv/bin/python -m py_compile \
   /work/scripts/run_n_frontend3b_background_suppression.py \
@@ -63,6 +67,21 @@ apptainer exec "${COMMON_BIND[@]}" "$IMG" /opt/venv/bin/python \
   --config /work/configs/n_frontend3b_background_suppression_v01.json
 apptainer exec "${COMMON_BIND[@]}" "$IMG" /opt/venv/bin/python \
   /work/scripts/validate_n_frontend3b_dual_parity.py --self-test
+apptainer exec "${COMMON_BIND[@]}" "$IMG" /opt/venv/bin/python \
+  /work/scripts/test_n_frontend3b_integrity.py
+
+# Use the same package and actual-source contract as the formal runner before
+# either real sbatch submission. These are read-only checks of the 2B inputs.
+for SOURCE in "$AMD_SOURCE" "$INTEL_SOURCE"; do
+  SOURCE_REL=${SOURCE#"$DATA_ROOT"/}
+  apptainer exec "${COMMON_BIND[@]}" "$IMG" /opt/venv/bin/python \
+    /work/scripts/run_n_frontend3b_background_suppression.py --preflight-only \
+    --n-frontend2b-root "/data_store/$SOURCE_REL" \
+    --config /work/configs/n_frontend3b_background_suppression_v01.json \
+    --package-manifest /work/N_FRONTEND3B_PACKAGE_MANIFEST.json \
+    --expected-package-commit "$EXPECTED_COMMIT" \
+    --expected-package-manifest-sha256 "$EXPECTED_MANIFEST"
+done
 
 for SPEC in "amd:$AMD_SOURCE" "intel:$INTEL_SOURCE"; do
   PARTITION=${SPEC%%:*}

@@ -13,6 +13,16 @@
   "formal_2b_pair_id": "n_frontend2b_20260805T023615Z",
   "formal_2b_registry_fingerprint": "1c14273522bd46a44864526f64cad558d6cf1bbdecc61af9b52f345da2a3a4fc",
   "formal_episode_utc": "2024-04-11T12:00:00Z/2024-04-11T13:00:00Z",
+  "formal_2b_artifact_sha256": {
+    "n_frontend2b_registry_freeze.json": "ff85cde77dad72636467621c9df3df659b2e5aea5dc0ac5a1f6d17038000cc6e",
+    "n_frontend2b_observer_registry.json": "efcb601d636ee1b8835bd9ead0005a63b91e61c841139bfe0ccfb91b8abd31fc",
+    "n_frontend2b_background_cadence_audit.json": "81886c5371544dcd54e9966e7b8c191edc8f5239972d9f9701d376aa8d9ad37f",
+    "n_frontend2b_background_input_manifest.json": "c0bfbf44de96d2e90257739419ba596a9663a92e299429bee17b65fce189d402",
+    "n_frontend2b_truth_provenance_sidecar.csv": "11340b0aa811c80b6a2966165325874dc9bd8dd6763e399e13765451e3f1be82",
+    "n_frontend2b_synthetic_observation_manifest.csv": "c979e90f0b601031bd1f16fcc477826a9045058dba0aa1616e80746e708ad5b1",
+    "n_frontend2b_phase_survival_lineage.csv": "cc1f3bd90766e370822fc36f0e0e8fc689fe2581b491bb2c2a5bdf75442a8fb9",
+    "n_frontend2b_attack_transition_semantic_delta.csv": "fce50e60094abb3ddbba8956efde23b5667bfdb77c7d48fdcf91768f8d7529cc"
+  },
   "suppression_eligibility": {
     "transition_family": "identical_reannouncement",
     "require_equal_non_null_route_signatures": true,

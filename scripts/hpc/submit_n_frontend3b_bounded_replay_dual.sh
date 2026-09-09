@@ -10,12 +10,14 @@ AMD_SOURCE=${3:-$DATA_ROOT/derived/n_frontend2b_bounded_replay_v01/pair=$SOURCE_
 INTEL_SOURCE=${4:-$DATA_ROOT/derived/n_frontend2b_bounded_replay_v01/pair=$SOURCE_PAIR/partition=intel/job=157344/result}
 JOB_SCRIPT=$REPO/scripts/hpc/n_frontend3b_bounded_replay.slurm
 RECORD=$BASE/logs/n_frontend3b_pair_${PAIR_ID}.txt
+export N_FRONTEND3B_PACKAGE_COMMIT=${N_FRONTEND3B_PACKAGE_COMMIT:?Set from the local bundle receipt}
+export N_FRONTEND3B_MANIFEST_SHA256=${N_FRONTEND3B_MANIFEST_SHA256:?Set from the local bundle receipt}
 
 bash "$REPO/scripts/hpc/n_frontend3b_bounded_replay_preflight.sh" \
   "$PAIR_ID" "$AMD_SOURCE" "$INTEL_SOURCE"
 mkdir -p "$BASE/logs"
-COMMIT=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["source_commit"])' "$REPO/N_FRONTEND3B_PACKAGE_MANIFEST.json")
-FINGERPRINT=$(sha256sum "$REPO/N_FRONTEND3B_PACKAGE_MANIFEST.json" | awk '{print $1}')
+COMMIT=$N_FRONTEND3B_PACKAGE_COMMIT
+FINGERPRINT=$N_FRONTEND3B_MANIFEST_SHA256
 {
   echo "pair_id=$PAIR_ID"
   echo "submitted_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
